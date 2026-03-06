@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <title>Đăng ký tài khoản</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <style>
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+      background: linear-gradient(135deg, #eef2ff, #f8fafc);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .card {
+      background: white;
+      width: 100%;
+      max-width: 400px;
+      padding: 32px;
+      border-radius: 16px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.08);
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      text-align: center;
+    }
+
+    p {
+      margin: 0 0 24px;
+      text-align: center;
+      color: #6b7280;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 6px;
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    input {
+      width: 100%;
+      padding: 12px;
+      margin-bottom: 16px;
+      border-radius: 8px;
+      border: 1px solid #d1d5db;
+      font-size: 14px;
+    }
+
+    input:focus {
+      outline: none;
+      border-color: #6366f1;
+      box-shadow: 0 0 0 3px rgba(99,102,241,0.15);
+    }
+
+    button {
+      width: 100%;
+      padding: 12px;
+      border: none;
+      border-radius: 10px;
+      background: #4f46e5;
+      color: white;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #4338ca;
+    }
+
+    .footer {
+      text-align: center;
+      margin-top: 16px;
+      font-size: 14px;
+    }
+
+    .footer a {
+      color: #4f46e5;
+      text-decoration: none;
+      font-weight: 500;
+    }
+
+    .error {
+      color: #dc2626;
+      text-align: center;
+      margin-bottom: 12px;
+      display: none;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="card">
+    <h1>Tạo tài khoản</h1>
+    <p>Đăng ký để bắt đầu mua sắm</p>
+
+    <div id="error" class="error"></div>
+
+    <form id="registerForm">
+      <label>Email</label>
+      <input type="email" id="email" placeholder="email@example.com" required />
+
+      <label>Mật khẩu</label>
+      <input type="password" id="password" placeholder="Ít nhất 6 ký tự" required />
+
+      <label>Nhập lại mật khẩu</label>
+      <input type="password" id="confirm" placeholder="Nhập lại mật khẩu" required />
+
+      <button type="submit">Đăng ký</button>
+    </form>
+
+    <div class="footer">
+      Đã có tài khoản?
+      <a href="/login">Đăng nhập</a>
+    </div>
+  </div>
+
+  <script>
+    const form = document.getElementById("registerForm");
+    const errorBox = document.getElementById("error");
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const email = document.getElementById("email").value.trim();
+      const password = document.getElementById("password").value;
+      const confirm = document.getElementById("confirm").value;
+
+      errorBox.style.display = "none";if (password !== confirm) {
+        errorBox.textContent = "Mật khẩu nhập lại không khớp";
+        errorBox.style.display = "block";
+        return;
+      }
+
+      try {
+        const res = await fetch("/auth/register", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ email, password })
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          errorBox.textContent = data.detail || "Đăng ký thất bại";
+          errorBox.style.display = "block";
+          return;
+        }
+
+        alert("🎉 Đăng ký thành công! Vui lòng đăng nhập.");
+        window.location.href = "/login";
+
+      } catch (err) {
+        errorBox.textContent = "Không kết nối được server";
+        errorBox.style.display = "block";
+      }
+    });
+  </script>
+</body>
+</html>

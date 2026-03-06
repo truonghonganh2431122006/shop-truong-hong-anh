@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>Xác thực Admin</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    * {
+      box-sizing: border-box;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: #0f172a;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #e2e8f0;
+    }
+
+    .card {
+      background: #1e293b;
+      width: 100%;
+      max-width: 400px;
+      padding: 32px;
+      border-radius: 16px;
+      border: 1px solid #334155;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+      text-align: center;
+    }
+
+    .card h1 {
+      margin: 0 0 8px;
+      color: #f8fafc;
+      font-size: 1.5rem;
+    }
+
+    .card p {
+      color: #94a3b8;
+      font-size: 14px;
+      margin-bottom: 24px;
+    }
+
+    .input-group {
+      margin-bottom: 20px;
+      text-align: left;
+    }
+
+    .input-group label {
+      font-size: 13px;
+      color: #cbd5e1;
+      margin-bottom: 6px;
+      display: block;
+    }
+
+    .input-group input {
+      width: 100%;
+      padding: 12px 14px;
+      border-radius: 10px;
+      border: 1px solid #475569;
+      background: #0f172a;
+      color: #f8fafc;
+      font-size: 15px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .input-group input::placeholder {
+      color: #64748b;
+    }
+
+    .input-group input:focus {
+      border-color: #6366f1;
+      box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.25);
+    }
+
+    button {
+      width: 100%;
+      padding: 12px;
+      border: none;
+      border-radius: 10px;
+      background: #6366f1;
+      color: #fff;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    button:hover {
+      background: #4f46e5;
+    }
+
+    button:disabled,
+    button.loading {
+      opacity: 0.7;
+      cursor: not-allowed;
+    }
+
+    #message {
+      margin-top: 16px;
+      font-size: 14px;
+      min-height: 20px;
+    }
+
+    #message.error {
+      color: #f87171;
+    }
+
+    #message.success {
+      color: #34d399;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="card">
+    <h1>Xác thực Admin</h1>
+    <p>Nhập Admin Key để vào trang quản trị</p>
+
+    <div class="input-group">
+      <label for="adminKey">Admin Key</label>
+      <input
+        type="password"
+        id="adminKey"
+        placeholder="Nhập admin key..."
+        autocomplete="off"
+      >
+    </div>
+
+    <input id="adminKey" type="password" placeholder="Nhập Admin Key" />
+    <button onclick="submitKey()">Xác nhận</button>
+
+  </div>
+
+    <script>
+        async function submitKey() {
+        const key = document.getElementById("adminKey").value;
+        const token = localStorage.getItem("access_token");
+
+        if (!token) {
+            window.location.href = "/login";
+            return;
+        }
+
+        const res = await fetch("/auth/admin-verify", {
+            method: "POST",
+            headers: {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer " + token
+            },
+            body: JSON.stringify({ admin_key: key })
+        });
+
+        const data = await res.json();
+
+        if (data.success) {
+            window.location.href = data.redirect;
+        } else {
+            alert(data.message || "Admin key sai");
+        }
+    }
+    </script>
+
+</body>
+</html>

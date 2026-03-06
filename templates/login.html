@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+  <meta charset="UTF-8" />
+  <title>Đăng nhập</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <style>
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+      background: linear-gradient(135deg, #eef2ff, #f8fafc);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .card {
+      background: white;
+      width: 100%;
+      max-width: 400px;
+      padding: 32px;
+      border-radius: 16px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      text-align: center;
+    }
+
+    p {
+      margin: 0 0 24px;
+      text-align: center;
+      color: #6b7280;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 6px;
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    input {
+      width: 100%;
+      padding: 12px;
+      margin-bottom: 14px;
+      border-radius: 8px;
+      border: 1px solid #d1d5db;
+      font-size: 14px;
+    }
+
+    input:focus {
+      outline: none;
+      border-color: #6366f1;
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+    }
+
+    .row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin: 4px 0 14px;
+      font-size: 14px;
+      color: #374151;
+    }
+
+    .row label {
+      margin: 0;
+      font-weight: 400;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+    }
+
+    .row input[type="checkbox"] {
+      width: 16px;
+      height: 16px;
+      margin: 0;
+      accent-color: #4f46e5;
+    }
+
+    button {
+      width: 100%;
+      padding: 12px;
+      border: none;
+      border-radius: 10px;
+      background: #4f46e5;
+      color: white;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: 0.2s ease;
+    }
+
+    button:hover {
+      background: #4338ca;
+    }
+
+    button:disabled {
+      opacity: 0.7;
+      cursor: not-allowed;
+    }
+
+    .footer {
+      text-align: center;
+      margin-top: 16px;
+      font-size: 14px;
+    }
+
+    .footer a {
+      color: #4f46e5;
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    .msg {
+      text-align: center;
+      margin-bottom: 12px;
+      display: none;
+      font-size: 14px;
+      padding: 10px 12px;
+      border-radius: 10px;
+    }
+
+    .msg.error {
+      display: block;
+      color: #991b1b;
+      background: #fee2e2;
+      border: 1px solid #fecaca;
+    }
+
+    .msg.success {
+      display: block;
+      color: #065f46;
+      background: #d1fae5;
+      border: 1px solid #a7f3d0;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="card">
+    <h1>Đăng nhập</h1>
+    <p>Chào mừng bạn quay lại</p>
+
+    <div id="msg" class="msg"></div>
+
+    <form id="loginForm">
+      <label>Email</label>
+      <input type="email" id="email" placeholder="email@example.com" required />
+
+      <label>Mật khẩu</label><input type="password" id="password" placeholder="Nhập mật khẩu" required />
+
+      <div class="row">
+        <label>
+          <input type="checkbox" id="showPw" />
+          Hiện mật khẩu
+        </label>
+      </div>
+
+      <button type="submit" id="loginBtn">Đăng nhập</button>
+      <div id="error-message" style="color: red; margin-top: 10px; text-align: center;"></div>
+    </form>
+
+    <div class="footer">
+      Chưa có tài khoản?
+      <a href="/register">Đăng ký</a>
+    </div>
+  </div>
+
+  <script>
+    // Xóa token cũ
+    localStorage.clear();
+
+    const form = document.getElementById("loginForm");
+    const msg = document.getElementById("msg");
+    const loginBtn = document.getElementById("loginBtn");
+
+    form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        msg.style.display = "none";
+
+        const email = document.getElementById("email").value.trim();
+        const password = document.getElementById("password").value;
+
+        loginBtn.disabled = true;
+        loginBtn.textContent = "Đang đăng nhập...";
+
+        try {
+            const res = await fetch("/auth/login", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ email, password })
+            });
+
+            const data = await res.json();
+
+            if (data.success === true) {
+                // Lưu token vào máy
+                localStorage.setItem("access_token", data.access_token);
+                // CHUYỂN TRANG THEO LỆNH SERVER
+                window.location.href = data.redirect;
+            } else {
+                msg.textContent = data.message || "Lỗi đăng nhập";
+                msg.className = "msg error";
+                msg.style.display = "block";
+                loginBtn.disabled = false;
+                loginBtn.textContent = "Đăng nhập";
+            }
+        } catch (err) {
+            console.error(err);
+            loginBtn.disabled = false;
+            loginBtn.textContent = "Đăng nhập";
+        }
+    }); // Đảm bảo đóng ngoặc đúng ở đây
+</script>
+</body>
+
+</html>

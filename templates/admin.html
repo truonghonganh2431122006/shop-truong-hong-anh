@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+  <meta charset="UTF-8" />
+  <title>Admin Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script>
+    // 1. Khai báo token ở ngoài cùng để tất cả các hàm bên dưới đều dùng được (Hết lỗi gạch đỏ)
+    const token = localStorage.getItem("access_token");
+
+    // 2. Kiểm tra quyền ngay khi vào trang
+    async function checkAuth() {
+      if (!token) {
+        window.location.href = "/login";
+        return;
+      }
+      try {
+        const res = await fetch("/me", {
+          headers: { "Authorization": "Bearer " + token }
+        });
+        const data = await res.json();
+
+        // Nếu không phải ADMIN thì đẩy sang shop
+        if (data.role.toUpperCase() !== "ADMIN") {
+          window.location.href = "/shop";
+        }
+      } catch (err) {
+        window.location.href = "/login";
+      }
+    }
+    checkAuth();
+  </script>
+
+  <style>
+    body {
+      margin: 0;
+      font-family: sans-serif;
+      background: #f3f4f6;
+    }
+
+    header {
+      background: #111827;
+      color: white;
+      padding: 16px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .container {
+      max-width: 1100px;
+      margin: 24px auto;
+      padding: 0 16px;
+    }
+
+    .card {
+      background: white;
+      border-radius: 12px;
+      padding: 24px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+
+    th,
+    td {
+      padding: 12px;
+      text-align: left;
+      border-bottom: 1px solid #eee;
+    }
+
+    .status-active {
+      color: green;
+      font-weight: bold;
+    }
+
+    .status-banned {
+      color: red;
+      font-weight: bold;
+    }
+
+    .btn {
+      padding: 6px 12px;
+      cursor: pointer;
+      border: none;
+      border-radius: 4px;
+      margin-right: 5px;
+    }
+
+    .btn-ban {
+      background: #f59e0b;
+      color: white;
+    }
+
+    .btn-unban {
+      background: #10b981;
+      color: white;
+    }
+
+    .btn-delete {
+      background: #ef4444;
+      color: white;
+    }
+
+    .logout {
+      background: #ef4444;
+      color: white;
+      border: none;
+      padding: 8px 15px;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <h1>Admin Control Panel</h1>
+    <button class="logout" onclick="logout()">Đăng xuất</button>
+  </header>
+
+  <div class="container">
+    <div class="card">
+      <h2>Quản lý người dùng</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Email</th>
+            <th>Quyền</th>
+            <th>Trạng thái</th>
+            <th>Thao tác</th>
+          </tr>
+        </thead>
+        <tbody id="userTable">
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    // Hàm lấy danh sách User
+    async function loadUsers() {
+      try {
+        const res = await fetch("/admin/users", {
+          headers: { "Authorization": "Bearer " + token }
+        });
+        const users = await res.json();
+        const tbody = document.getElementById("userTable");
+        tbody.innerHTML = "";
+
+        users.forEach(u => {
+          const row = `
+            <tr>
+              <td>${u.email}</td>
+              <td>${u.role}</td>
+              <td class="${u.status === 'BANNED' ? 'status-banned' : 'status-active'}">${u.status}</td>
+              <td>
+                ${u.status === 'ACTIVE'
+              ? `<button class="btn btn-ban" onclick="updateStatus('${u.email}', 'BANNED')">Khóa</button>`
+              : `<button class="btn btn-unban" onclick="updateStatus('${u.email}', 'ACTIVE')">Mở khóa</button>`
+            }
+                <button class="btn btn-delete" onclick="deleteUser('${u.email}')">Xóa</button>
+              </td>
+            </tr>
+          `;
+          tbody.innerHTML += row;
+        });
+      } catch (err) {
+        console.error("Lỗi tải danh sách:", err);
+      }
+    }
+
+    async function updateStatus(email, status) {
+      const path = status === 'BANNED' ? '/admin/ban' : '/admin/unban';
+      await fetch(path, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer " + token
+        },
+        body: JSON.stringify({ email })
+      });
+      loadUsers();
+    }
+
+    async function deleteUser(email) {
+      if (!confirm(`CẢNH BÁO: Bạn có chắc muốn XÓA VĨNH VIỄN tài khoản ${email}?`)) return;
+
+      try {
+        const res = await fetch("/admin/delete", {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer " + token
+          },
+          body: JSON.stringify({ email: email }) // Gửi key "email" cho khớp với Backend
+        });
+
+        const result = await res.json();
+
+        if (res.ok) {
+          alert("Đã xóa thành công!");
+          loadUsers(); // Tải lại danh sách ngay lập tức
+        } else {
+          // Hiện lỗi từ server ví dụ: "Không thể tự xóa admin"
+          alert("Lỗi: " + (result.detail || "Không thể xóa"));
+        }
+      } catch (err) {
+        console.error("Lỗi:", err);
+        alert("Có lỗi kết nối đến Server!");
+      }
+    }
+
+    function logout() {
+      localStorage.clear();
+      window.location.href = "/login";
+    }
+
+    // Gọi tải dữ liệu khi trang web load xong
+    loadUsers();
+  </script>
+</body>
+
+</html>
