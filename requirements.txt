@@ -5,3 +5,4 @@ jinja2
 python-multipart
 pydantic==2.8.2
 pydantic-core==2.20.1
+passlib[bcrypt]
