@@ -27975,27 +27975,117 @@
                         html += '<td style="color:#d0021c;font-weight:bold;white-space:nowrap;text-align:right">' + formatPrice(lt) + '</td>';
                         html += '<td><button class="btn-remove" onclick="window._removeFromCart(' + i + ')">✕ Xóa</button></td></tr>';
                     });
-                    html += '</table><div class="cart-total">Tổng cộng: ' + formatPrice(total) + '</div>';
+                    // 1. Phần danh sách sản phẩm và tổng tiền (giữ nguyên logic của bạn)
+                    html += '</table><div class="cart-total" style="font-weight:bold; margin-bottom:10px;">Tổng cộng: ' + formatPrice(total) + '</div>';
                     html += '<button onclick="window._clearCart()" style="background:none;border:1px solid #d0021c;color:#d0021c;padding:8px 16px;border-radius:6px;cursor:pointer;font-size:13px;margin-bottom:16px">🗑 Xóa toàn bộ giỏ hàng</button>';
-                    html += '<h3 style="margin:16px 0 8px;font-size:16px">Thông tin đặt hàng</h3><div class="cart-form">';
-                    html += '<input type="text" id="coName" placeholder="Họ và tên" required>';
-                    html += '<input type="tel" id="coPhone" placeholder="Số điện thoại" required>';
-                    html += '<input type="text" id="coAddress" placeholder="Địa chỉ giao hàng" required>';
-                    html += '<button class="btn-checkout" onclick="window._confirmOrder()">✓ Xác nhận đặt hàng</button></div>';
+
+                    html += '<h3 style="margin:16px 0 8px;font-size:16px">Thông tin đặt hàng</h3>';
+                    html += '<div class="cart-form" style="display:flex; flex-direction:column; gap:10px;">';
+
+                    // Họ tên & Số điện thoại
+                    html += '<input type="text" id="coName" placeholder="Họ và tên" required style="padding:10px; border:1px solid #ddd; border-radius:4px;">';
+                    html += '<input type="tel" id="coPhone" placeholder="Số điện thoại" required style="padding:10px; border:1px solid #ddd; border-radius:4px;">';
+
+                    // 1. CHỌN TỈNH (3 tỉnh tạm thời)
+                    html += '<select id="province" style="padding:10px; border:1px solid #ddd; border-radius:4px;">';
+                    html += '  <option value="">-- Chọn Tỉnh / Thành phố --</option>';
+                    html += '  <option value="Hà Nội">Hà Nội</option>';
+                    html += '  <option value="TP. Hồ Chí Minh">TP. Hồ Chí Minh</option>';
+                    html += '  <option value="Thái Nguyên">Thái Nguyên</option>';
+                    html += '</select>';
+
+                    // 2. NHẬP HUYỆN & XÃ (Thay đổi cấu trúc địa chỉ)
+                    html += '<input type="text" id="coDistrict" placeholder="Quận / Huyện" required style="padding:10px; border:1px solid #ddd; border-radius:4px;">';
+                    html += '<input type="text" id="coWard" placeholder="Phường / Xã" required style="padding:10px; border:1px solid #ddd; border-radius:4px;">';
+                    html += '<input type="text" id="coAddress" placeholder="Số nhà, tên đường cụ thể" required style="padding:10px; border:1px solid #ddd; border-radius:4px;">';
+
+                    // 3. PHƯƠNG THỨC THANH TOÁN
+                    html += '<h3 style="margin:16px 0 8px;font-size:16px">Phương thức thanh toán</h3>';
+                    html += '<select id="paymentMethod" onchange="toggleQRCode()" style="padding:10px; border:1px solid #ddd; border-radius:4px;">';
+                    html += '  <option value="cod">Thanh toán khi nhận hàng (COD)</option>';
+                    html += '  <option value="bank">Chuyển khoản ngân hàng</option>';
+                    html += '  <option value="wallet">Ví điện tử (Momo/ZaloPay)</option>';
+                    html += '</select>';
+
+                    // KHỐI HIỂN THỊ ẢNH QR (Mặc định ẩn)
+                    html += '<div id="qrCodeArea" style="display:none; text-align:center; margin-top:10px; padding:10px; border:1px dashed #ccc;">';
+                    html += '  <p style="font-size:12px; color:#666;">Vui lòng quét mã QR để thanh toán:</p>';
+                    html += '  <img id="imgQR" src="/static/QR.jpg" alt="QR Thanh toán" style="width:150px; height:150px;">';
+                    html += '</div>';
+
+                    html += '<button class="btn-checkout" onclick="window._confirmOrder()" style="margin-top:10px; background:#d0021c; color:#fff; border:none; padding:12px; border-radius:4px; cursor:pointer; font-weight:bold;">✓ Xác nhận đặt hàng</button>';
+                    html += '</div>';
+
                     el.innerHTML = html;
                 }
 
-                window._removeFromCart = removeFromCart;
-                window._changeQty = changeQty;
-                window._clearCart = clearCart;
+                window.toggleQRCode = function() {
+                var method = document.getElementById("paymentMethod").value;
+                var qrArea = document.getElementById("qrCodeArea");
+                var imgQR = document.getElementById("imgQR");
+                
+                if (method === "bank" || method === "wallet") {
+                    qrArea.style.display = "block";
+                    // Bạn có thể thay đổi link ảnh QR tương ứng tại đây
+                    if(method === "bank") {
+                        imgQR.src = "/static/QR.jpg"; 
+                    } else {
+                        imgQR.src = "/static/QR.jpg";
+                    }
+                } else {
+                    qrArea.style.display = "none";
+                }
+
                 window._confirmOrder = function () {
+                    // 1. Lấy tất cả giá trị từ các ô nhập liệu mới
                     var name = (document.getElementById('coName') || {}).value || '';
                     var phone = (document.getElementById('coPhone') || {}).value || '';
-                    var addr = (document.getElementById('coAddress') || {}).value || '';
-                    if (!name.trim() || !phone.trim() || !addr.trim()) { alert('Vui lòng điền đầy đủ thông tin!'); return; }
-                    cart = []; updateCartCount();
+                    var province = (document.getElementById('province') || {}).value || '';
+                    var district = (document.getElementById('coDistrict') || {}).value || '';
+                    var ward = (document.getElementById('coWard') || {}).value || '';
+                    var address = (document.getElementById('coAddress') || {}).value || '';
+                    var method = (document.getElementById('paymentMethod') || {}).value || '';
+
+                    // 2. Kiểm tra xem khách đã nhập đủ chưa
+                    if (!name.trim() || !phone.trim() || !province || !district.trim() || !ward.trim() || !address.trim()) { 
+                        alert('Vui lòng điền đầy đủ thông tin giao hàng!'); 
+                        return; 
+                    }
+
+                    // Ghép địa chỉ đầy đủ thành 1 chuỗi để hiển thị
+                    var fullAddress = address.trim() + ", " + ward.trim() + ", " + district.trim() + ", " + province;
+                    
+                    // Chuyển mã phương thức thanh toán sang tên hiển thị
+                    var methodText = "Thanh toán khi nhận hàng (COD)";
+                    if (method === "bank") methodText = "Chuyển khoản ngân hàng";
+                    if (method === "wallet") methodText = "Ví điện tử (Momo/ZaloPay)";
+
+                    // 3. Xóa giỏ hàng sau khi đặt thành công
+                    if (typeof cart !== 'undefined') {
+                        cart = []; 
+                    }
+                    updateCartCount();
+                    localStorage.removeItem('cart'); 
+
+                    // 4. Hiển thị thông báo thành công với ĐẦY ĐỦ thông tin mới
                     var el = document.getElementById('cartContent');
-                    if (el) el.innerHTML = '<div class="cart-success"><h3>✓ Đặt hàng thành công!</h3><p>Cảm ơn <b>' + name.trim() + '</b>. Đơn hàng sẽ được giao đến:<br><b>' + addr.trim() + '</b></p><p>Chúng tôi sẽ liên hệ qua SĐT: <b>' + phone.trim() + '</b></p><button class="btn-checkout" onclick="closeCartModal()" style="margin-top:16px">Đóng</button></div>';
+                    if (el) {
+                        el.innerHTML = `
+                            <div class="cart-success" style="text-align:center; padding:10px;">
+                                <h3 style="color:green; font-size:20px; margin-bottom:15px;">✓ Đặt hàng thành công!</h3>
+                                <p style="margin-bottom:10px;">Cảm ơn khách hàng: <b>${name.trim()}</b></p>
+                                
+                                <div style="text-align:left; background:#fff; padding:15px; border-radius:8px; border:1px solid #eee; font-size:14px; line-height:1.6;">
+                                    <p style="margin:0;">📍 <b>Địa chỉ:</b> ${fullAddress}</p>
+                                    <p style="margin:5px 0 0;">📞 <b>SĐT:</b> ${phone.trim()}</p>
+                                    <p style="margin:5px 0 0;">💳 <b>Thanh toán:</b> ${methodText}</p>
+                                </div>
+
+                                <p style="font-size:13px; color:#666; margin-top:15px;">Chúng tôi sẽ sớm liên hệ để xác nhận đơn hàng.</p>
+                                <button class="btn-checkout" onclick="closeCartModal()" style="margin-top:15px; width:100%; background:#333;">Đóng</button>
+                            </div>
+                        `;
+                    }
                 };
                 window.closeCartModal = function () { var o = document.getElementById('cartOverlay'); if (o) o.classList.remove('active'); };
                 function openCartModal() { renderCart(); var o = document.getElementById('cartOverlay'); if (o) o.classList.add('active'); }
