@@ -28010,7 +28010,7 @@
                     // KHỐI HIỂN THỊ ẢNH QR (Mặc định ẩn)
                     html += '<div id="qrCodeArea" style="display:none; text-align:center; margin-top:10px; padding:10px; border:1px dashed #ccc;">';
                     html += '  <p style="font-size:12px; color:#666;">Vui lòng quét mã QR để thanh toán:</p>';
-                    html += '  <img id="imgQR" src="/static/QR.jpg" alt="QR Thanh toán" style="width:150px; height:150px;">';
+                    html += '  <img id="imgQR" src="static/QR.jpg" alt="QR Thanh toán" style="width:150px; height:150px;">';
                     html += '</div>';
 
                     html += '<button class="btn-checkout" onclick="window._confirmOrder()" style="margin-top:10px; background:#d0021c; color:#fff; border:none; padding:12px; border-radius:4px; cursor:pointer; font-weight:bold;">✓ Xác nhận đặt hàng</button>';
@@ -28028,9 +28028,9 @@
                     qrArea.style.display = "block";
                     // Bạn có thể thay đổi link ảnh QR tương ứng tại đây
                     if(method === "bank") {
-                        imgQR.src = "/static/QR.jpg"; 
+                        imgQR.src = "static/QR.jpg"; 
                     } else {
-                        imgQR.src = "/static/QR.jpg";
+                        imgQR.src = "static/QR.jpg";
                     }
                 } else {
                     qrArea.style.display = "none";
