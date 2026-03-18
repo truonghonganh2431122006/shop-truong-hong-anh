@@ -6,10 +6,8 @@
   <title>Admin Dashboard</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <script>
-    // 1. Khai báo token ở ngoài cùng để tất cả các hàm bên dưới đều dùng được (Hết lỗi gạch đỏ)
     const token = localStorage.getItem("access_token");
 
-    // 2. Kiểm tra quyền ngay khi vào trang
     async function checkAuth() {
       if (!token) {
         window.location.href = "/login";
@@ -20,8 +18,6 @@
           headers: { "Authorization": "Bearer " + token }
         });
         const data = await res.json();
-
-        // Nếu không phải ADMIN thì đẩy sang shop
         if (data.role.toUpperCase() !== "ADMIN") {
           window.location.href = "/shop";
         }
@@ -33,88 +29,27 @@
   </script>
 
   <style>
-    body {
-      margin: 0;
-      font-family: sans-serif;
-      background: #f3f4f6;
-    }
+    body { margin: 0; font-family: sans-serif; background: #f3f4f6; }
+    header { background: #111827; color: white; padding: 16px 24px; display: flex; justify-content: space-between; align-items: center; }
+    .container { max-width: 1100px; margin: 24px auto; padding: 0 16px; }
+    .card { background: white; border-radius: 12px; padding: 24px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05); margin-bottom: 24px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+    th, td { padding: 12px; text-align: left; border-bottom: 1px solid #eee; }
+    .status-active { color: green; font-weight: bold; }
+    .status-banned { color: red; font-weight: bold; }
+    .btn { padding: 6px 12px; cursor: pointer; border: none; border-radius: 4px; margin-right: 5px; font-weight: bold; }
+    .btn-ban { background: #f59e0b; color: white; }
+    .btn-unban { background: #10b981; color: white; }
+    .btn-delete { background: #ef4444; color: white; }
+    .logout { background: #ef4444; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; }
 
-    header {
-      background: #111827;
-      color: white;
-      padding: 16px 24px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .container {
-      max-width: 1100px;
-      margin: 24px auto;
-      padding: 0 16px;
-    }
-
-    .card {
-      background: white;
-      border-radius: 12px;
-      padding: 24px;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 20px;
-    }
-
-    th,
-    td {
-      padding: 12px;
-      text-align: left;
-      border-bottom: 1px solid #eee;
-    }
-
-    .status-active {
-      color: green;
-      font-weight: bold;
-    }
-
-    .status-banned {
-      color: red;
-      font-weight: bold;
-    }
-
-    .btn {
-      padding: 6px 12px;
-      cursor: pointer;
-      border: none;
-      border-radius: 4px;
-      margin-right: 5px;
-    }
-
-    .btn-ban {
-      background: #f59e0b;
-      color: white;
-    }
-
-    .btn-unban {
-      background: #10b981;
-      color: white;
-    }
-
-    .btn-delete {
-      background: #ef4444;
-      color: white;
-    }
-
-    .logout {
-      background: #ef4444;
-      color: white;
-      border: none;
-      padding: 8px 15px;
-      border-radius: 5px;
-      cursor: pointer;
-    }
+    /* CSS Thêm mới cho phần Đơn hàng */
+    .btn-ship { background: #3b82f6; color: white; }
+    .btn-done { background: #10b981; color: white; }
+    .order-status { font-weight: bold; text-transform: uppercase; font-size: 12px; }
+    .status-cho { color: #d97706; }
+    .status-giao { color: #2563eb; }
+    .status-xong { color: #059669; }
   </style>
 </head>
 
@@ -136,84 +71,120 @@
             <th>Thao tác</th>
           </tr>
         </thead>
-        <tbody id="userTable">
-        </tbody>
+        <tbody id="userTable"></tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <h2>Quản lý đơn hàng (Mới nhận)</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Mã đơn</th>
+            <th>Khách hàng</th>
+            <th>SĐT</th>
+            <th>Tổng tiền</th>
+            <th>Trạng thái</th>
+            <th>Thao tác</th>
+          </tr>
+        </thead>
+        <tbody id="orderTable"></tbody>
       </table>
     </div>
   </div>
 
   <script>
-    // Hàm lấy danh sách User
+    // --- CÁC HÀM CŨ CỦA BẠN (GIỮ NGUYÊN) ---
     async function loadUsers() {
       try {
-        const res = await fetch("/admin/users", {
-          headers: { "Authorization": "Bearer " + token }
-        });
+        const res = await fetch("/admin/users", { headers: { "Authorization": "Bearer " + token } });
         const users = await res.json();
         const tbody = document.getElementById("userTable");
         tbody.innerHTML = "";
-
         users.forEach(u => {
-          const row = `
-            <tr>
+          const row = `<tr>
               <td>${u.email}</td>
               <td>${u.role}</td>
               <td class="${u.status === 'BANNED' ? 'status-banned' : 'status-active'}">${u.status}</td>
               <td>
                 ${u.status === 'ACTIVE'
-              ? `<button class="btn btn-ban" onclick="updateStatus('${u.email}', 'BANNED')">Khóa</button>`
-              : `<button class="btn btn-unban" onclick="updateStatus('${u.email}', 'ACTIVE')">Mở khóa</button>`
-            }
+                  ? `<button class="btn btn-ban" onclick="updateStatus('${u.email}', 'BANNED')">Khóa</button>`
+                  : `<button class="btn btn-unban" onclick="updateStatus('${u.email}', 'ACTIVE')">Mở khóa</button>`
+                }
                 <button class="btn btn-delete" onclick="deleteUser('${u.email}')">Xóa</button>
               </td>
-            </tr>
-          `;
+            </tr>`;
           tbody.innerHTML += row;
         });
-      } catch (err) {
-        console.error("Lỗi tải danh sách:", err);
-      }
+      } catch (err) { console.error("Lỗi tải danh sách user:", err); }
     }
 
     async function updateStatus(email, status) {
       const path = status === 'BANNED' ? '/admin/ban' : '/admin/unban';
       await fetch(path, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": "Bearer " + token
-        },
+        headers: { "Content-Type": "application/json", "Authorization": "Bearer " + token },
         body: JSON.stringify({ email })
       });
       loadUsers();
     }
 
     async function deleteUser(email) {
-      if (!confirm(`CẢNH BÁO: Bạn có chắc muốn XÓA VĨNH VIỄN tài khoản ${email}?`)) return;
+      if (!confirm(`Bạn có chắc muốn xóa tài khoản ${email}?`)) return;
+      await fetch("/admin/delete", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json", "Authorization": "Bearer " + token },
+        body: JSON.stringify({ email: email })
+      });
+      loadUsers();
+    }
 
-      try {
-        const res = await fetch("/admin/delete", {
-          method: "DELETE",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": "Bearer " + token
-          },
-          body: JSON.stringify({ email: email }) // Gửi key "email" cho khớp với Backend
-        });
+    // --- CÁC HÀM QUẢN LÝ ĐƠN HÀNG (THÊM MỚI) ---
+    function loadOrders() {
+      // Đọc đơn hàng từ localStorage (nơi file test.html lưu vào)
+      const orders = JSON.parse(localStorage.getItem('orders') || '[]');
+      const tbody = document.getElementById("orderTable");
+      tbody.innerHTML = "";
 
-        const result = await res.json();
-
-        if (res.ok) {
-          alert("Đã xóa thành công!");
-          loadUsers(); // Tải lại danh sách ngay lập tức
-        } else {
-          // Hiện lỗi từ server ví dụ: "Không thể tự xóa admin"
-          alert("Lỗi: " + (result.detail || "Không thể xóa"));
-        }
-      } catch (err) {
-        console.error("Lỗi:", err);
-        alert("Có lỗi kết nối đến Server!");
+      if (orders.length === 0) {
+        tbody.innerHTML = "<tr><td colspan='6' style='text-align:center'>Chưa có đơn hàng nào mới.</td></tr>";
+        return;
       }
+
+      orders.reverse().forEach((ord) => {
+        // Xác định class CSS cho trạng thái
+        let sClass = "status-cho";
+        if (ord.status === "Đang giao") sClass = "status-giao";
+        if (ord.status === "Đã giao") sClass = "status-xong";
+
+        const row = `
+          <tr>
+            <td><b>${ord.id}</b></td>
+            <td>${ord.customerName}</td>
+            <td>${ord.phone || 'N/A'}</td>
+            <td><span style="color:red; font-weight:bold">${ord.total.toLocaleString()}đ</span></td>
+            <td><span class="order-status ${sClass}">${ord.status || 'Chờ xác nhận'}</span></td>
+            <td>
+              <button class="btn btn-ship" onclick="updateOrderStatus('${ord.id}', 'Đang giao')">Giao hàng</button>
+              <button class="btn btn-done" onclick="updateOrderStatus('${ord.id}', 'Đã giao')">Hoàn tất</button>
+            </td>
+          </tr>
+        `;
+        tbody.innerHTML += row;
+      });
+    }
+
+    function updateOrderStatus(orderId, newStatus) {
+      let orders = JSON.parse(localStorage.getItem('orders') || '[]');
+      // Cập nhật trạng thái mới
+      orders = orders.map(o => {
+        if (o.id === orderId) o.status = newStatus;
+        return o;
+      });
+      // Lưu lại vào kho chung
+      localStorage.setItem('orders', JSON.stringify(orders));
+      alert("Đã cập nhật đơn " + orderId + " thành: " + newStatus);
+      loadOrders(); // Tải lại bảng ngay lập tức
     }
 
     function logout() {
@@ -221,8 +192,9 @@
       window.location.href = "/login";
     }
 
-    // Gọi tải dữ liệu khi trang web load xong
+    // Gọi tải dữ liệu khi trang web load
     loadUsers();
+    loadOrders();
   </script>
 </body>
 

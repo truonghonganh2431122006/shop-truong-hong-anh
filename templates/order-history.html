@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <title>Theo dõi đơn hàng - Trương Hồng Anh Shop</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        /* --- CSS Reset & Khung nền --- */
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f0f2f5; margin: 0; padding: 20px; color: #333; }
+        .container { max-width: 650px; margin: auto; padding-bottom: 50px; }
+        
+        /* --- Tiêu đề & Nút quay lại --- */
+        h1 { text-align: center; color: #333; font-size: 24px; margin-top: 0; margin-bottom: 25px; text-transform: uppercase; border-bottom: 3px solid #ffed00; display: inline-block; left: 50%; transform: translateX(-50%); position: relative; padding-bottom: 10px; }
+        .btn-back { display: inline-flex; align-items: center; text-decoration: none; background: #333; color: white; padding: 8px 18px; border-radius: 20px; font-size: 14px; font-weight: bold; margin-bottom: 25px; transition: background 0.3s; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .btn-back:hover { background: #555; }
+        .btn-back i { margin-right: 8px; font-style: normal; }
+
+        /* --- Thẻ Đơn hàng (Card) --- */
+        .order-card { background: white; padding: 20px; margin-bottom: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); border-left: 6px solid #ffed00; transition: transform 0.2s, box-shadow 0.2s; position: relative; overflow: hidden; }
+        .order-card:hover { transform: translateY(-3px); box-shadow: 0 6px 20px rgba(0,0,0,0.1); }
+        
+        /* --- Tiêu đề Đơn hàng & Badge Trạng thái --- */
+        .order-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid #eee; }
+        .order-id { font-size: 18px; font-weight: bold; color: #222; }
+        .order-date { font-size: 12px; color: #999; margin-top: 2px; }
+        
+        .status-badge { padding: 6px 15px; border-radius: 20px; font-size: 11px; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        /* Màu sắc trạng thái nâng cấp */
+        .status-wait { background-color: #fff3cd; color: #856404; border: 1px solid #ffeeba; } /* Chờ xác nhận */
+        .status-ship { background-color: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; } /* Đang giao */
+        .status-done { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; } /* Đã giao */
+
+        /* --- Danh sách Sản phẩm --- */
+        .product-list { margin: 0; padding: 0; list-style: none; }
+        .product-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px dashed #f0f0f0; }
+        .product-item:last-child { border-bottom: none; }
+        .product-name { font-size: 15px; color: #444; flex: 1; padding-right: 15px; }
+        .product-qty { font-size: 14px; color: #888; font-weight: bold; }
+        .product-price { font-size: 15px; color: #333; font-weight: bold; margin-left: 15px; }
+
+        /* --- Phần Tổng tiền --- */
+        .order-footer { text-align: right; margin-top: 20px; padding-top: 15px; border-top: 1px solid #eee; display: flex; justify-content: flex-end; align-items: center; }
+        .total-label { font-size: 14px; color: #777; margin-right: 10px; }
+        .total-amount { font-size: 22px; color: #d0021c; font-weight: bold; }
+
+        /* --- Giao diện khi trống đơn hàng --- */
+        .empty-orders { text-align: center; padding: 60px 20px; background: white; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+        .empty-icon { font-size: 60px; margin-bottom: 20px; display: block; }
+        .empty-text { color: #999; font-size: 16px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="test.html" class="btn-back"><i>←</i>Quay lại mua sắm</a>
+        
+        <h1>Đơn hàng của tôi</h1>
+        
+        <div id="orderList"></div>
+    </div>
+
+    <script>
+        function renderOrders() {
+            // 1. Đọc dữ liệu từ localStorage
+            var orders = JSON.parse(localStorage.getItem('orders') || '[]');
+            var el = document.getElementById('orderList');
+            
+            // 2. Xử lý trường hợp trống đơn hàng
+            if (orders.length === 0) {
+                el.innerHTML = `
+                    <div class="empty-orders">
+                        <span class="empty-icon">📦</span>
+                        <p class="empty-text">Bạn chưa có đơn hàng nào.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            var html = '';
+            // 3. Clone mảng và đảo ngược để đơn mới nhất lên đầu
+            [...orders].reverse().forEach(function(order) {
+                // 4. Xác định class màu sắc trạng thái
+                var statusClass = 'status-wait';
+                if(order.status === 'Đang giao') statusClass = 'status-ship';
+                if(order.status === 'Đã giao') statusClass = 'status-done';
+
+                // 5. Xử lý tổng tiền (tránh lỗi nếu không có dữ liệu)
+                var orderTotal = order.total ? order.total.toLocaleString('vi-VN') : '0';
+
+                // 6. Vẽ Giao diện (HTML)
+                html += '<div class="order-card">';
+                
+                // Header: Mã đơn, ngày đặt, trạng thái
+                html += '<div class="order-header">';
+                html += '<div><div class="order-id">Mã: ' + order.id + '</div>';
+                html += '<div class="order-date">' + order.date + '</div></div>';
+                html += '<span class="status-badge ' + statusClass + '">' + (order.status || 'Chờ xác nhận') + '</span>';
+                html += '</div>';
+
+                // Danh sách sản phẩm (Product List)
+                html += '<ul class="product-list">';
+                order.items.forEach(item => {
+                    // Xử lý giá tiền từng món
+                    var itemPrice = item.price ? (item.price * item.qty).toLocaleString('vi-VN') : '0';
+                    html += '<li class="product-item">';
+                    html += '<span class="product-name">' + item.name + '</span>';
+                    html += '<span class="product-qty">x' + item.qty + '</span>';
+                    html += '<span class="product-price">' + itemPrice + 'đ</span>';
+                    html += '</li>';
+                });
+                html += '</ul>';
+                
+                // Footer: Tổng tiền
+                html += '<div class="order-footer">';
+                html += '<span class="total-label">Tổng thanh toán:</span>';
+                html += '<span class="total-amount">' + orderTotal + 'đ</span>';
+                html += '</div></div>';
+            });
+            el.innerHTML = html;
+        }
+        
+        // Chạy hàm vẽ giao diện khi trang được load
+        renderOrders();
+    </script>
+</body>
+</html>

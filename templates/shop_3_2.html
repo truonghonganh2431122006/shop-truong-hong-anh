@@ -2655,9 +2655,7 @@
         }
 
         [class^="iconlogo-"].visible,
-        [class*="iconlogo-"].visible {
-            background-image: url(//cdnv2.tgdd.vn/webmwg/2024/ContentMwg/images/DMX/Global/Desktop/Logo-webmoi-min.png)
-        }
+        [class*="iconlogo-"].visible
 
         .iconlogo-fashion {
             background-position: -85px -29px
@@ -20670,10 +20668,9 @@
                 <div id="search-result"></div>
             </form>
             <div class="profile">
-                <a href="/lich-su-mua-hang" class="name-order active">
-                    <i></i>
-                    Đăng nhập
-
+                <a href="order-history.html" class="name-order active" style="display: flex; align-items: center; text-decoration: none; background: rgba(255,255,255,0.1); padding: 5px 10px; border-radius: 5px;">
+                    <i class="iconnewglobal-user" style="margin-right: 5px; filter: brightness(0) invert(1);"></i> 
+                    <span style="color: white; font-size: 12px;">Đơn hàng</span>
                 </a>
             </div>
             <a href="/cart" class="header__cart menu-info" id="cart-box">
@@ -20684,7 +20681,7 @@
                 <span>Giỏ hàng</span>
                 <div class="view-cart">
                     <span>Đã thêm vào giỏ hàng</span>
-                    <b onclick="window.location.href=/cart">Xem giỏ hàng</b>
+                    <b onclick="window.location.href='/cart'">Xem giỏ hàng</b>
                 </div>
             </a>
             <a href="javascript:;" class="header__address" onclick="OpenLocation()">
@@ -27961,35 +27958,56 @@
             window._changeQty = changeQty;
             window._clearCart = clearCart;
             window._confirmOrder = function () {
-                // 1. Lấy giá trị từ các ô Input và Select (Dùng đúng ID bạn đã đặt)
+                // --- GIỮ NGUYÊN PHẦN LẤY DỮ LIỆU CŨ CỦA BẠN ---
                 var name = (document.getElementById('coName') || {}).value || '';
                 var phone = (document.getElementById('coPhone') || {}).value || '';
-                var city = (document.getElementById('coCity') || {}).value || ''; // Ô chọn Tỉnh
-                var district = (document.getElementById('coDistrict') || {}).value || ''; // Ô nhập Quận
-                var ward = (document.getElementById('coWard') || {}).value || ''; // Ô nhập Phường
-                var address = (document.getElementById('coAddress') || {}).value || ''; // Ô nhập Số nhà
+                var city = (document.getElementById('coCity') || {}).value || ''; 
+                var district = (document.getElementById('coDistrict') || {}).value || ''; 
+                var ward = (document.getElementById('coWard') || {}).value || ''; 
+                var address = (document.getElementById('coAddress') || {}).value || ''; 
 
-                // 2. Kiểm tra xem khách đã nhập đủ chưa
+                // --- GIỮ NGUYÊN PHẦN KIỂM TRA (VALIDATE) ---
                 if (!name.trim() || !phone.trim() || !city || !district.trim() || !ward.trim() || !address.trim()) { 
                     alert('Vui lòng điền đầy đủ thông tin giao hàng!'); 
                     return; 
                 }
 
-                // 3. Ghép địa chỉ đầy đủ
                 var fullAddr = address.trim() + ", " + ward.trim() + ", " + district.trim() + ", " + city;
-
-                // 4. Lấy phương thức thanh toán
                 var payMethod = document.querySelector('input[name="payMethod"]:checked');
                 var methodText = (payMethod && payMethod.value === 'BANK') ? "Chuyển khoản (QR)" : "Tiền mặt (COD)";
 
-                // 5. Xóa giỏ hàng sau khi đặt thành công
+                // ==========================================
+                // BƯỚC THÊM MỚI: ĐẨY DỮ LIỆU VÀO "KHO" ORDERS
+                // ==========================================
+                var currentCart = JSON.parse(localStorage.getItem('cart') || '[]');
+                if (currentCart.length > 0) {
+                    var orders = JSON.parse(localStorage.getItem('orders') || '[]');
+                    
+                    var newOrder = {
+                        id: 'DH' + Math.floor(Math.random() * 90000 + 10000), 
+                        date: new Date().toLocaleString('vi-VN'),
+                        customerName: name.trim(),
+                        phone: phone.trim(),
+                        address: fullAddr,
+                        items: currentCart, 
+                        total: typeof total !== 'undefined' ? total : 0, 
+                        method: methodText,
+                        status: 'Chờ xác nhận' // Đây là chìa khóa để Admin tác động
+                    };
+
+                    orders.push(newOrder);
+                    localStorage.setItem('orders', JSON.stringify(orders));
+                }
+                // ==========================================
+
+                // --- GIỮ NGUYÊN PHẦN XÓA GIỎ HÀNG ---
                 if (typeof cart !== 'undefined') {
                     cart = []; 
                     localStorage.removeItem('cart');
                 }
                 if (typeof updateCartCount === 'function') updateCartCount();
 
-                // 6. Hiển thị giao diện thành công
+                // --- GIỮ NGUYÊN PHẦN HIỆN GIAO DIỆN THÀNH CÔNG (CHỈ THÊM NÚT THEO DÕI) ---
                 var el = document.getElementById('cartContent');
                 if (el) {
                     el.innerHTML = `
@@ -28003,8 +28021,14 @@
                                 <p style="margin:5px 0 0;">💳 <b>Thanh toán:</b> ${methodText}</p>
                             </div>
 
-                            <p style="font-size:13px; color:#666; margin-top:15px;">Chúng tôi sẽ sớm liên hệ xác nhận đơn hàng.</p>
-                            <button class="btn-checkout" onclick="closeCartModal()" style="margin-top:15px; width:100%; background:#333; color:#fff; border:none; padding:10px; border-radius:4px; cursor:pointer;">Đóng</button>
+                            <div style="margin-top:20px;">
+                                <button onclick="window.location.href='order-history.html'" style="background:#288ad6; color:#fff; border:none; padding:12px 20px; border-radius:4px; cursor:pointer; font-weight:bold; width:100%;">
+                                    🚚 THEO DÕI ĐƠN HÀNG NGAY
+                                </button>
+                                <button onclick="closeCartModal()" style="margin-top:10px; background:none; border:none; color:#666; cursor:pointer; text-decoration:underline;">
+                                    Tiếp tục mua sắm
+                                </button>
+                            </div>
                         </div>
                     `;
                 }
