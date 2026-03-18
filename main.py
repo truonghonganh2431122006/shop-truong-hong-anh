@@ -118,13 +118,15 @@ def shop_p():
 def admin_p():
     return FileResponse(str(BASE_DIR / "templates" / "admin.html"))
 
-# 1. Khai báo thư mục templates (nếu bạn chưa có dòng này)
-templates = Jinja2Templates(directory="templates")
-
-# 2. Tạo đường dẫn để khi gõ /order-history.html nó sẽ mở file trong templates
+# 2. Route cho trang Lịch sử đơn hàng
 @app.get("/order-history.html", response_class=HTMLResponse)
 async def get_order_history(request: Request):
     return templates.TemplateResponse("order-history.html", {"request": request})
+
+# 3. Route cho trang Shop (Để nhấn "Quay lại mua sắm" không bị lỗi 404)
+@app.get("/shop_3_2.html", response_class=HTMLResponse)
+async def get_shop_page(request: Request):
+    return templates.TemplateResponse("shop_3_2.html", {"request": request})
 
 # (Tuỳ chọn) nếu bạn muốn có staff.html thì tạo trong static/
 @app.get("/staff")

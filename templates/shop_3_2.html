@@ -27990,7 +27990,7 @@
                         phone: phone.trim(),
                         address: fullAddr,
                         items: currentCart, 
-                        total: (typeof total !== 'undefined') ? total : 0,
+                        total: (typeof total !== 'undefined') ? total : (typeof finalTotal !== 'undefined' ? finalTotal : 0),
                         method: methodText,
                         status: 'Chờ xác nhận' // Đây là chìa khóa để Admin tác động
                     };
