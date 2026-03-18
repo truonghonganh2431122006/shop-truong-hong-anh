@@ -51,7 +51,7 @@
 </head>
 <body>
     <div class="container">
-        <a href="test.html" class="btn-back"><i>←</i>Quay lại mua sắm</a>
+        <a href="shop_3_2.html" class="btn-back"><i>←</i>Quay lại mua sắm</a>
         
         <h1>Đơn hàng của tôi</h1>
         
@@ -60,65 +60,42 @@
 
     <script>
         function renderOrders() {
-            // 1. Đọc dữ liệu từ localStorage
-            var orders = JSON.parse(localStorage.getItem('orders') || '[]');
+            // Phải dùng đúng tên 'orders' như bên file shop_3_2
+            var data = localStorage.getItem('orders');
+            var orders = JSON.parse(data || '[]');
             var el = document.getElementById('orderList');
             
-            // 2. Xử lý trường hợp trống đơn hàng
             if (orders.length === 0) {
-                el.innerHTML = `
-                    <div class="empty-orders">
-                        <span class="empty-icon">📦</span>
-                        <p class="empty-text">Bạn chưa có đơn hàng nào.</p>
-                    </div>
-                `;
+                el.innerHTML = "<div style='text-align:center; padding:50px;'>📦 Bạn chưa có đơn hàng nào.</div>";
                 return;
             }
-
+    
             var html = '';
-            // 3. Clone mảng và đảo ngược để đơn mới nhất lên đầu
-            [...orders].reverse().forEach(function(order) {
-                // 4. Xác định class màu sắc trạng thái
+            // Dùng slice().reverse() để không làm hỏng dữ liệu gốc
+            orders.slice().reverse().forEach(function(order) {
                 var statusClass = 'status-wait';
                 if(order.status === 'Đang giao') statusClass = 'status-ship';
                 if(order.status === 'Đã giao') statusClass = 'status-done';
-
-                // 5. Xử lý tổng tiền (tránh lỗi nếu không có dữ liệu)
-                var orderTotal = order.total ? order.total.toLocaleString('vi-VN') : '0';
-
-                // 6. Vẽ Giao diện (HTML)
+    
                 html += '<div class="order-card">';
-                
-                // Header: Mã đơn, ngày đặt, trạng thái
-                html += '<div class="order-header">';
-                html += '<div><div class="order-id">Mã: ' + order.id + '</div>';
-                html += '<div class="order-date">' + order.date + '</div></div>';
                 html += '<span class="status-badge ' + statusClass + '">' + (order.status || 'Chờ xác nhận') + '</span>';
-                html += '</div>';
-
-                // Danh sách sản phẩm (Product List)
-                html += '<ul class="product-list">';
-                order.items.forEach(item => {
-                    // Xử lý giá tiền từng món
-                    var itemPrice = item.price ? (item.price * item.qty).toLocaleString('vi-VN') : '0';
-                    html += '<li class="product-item">';
-                    html += '<span class="product-name">' + item.name + '</span>';
-                    html += '<span class="product-qty">x' + item.qty + '</span>';
-                    html += '<span class="product-price">' + itemPrice + 'đ</span>';
-                    html += '</li>';
-                });
-                html += '</ul>';
+                html += '<h3>Mã đơn: ' + order.id + '</h3>';
+                html += '<p>Ngày đặt: ' + order.date + '</p><ul>';
                 
-                // Footer: Tổng tiền
-                html += '<div class="order-footer">';
-                html += '<span class="total-label">Tổng thanh toán:</span>';
-                html += '<span class="total-amount">' + orderTotal + 'đ</span>';
-                html += '</div></div>';
+                // Duyệt danh sách sản phẩm
+                if(order.items) {
+                    order.items.forEach(item => {
+                        html += '<li>' + item.name + ' x' + item.qty + '</li>';
+                    });
+                }
+                
+                html += '</ul><hr><div style="text-align:right">Tổng tiền: <b style="color:red">' + 
+                        (order.total ? order.total.toLocaleString() : '0') + ' ₫</b></div>';
+                html += '</div>';
             });
             el.innerHTML = html;
         }
-        
-        // Chạy hàm vẽ giao diện khi trang được load
+        // Chạy lệnh vẽ ngay khi load trang
         renderOrders();
     </script>
 </body>
