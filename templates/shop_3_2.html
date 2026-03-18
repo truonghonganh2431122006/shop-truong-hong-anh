@@ -27822,8 +27822,19 @@
 
             function addToCart(name, price, img) {
                 var found = false;
-                for (var i = 0; i < cart.length; i++) { if (cart[i].name === name) { cart[i].qty++; found = true; break; } }
+                for (var i = 0; i < cart.length; i++) { 
+                    if (cart[i].name === name) { 
+                        cart[i].qty++; 
+                        found = true; 
+                        break; 
+                    } 
+                }
                 if (!found) cart.push({ name: name, price: price, img: img, qty: 1 });
+
+                // --- DÒNG CẦN THÊM VÀO ĐÂY ---
+                localStorage.setItem('cart', JSON.stringify(cart)); 
+                // ----------------------------
+
                 updateCartCount();
                 showToast('Đã thêm "' + name.substring(0, 40) + (name.length > 40 ? '...' : '') + '" vào giỏ hàng!');
             }
