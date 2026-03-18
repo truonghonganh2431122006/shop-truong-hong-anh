@@ -110,10 +110,11 @@ def login_p():
 def reg_p():
     return FileResponse(str(BASE_DIR / "templates" / "register.html"))
 
-@app.get("/shop")
-def shop_p():
-    return FileResponse(str(BASE_DIR / "templates" / "shop_3_2.html"))
-
+@app.get("/shop", response_class=HTMLResponse)
+async def shop_p(request: Request):
+    # Cách này chuyên nghiệp hơn và hỗ trợ tốt cho CSS/JS đi kèm
+    return templates.TemplateResponse("shop_3_2.html", {"request": request})
+    
 @app.get("/admin")
 def admin_p():
     return FileResponse(str(BASE_DIR / "templates" / "admin.html"))
