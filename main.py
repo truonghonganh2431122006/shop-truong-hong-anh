@@ -3,6 +3,9 @@ from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from fastapi.responses import FileResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi import Request
+from fastapi.responses import HTMLResponse
+from fastapi.templating import Jinja2Templates
 
 from pathlib import Path
 from fastapi.staticfiles import StaticFiles
@@ -114,6 +117,14 @@ def shop_p():
 @app.get("/admin")
 def admin_p():
     return FileResponse(str(BASE_DIR / "templates" / "admin.html"))
+
+# 1. Khai báo thư mục templates (nếu bạn chưa có dòng này)
+templates = Jinja2Templates(directory="templates")
+
+# 2. Tạo đường dẫn để khi gõ /order-history.html nó sẽ mở file trong templates
+@app.get("/order-history.html", response_class=HTMLResponse)
+async def get_order_history(request: Request):
+    return templates.TemplateResponse("order-history.html", {"request": request})
 
 # (Tuỳ chọn) nếu bạn muốn có staff.html thì tạo trong static/
 @app.get("/staff")
