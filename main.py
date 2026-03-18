@@ -110,24 +110,26 @@ def login_p():
 def reg_p():
     return FileResponse(str(BASE_DIR / "templates" / "register.html"))
 
-@app.get("/shop", response_class=HTMLResponse)
-async def shop_p(request: Request):
-    # Cách này chuyên nghiệp hơn và hỗ trợ tốt cho CSS/JS đi kèm
-    return templates.TemplateResponse("shop_3_2.html", {"request": request})
-    
 @app.get("/admin")
 def admin_p():
     return FileResponse(str(BASE_DIR / "templates" / "admin.html"))
 
-# 2. Route cho trang Lịch sử đơn hàng
-@app.get("/order-history.html", response_class=HTMLResponse)
+app = FastAPI()
+
+# DÒNG QUAN TRỌNG NHẤT: Phải đặt ở ngoài các hàm (Global)
+BASE_DIR = Path(__file__).resolve().parent
+templates = Jinja2Templates(directory=str(BASE_DIR / "templates"))
+
+# ... sau đó mới đến các hàm @app.get ...
+
+@app.get("/shop")
+async def shop_p(request: Request):
+    # Bây giờ biến 'templates' đã tồn tại, sẽ không còn lỗi NameError nữa
+    return templates.TemplateResponse("shop_3_2.html", {"request": request})
+
+@app.get("/order-history.html")
 async def get_order_history(request: Request):
     return templates.TemplateResponse("order-history.html", {"request": request})
-
-# 3. Route cho trang Shop (Để nhấn "Quay lại mua sắm" không bị lỗi 404)
-@app.get("/shop_3_2.html", response_class=HTMLResponse)
-async def get_shop_page(request: Request):
-    return templates.TemplateResponse("shop_3_2.html", {"request": request})
 
 # (Tuỳ chọn) nếu bạn muốn có staff.html thì tạo trong static/
 @app.get("/staff")
