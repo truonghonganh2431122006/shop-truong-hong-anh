@@ -9,9 +9,9 @@
     <title>Web bán hàng Trương Hồng Anh</title>
     <script>
         // Nếu không thấy token, đá về trang login ngay
-        if (!localStorage.getItem("access_token")) {
-          window.location.href = "/login";
-        }
+        // if (!localStorage.getItem("access_token")) {
+        //   window.location.href = "/login";
+        // }
     </script>
     <style>
         body {
@@ -27835,26 +27835,55 @@
             function clearCart() { cart = []; updateCartCount(); renderCart(); }
 
             function renderCart() {
-                var el = document.getElementById('cartContent'); if (!el) return;
-                if (cart.length === 0) { el.innerHTML = '<h2>Giỏ hàng</h2><div class="empty-cart">🛒 Giỏ hàng trống</div>'; return; }
-                var total = 0, html = '<h2>Giỏ hàng (' + getTotalQty() + ' sản phẩm)</h2>';
-                html += '<table><tr><th>Sản phẩm</th><th style="text-align:center">SL</th><th style="text-align:right">Giá</th><th></th></tr>';
-                cart.forEach(function (item, i) {
-                    // Ép kiểu về số thực (parseFloat) và số nguyên (parseInt) để tính toán chính xác
-                    var price = parseFloat(item.price) || 0;
-                    var qty = parseInt(item.qty) || 0;
-                    
-                    var lt = price * qty; 
-                    total = Number(total) + lt; // Ép total về số trước khi cộng dồn
+                var el = document.getElementById('cartContent'); 
+                if (!el) return;
 
-                    html += '<tr><td style="max-width:200px;word-break:break-word">' + item.name + '</td>';
-                    html += '<td style="text-align:center;white-space:nowrap"><button onclick="window._changeQty(' + i + ',-1)" style="width:26px;height:26px;border:1px solid #ddd;background:#f5f5f5;cursor:pointer;border-radius:4px;font-size:14px">−</button> <span style="display:inline-block;min-width:24px;text-align:center;font-weight:bold">' + qty + '</span> <button onclick="window._changeQty(' + i + ',1)" style="width:26px;height:26px;border:1px solid #ddd;background:#f5f5f5;cursor:pointer;border-radius:4px;font-size:14px">+</button></td>';
-                    html += '<td style="color:#d0021c;font-weight:bold;white-space:nowrap;text-align:right">' + formatPrice(lt) + '</td>';
-                    html += '<td><button class="btn-remove" onclick="window._removeFromCart(' + i + ')">✕ Xóa</button></td></tr>';
+                if (cart.length === 0) { 
+                    el.innerHTML = '<h2>Giỏ hàng</h2><div class="empty-cart">🛒 Giỏ hàng trống</div>'; 
+                    return; 
+                }
+
+                var total = 0;
+                var html = '<h2>Giỏ hàng (' + getTotalQty() + ' sản phẩm)</h2>';
+
+                html += '<table><tr><th>Sản phẩm</th><th style="text-align:center">SL</th><th style="text-align:right">Giá</th><th></th></tr>';
+
+                cart.forEach(function (item, i) {
+
+                    // ✅ FIX LỖI: xử lý giá có dấu chấm
+                    var price = parseFloat(item.price.toString().replace(/\./g, '')) || 0;
+
+                    // đảm bảo số lượng là số
+                    var qty = parseInt(item.qty) || 0;
+
+                    var lt = price * qty; 
+                    total += lt;
+
+                    html += '<tr>';
+                    html += '<td style="max-width:200px;word-break:break-word">' + item.name + '</td>';
+
+                    html += '<td style="text-align:center;white-space:nowrap">';
+                    html += '<button onclick="window._changeQty(' + i + ',-1)" style="width:26px;height:26px;border:1px solid #ddd;background:#f5f5f5;cursor:pointer;border-radius:4px">−</button> ';
+                    html += '<span style="display:inline-block;min-width:24px;text-align:center;font-weight:bold">' + qty + '</span> ';
+                    html += '<button onclick="window._changeQty(' + i + ',1)" style="width:26px;height:26px;border:1px solid #ddd;background:#f5f5f5;cursor:pointer;border-radius:4px">+</button>';
+                    html += '</td>';
+
+                    html += '<td style="color:#d0021c;font-weight:bold;text-align:right">';
+                    html += formatPrice(lt);
+                    html += '</td>';
+
+                    html += '<td><button class="btn-remove" onclick="window._removeFromCart(' + i + ')">✕ Xóa</button></td>';
+                    html += '</tr>';
                 });
 
-                html += '</table><div class="cart-total">Tổng cộng: ' + formatPrice(total) + '</div>';
-                html += '<button onclick="window._clearCart()" style="background:none;border:1px solid #d0021c;color:#d0021c;padding:8px 16px;border-radius:6px;cursor:pointer;font-size:13px;margin-bottom:16px">🗑 Xóa toàn bộ giỏ hàng</button>';
+                html += '</table>';
+
+                // tổng tiền
+                html += '<div style="text-align:right;font-size:18px;font-weight:bold;margin-top:10px">';
+                html += 'Tổng: ' + formatPrice(total);
+                html += '</div>';
+
+                el.innerHTML = html;
                 
                 html += '<h3 style="margin:16px 0 8px;font-size:16px">Thông tin đặt hàng</h3>';
                 html += '<div class="cart-form" style="display:flex;flex-direction:column;gap:10px">';
