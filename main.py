@@ -76,6 +76,9 @@ app = FastAPI(
     redoc_url="/redoc",
     openapi_url="/openapi.json"
 )
+# --- THÊM 2 DÒNG NÀY VÀO ĐÂY ---
+BASE_DIR = Path(__file__).resolve().parent
+templates = Jinja2Templates(directory=str(BASE_DIR / "templates"))
 
 # CORS (dev)
 app.add_middleware(
@@ -114,21 +117,14 @@ def reg_p():
 def admin_p():
     return FileResponse(str(BASE_DIR / "templates" / "admin.html"))
 
-app = FastAPI()
-
-# DÒNG QUAN TRỌNG NHẤT: Phải đặt ở ngoài các hàm (Global)
-BASE_DIR = Path(__file__).resolve().parent
-templates = Jinja2Templates(directory=str(BASE_DIR / "templates"))
-
 # ... sau đó mới đến các hàm @app.get ...
 
-@app.get("/shop")
-async def shop_p(request: Request):
-    # Bây giờ biến 'templates' đã tồn tại, sẽ không còn lỗi NameError nữa
+@app.get("/shop", response_class=HTMLResponse)
+async def shop_p(request: Request): # Phải có request: Request
     return templates.TemplateResponse("shop_3_2.html", {"request": request})
 
-@app.get("/order-history.html")
-async def get_order_history(request: Request):
+@app.get("/order-history.html", response_class=HTMLResponse)
+async def get_order_history(request: Request): # Phải có request: Request
     return templates.TemplateResponse("order-history.html", {"request": request})
 
 # (Tuỳ chọn) nếu bạn muốn có staff.html thì tạo trong static/
