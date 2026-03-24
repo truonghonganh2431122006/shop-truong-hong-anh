@@ -77,10 +77,9 @@ app = FastAPI(
     openapi_url="/openapi.json"
 )
 
-# --- Tìm đoạn này và sửa lại chính xác ---
+# Đảm bảo đường dẫn luôn đúng dù chạy ở máy hay ở Render
 BASE_DIR = Path(__file__).resolve().parent
-# Chỉ để directory là "templates" nếu file main.py nằm ngoài thư mục templates
-templates = Jinja2Templates(directory="templates")
+templates = Jinja2Templates(directory=str(BASE_DIR / "templates"))
 
 # CORS (dev)
 app.add_middleware(
@@ -121,12 +120,14 @@ def admin_p():
 
 @app.get("/shop", response_class=HTMLResponse)
 async def shop_p(request: Request):
-    # Dùng TemplateResponse thì mới được truyền {"request": request}
-    return templates.TemplateResponse("shop_3_2.html", {"request": request})
+    try:
+        # Dùng TemplateResponse thì cái {"request": request} mới có tác dụng
+        return templates.TemplateResponse("shop_3_2.html", {"request": request})
+    except Exception as e:
+        return HTMLResponse(content=f"Lỗi: Không tìm thấy file. Chi tiết: {e}", status_code=500)
 
 @app.get("/order-history.html", response_class=HTMLResponse)
 async def get_order_history(request: Request):
-    # Tương tự cho trang lịch sử đơn hàng
     return templates.TemplateResponse("order-history.html", {"request": request})
 
 # (Tuỳ chọn) nếu bạn muốn có staff.html thì tạo trong static/
