@@ -1,163 +1,107 @@
 <!DOCTYPE html>
 <html lang="vi">
-
 <head>
   <meta charset="UTF-8" />
-  <title>Admin Dashboard</title>
+  <title>Admin Dashboard - Shop Hồng Anh</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <script>
-    const token = localStorage.getItem("access_token");
-
-    async function checkAuth() {
-      if (!token) {
-        window.location.href = "/login";
-        return;
-      }
-      try {
-        const res = await fetch("/me", {
-          headers: { "Authorization": "Bearer " + token }
-        });
-        const data = await res.json();
-        if (data.role.toUpperCase() !== "ADMIN") {
-          window.location.href = "/shop";
-        }
-      } catch (err) {
-        window.location.href = "/login";
-      }
-    }
-    checkAuth();
-  </script>
-
   <style>
     body { margin: 0; font-family: sans-serif; background: #f3f4f6; }
     header { background: #111827; color: white; padding: 16px 24px; display: flex; justify-content: space-between; align-items: center; }
     .container { max-width: 1100px; margin: 24px auto; padding: 0 16px; }
-    .card { background: white; border-radius: 12px; padding: 24px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05); margin-bottom: 24px; }
-    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-    th, td { padding: 12px; text-align: left; border-bottom: 1px solid #eee; }
-    .status-active { color: green; font-weight: bold; }
-    .status-banned { color: red; font-weight: bold; }
-    .btn { padding: 6px 12px; cursor: pointer; border: none; border-radius: 4px; margin-right: 5px; font-weight: bold; }
-    .btn-ban { background: #f59e0b; color: white; }
-    .btn-unban { background: #10b981; color: white; }
-    .btn-delete { background: #ef4444; color: white; }
-    .logout { background: #ef4444; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; }
-
-    /* CSS Thêm mới cho phần Đơn hàng */
+    .card { background: white; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); padding: 24px; margin-bottom: 24px; }
+    h2 { margin-top: 0; color: #111827; border-bottom: 2px solid #eee; padding-bottom: 10px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 16px; }
+    th, td { text-align: left; padding: 12px; border-bottom: 1px solid #e5e7eb; }
+    th { background: #f9fafb; color: #4b5563; text-transform: uppercase; font-size: 12px; }
+    .order-status { padding: 4px 8px; border-radius: 999px; font-size: 12px; font-weight: 600; }
+    .status-cho { background: #fef3c7; color: #92400e; }
+    .status-giao { background: #dbeafe; color: #1e40af; }
+    .status-xong { background: #d1fae5; color: #065f46; }
+    .btn { padding: 6px 12px; border: none; border-radius: 4px; cursor: pointer; font-size: 13px; margin-right: 5px; }
     .btn-ship { background: #3b82f6; color: white; }
     .btn-done { background: #10b981; color: white; }
-    .order-status { font-weight: bold; text-transform: uppercase; font-size: 12px; }
-    .status-cho { color: #d97706; }
-    .status-giao { color: #2563eb; }
-    .status-xong { color: #059669; }
+    .btn-logout { background: #ef4444; color: white; }
+    .nav-tabs { margin-bottom: 20px; }
+    .nav-tabs button { padding: 10px 20px; cursor: pointer; border: none; background: #ddd; margin-right: 5px; border-radius: 5px; }
+    .nav-tabs button.active { background: #111827; color: white; }
   </style>
 </head>
-
 <body>
+
   <header>
-    <h1>Admin Control Panel</h1>
-    <button class="logout" onclick="logout()">Đăng xuất</button>
+    <h1>Hồng Anh Admin</h1>
+    <button class="btn btn-logout" onclick="logout()">Đăng xuất</button>
   </header>
 
   <div class="container">
-    <div class="card">
-      <h2>Quản lý người dùng</h2>
-      <table>
-        <thead>
-          <tr>
-            <th>Email</th>
-            <th>Quyền</th>
-            <th>Trạng thái</th>
-            <th>Thao tác</th>
-          </tr>
-        </thead>
-        <tbody id="userTable"></tbody>
-      </table>
+    <div class="nav-tabs">
+        <button id="btn-orders" class="active" onclick="showTab('orders')">📦 Đơn hàng</button>
+        <button id="btn-products" onclick="showTab('products')">🛍️ Sản phẩm</button>
     </div>
 
-    <div class="card">
+    <div id="tab-orders" class="card">
       <h2>Danh sách đơn đặt hàng</h2>
       <table>
         <thead>
           <tr>
             <th>Mã đơn</th>
-            <th>Email khách</th> <th>Ngày đặt</th>
+            <th>Email khách</th>
+            <th>Ngày đặt</th>
             <th>Tổng tiền</th>
             <th>Trạng thái</th>
             <th>Thao tác</th>
           </tr>
         </thead>
         <tbody id="orderTableBody">
-          </tbody>
+          <tr><td colspan="6">Đang tải dữ liệu...</td></tr>
+        </tbody>
       </table>
+    </div>
+
+    <div id="tab-products" class="card" style="display:none;">
+      <h2>Quản lý sản phẩm</h2>
+      <p>Chức năng thêm/sửa/xóa sản phẩm đang được cập nhật...</p>
     </div>
   </div>
 
   <script>
-    // --- CÁC HÀM CŨ CỦA BẠN (GIỮ NGUYÊN) ---
-    async function loadUsers() {
+    const token = localStorage.getItem("access_token");
+
+    // Kiểm tra quyền Admin khi vào trang
+    async function checkAuth() {
+      if (!token) { window.location.href = "/login"; return; }
       try {
-        const res = await fetch("/admin/users", { headers: { "Authorization": "Bearer " + token } });
-        const users = await res.json();
-        const tbody = document.getElementById("userTable");
-        tbody.innerHTML = "";
-        users.forEach(u => {
-          const row = `<tr>
-              <td>${u.email}</td>
-              <td>${u.role}</td>
-              <td class="${u.status === 'BANNED' ? 'status-banned' : 'status-active'}">${u.status}</td>
-              <td>
-                ${u.status === 'ACTIVE'
-                  ? `<button class="btn btn-ban" onclick="updateStatus('${u.email}', 'BANNED')">Khóa</button>`
-                  : `<button class="btn btn-unban" onclick="updateStatus('${u.email}', 'ACTIVE')">Mở khóa</button>`
-                }
-                <button class="btn btn-delete" onclick="deleteUser('${u.email}')">Xóa</button>
-              </td>
-            </tr>`;
-          tbody.innerHTML += row;
-        });
-      } catch (err) { console.error("Lỗi tải danh sách user:", err); }
+        const res = await fetch("/me", { headers: { "Authorization": "Bearer " + token } });
+        const data = await res.json();
+        if (data.role.toUpperCase() !== "ADMIN") { window.location.href = "/shop"; }
+      } catch (err) { window.location.href = "/login"; }
     }
 
-    async function updateStatus(email, status) {
-      const path = status === 'BANNED' ? '/admin/ban' : '/admin/unban';
-      await fetch(path, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "Authorization": "Bearer " + token },
-        body: JSON.stringify({ email })
-      });
-      loadUsers();
+    // Chuyển đổi giữa các Tab
+    function showTab(tab) {
+        if(tab === 'orders') {
+            document.getElementById('tab-orders').style.display = 'block';
+            document.getElementById('tab-products').style.display = 'none';
+            document.getElementById('btn-orders').classList.add('active');
+            document.getElementById('btn-products').classList.remove('active');
+            loadOrders();
+        } else {
+            document.getElementById('tab-orders').style.display = 'none';
+            document.getElementById('tab-products').style.display = 'block';
+            document.getElementById('btn-orders').classList.remove('active');
+            document.getElementById('btn-products').classList.add('active');
+        }
     }
 
-    async function deleteUser(email) {
-      if (!confirm(`Bạn có chắc muốn xóa tài khoản ${email}?`)) return;
-      await fetch("/admin/delete", {
-        method: "DELETE",
-        headers: { "Content-Type": "application/json", "Authorization": "Bearer " + token },
-        body: JSON.stringify({ email: email })
-      });
-      loadUsers();
-    }
-
-        // --- CÁC HÀM QUẢN LÝ ĐƠN HÀNG (THÊM MỚI) ---
-        // 1. Hàm lấy đơn hàng từ Server (Python)
+    // LẤY ĐƠN HÀNG THẬT TỪ SERVER
     async function loadOrders() {
       const tbody = document.getElementById('orderTableBody');
-      if (!tbody) return; // Bảo vệ nếu không tìm thấy thẻ
-
-      tbody.innerHTML = '<tr><td colspan="6">Đang tải đơn hàng từ hệ thống...</td></tr>';
-
       try {
         const res = await fetch('/admin/orders', {
-          headers: {
-            'Authorization': 'Bearer ' + localStorage.getItem('access_token')
-          }
+          headers: { 'Authorization': 'Bearer ' + token }
         });
-
-        if (!res.ok) throw new Error("Lỗi xác thực hoặc Server có vấn đề");
-
         const orders = await res.json();
-        tbody.innerHTML = ''; 
+        tbody.innerHTML = '';
 
         if (orders.length === 0) {
           tbody.innerHTML = '<tr><td colspan="6">Chưa có đơn hàng nào trong hệ thống.</td></tr>';
@@ -169,7 +113,7 @@
           if (ord.status === "Đang giao") sClass = "status-giao";
           if (ord.status === "Đã giao") sClass = "status-xong";
 
-          const row = `
+          tbody.innerHTML += `
             <tr>
               <td><b>#${ord.id}</b></td>
               <td>${ord.email}</td>
@@ -177,37 +121,30 @@
               <td><span style="color:red; font-weight:bold">${ord.total.toLocaleString()}đ</span></td>
               <td><span class="order-status ${sClass}">${ord.status || 'Chờ xác nhận'}</span></td>
               <td>
-                <button class="btn btn-ship" onclick="updateOrderStatus('${ord.id}', 'Đang giao')">Giao</button>
-                <button class="btn btn-done" onclick="updateOrderStatus('${ord.id}', 'Đã giao')">Xong</button>
+                <button class="btn btn-ship" onclick="updateStatus(${ord.id}, 'Đang giao')">Giao</button>
+                <button class="btn btn-done" onclick="updateStatus(${ord.id}, 'Đã giao')">Xong</button>
               </td>
             </tr>
           `;
-          tbody.innerHTML += row;
         });
       } catch (err) {
-        console.error("Lỗi load đơn:", err);
-        tbody.innerHTML = '<tr><td colspan="6" style="color:red">Không thể kết nối Server. Vui lòng đăng nhập lại Admin!</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="6" style="color:red">Lỗi tải dữ liệu. Hãy thử đăng nhập lại!</td></tr>';
       }
     }
 
-    // 2. Hàm cập nhật trạng thái (Cũng phải gửi lên Server)
-    async function updateOrderStatus(orderId, newStatus) {
-        // Tạm thời báo cho bạn biết, hàm này cần viết thêm API ở Python để đổi trạng thái trong DB
-        alert("Chức năng đổi trạng thái đơn " + orderId + " sang " + newStatus + " cần thêm API ở Python mới lưu vĩnh viễn được!");
+    async function updateStatus(id, status) {
+        alert("Đang cập nhật đơn #" + id + " thành " + status);
+        // Sau này mình sẽ thêm code fetch PUT ở đây để lưu vào DB
     }
-
-    // Chạy hàm load ngay khi vào trang
-    window.onload = loadOrders;
 
     function logout() {
       localStorage.clear();
       window.location.href = "/login";
     }
 
-    // Gọi tải dữ liệu khi trang web load
-    loadUsers();
+    // Khởi chạy
+    checkAuth();
     loadOrders();
   </script>
 </body>
-
 </html>
