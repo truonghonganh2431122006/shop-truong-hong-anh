@@ -121,11 +121,8 @@ def admin_p():
 
 @app.get("/shop", response_class=HTMLResponse)
 async def shop_p(request: Request):
-    try:
-        # Kiểm tra xem file có tồn tại không trước khi trả về
-        return templates.TemplateResponse("shop_3_2.html", {"request": request})
-    except Exception as e:
-        return HTMLResponse(content=f"Lỗi: Không tìm thấy file shop_3_2.html trong thư mục templates. Chi tiết: {e}", status_code=500)
+    # Dùng TemplateResponse thì mới được truyền {"request": request}
+    return templates.TemplateResponse("shop_3_2.html", {"request": request})
 
 @app.get("/order-history.html", response_class=HTMLResponse)
 async def get_order_history(request: Request):
