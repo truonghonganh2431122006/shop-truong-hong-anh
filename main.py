@@ -76,9 +76,11 @@ app = FastAPI(
     redoc_url="/redoc",
     openapi_url="/openapi.json"
 )
-# --- NGAY DƯỚI DÒNG app = FastAPI(...) ---
+
+# --- Tìm đoạn này và sửa lại chính xác ---
 BASE_DIR = Path(__file__).resolve().parent
-templates = Jinja2Templates(directory=str(BASE_DIR / "templates"))
+# Chỉ để directory là "templates" nếu file main.py nằm ngoài thư mục templates
+templates = Jinja2Templates(directory="templates")
 
 # CORS (dev)
 app.add_middleware(
@@ -119,8 +121,11 @@ def admin_p():
 
 @app.get("/shop", response_class=HTMLResponse)
 async def shop_p(request: Request):
-    # KHÔNG DÙNG FileResponse ở đây. Phải dùng templates.TemplateResponse
-    return templates.TemplateResponse("shop_3_2.html", {"request": request})
+    try:
+        # Kiểm tra xem file có tồn tại không trước khi trả về
+        return templates.TemplateResponse("shop_3_2.html", {"request": request})
+    except Exception as e:
+        return HTMLResponse(content=f"Lỗi: Không tìm thấy file shop_3_2.html trong thư mục templates. Chi tiết: {e}", status_code=500)
 
 @app.get("/order-history.html", response_class=HTMLResponse)
 async def get_order_history(request: Request):
