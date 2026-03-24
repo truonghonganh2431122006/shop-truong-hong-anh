@@ -76,7 +76,7 @@ app = FastAPI(
     redoc_url="/redoc",
     openapi_url="/openapi.json"
 )
-# --- THÊM 2 DÒNG NÀY VÀO ĐÂY ---
+
 BASE_DIR = Path(__file__).resolve().parent
 templates = Jinja2Templates(directory=str(BASE_DIR / "templates"))
 
@@ -120,11 +120,13 @@ def admin_p():
 # ... sau đó mới đến các hàm @app.get ...
 
 @app.get("/shop", response_class=HTMLResponse)
-async def shop_p(request: Request): # Phải có request: Request
+async def shop_p(request: Request):
+    # Sửa từ FileResponse sang templates.TemplateResponse
     return templates.TemplateResponse("shop_3_2.html", {"request": request})
 
 @app.get("/order-history.html", response_class=HTMLResponse)
-async def get_order_history(request: Request): # Phải có request: Request
+async def get_order_history(request: Request):
+    # Sửa tương tự ở đây
     return templates.TemplateResponse("order-history.html", {"request": request})
 
 # (Tuỳ chọn) nếu bạn muốn có staff.html thì tạo trong static/
