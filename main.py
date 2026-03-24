@@ -514,6 +514,24 @@ def admin_list_users(admin: User = Depends(require_admin), db: Session = Depends
         for u in users
     ]
 
+# API này giúp Admin lấy danh sách tài khoản từ Database
+@app.get("/users")
+async def get_all_users(db: Session = Depends(get_db), current_user: User = Depends(require_admin)):
+    try:
+        # Lấy tất cả người dùng trong bảng User
+        users = db.query(User).all()
+        result = []
+        for u in users:
+            result.append({
+                "id": u.id,
+                "email": u.email,
+                "role": u.role
+            })
+        return result
+    except Exception as e:
+        print(f"Loi lay danh sach user: {e}")
+        return []
+
 
 @app.post("/admin/create-staff")
 def admin_create_staff(data: CreateStaffSchema, admin: User = Depends(require_admin), db: Session = Depends(get_db)):
