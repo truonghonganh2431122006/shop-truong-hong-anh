@@ -22,14 +22,14 @@
     .btn-done { background: #10b981; color: white; }
     .btn-logout { background: #ef4444; color: white; }
     .nav-tabs { margin-bottom: 20px; }
-    .nav-tabs button { padding: 10px 20px; cursor: pointer; border: none; background: #ddd; margin-right: 5px; border-radius: 5px; }
+    .nav-tabs button { padding: 10px 25px; cursor: pointer; border: none; background: #e5e7eb; margin-right: 8px; border-radius: 6px; font-weight: bold; transition: 0.3s; }
     .nav-tabs button.active { background: #111827; color: white; }
   </style>
 </head>
 <body>
 
   <header>
-    <h1>Hồng Anh Admin</h1>
+    <h1>Hồng Anh Admin Dashboard</h1>
     <button class="btn btn-logout" onclick="logout()">Đăng xuất</button>
   </header>
 
@@ -37,6 +37,7 @@
     <div class="nav-tabs">
         <button id="btn-orders" class="active" onclick="showTab('orders')">📦 Đơn hàng</button>
         <button id="btn-products" onclick="showTab('products')">🛍️ Sản phẩm</button>
+        <button id="btn-users" onclick="showTab('users')">👥 Tài khoản</button>
     </div>
 
     <div id="tab-orders" class="card">
@@ -60,14 +61,44 @@
 
     <div id="tab-products" class="card" style="display:none;">
       <h2>Quản lý sản phẩm</h2>
-      <p>Chức năng thêm/sửa/xóa sản phẩm đang được cập nhật...</p>
+      <button class="btn btn-ship" onclick="alert('Chức năng thêm sản phẩm sẽ sớm cập nhật')">+ Thêm sản phẩm mới</button>
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Tên sản phẩm</th>
+            <th>Giá</th>
+            <th>Thao tác</th>
+          </tr>
+        </thead>
+        <tbody id="productTableBody">
+          <tr><td colspan="4">Chức năng đang cập nhật...</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div id="tab-users" class="card" style="display:none;">
+      <h2>Quản lý người dùng</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Email</th>
+            <th>Vai trò</th>
+            <th>Thao tác</th>
+          </tr>
+        </thead>
+        <tbody id="userTableBody">
+          <tr><td colspan="4">Đang tải danh sách thành viên...</td></tr>
+        </tbody>
+      </table>
     </div>
   </div>
 
   <script>
     const token = localStorage.getItem("access_token");
 
-    // Kiểm tra quyền Admin khi vào trang
+    // 1. Kiểm tra đăng nhập
     async function checkAuth() {
       if (!token) { window.location.href = "/login"; return; }
       try {
@@ -77,23 +108,28 @@
       } catch (err) { window.location.href = "/login"; }
     }
 
-    // Chuyển đổi giữa các Tab
-    function showTab(tab) {
-        if(tab === 'orders') {
-            document.getElementById('tab-orders').style.display = 'block';
-            document.getElementById('tab-products').style.display = 'none';
-            document.getElementById('btn-orders').classList.add('active');
-            document.getElementById('btn-products').classList.remove('active');
-            loadOrders();
-        } else {
-            document.getElementById('tab-orders').style.display = 'none';
-            document.getElementById('tab-products').style.display = 'block';
-            document.getElementById('btn-orders').classList.remove('active');
-            document.getElementById('btn-products').classList.add('active');
-        }
+    // 2. Hàm chuyển Tab
+    function showTab(tabName) {
+        // Ẩn tất cả tabs
+        document.getElementById('tab-orders').style.display = 'none';
+        document.getElementById('tab-products').style.display = 'none';
+        document.getElementById('tab-users').style.display = 'none';
+        
+        // Bỏ active tất cả nút
+        document.getElementById('btn-orders').classList.remove('active');
+        document.getElementById('btn-products').classList.remove('active');
+        document.getElementById('btn-users').classList.remove('active');
+
+        // Hiện tab được chọn
+        document.getElementById('tab-' + tabName).style.display = 'block';
+        document.getElementById('btn-' + tabName).classList.add('active');
+
+        // Gọi hàm load dữ liệu tương ứng
+        if(tabName === 'orders') loadOrders();
+        if(tabName === 'users') loadUsers();
     }
 
-    // LẤY ĐƠN HÀNG THẬT TỪ SERVER
+    // 3. Load Đơn hàng từ Server
     async function loadOrders() {
       const tbody = document.getElementById('orderTableBody');
       try {
@@ -102,17 +138,12 @@
         });
         const orders = await res.json();
         tbody.innerHTML = '';
-
         if (orders.length === 0) {
-          tbody.innerHTML = '<tr><td colspan="6">Chưa có đơn hàng nào trong hệ thống.</td></tr>';
+          tbody.innerHTML = '<tr><td colspan="6">Chưa có đơn hàng nào.</td></tr>';
           return;
         }
-
         orders.forEach(ord => {
-          let sClass = "status-cho";
-          if (ord.status === "Đang giao") sClass = "status-giao";
-          if (ord.status === "Đã giao") sClass = "status-xong";
-
+          let sClass = (ord.status === "Đang giao") ? "status-giao" : (ord.status === "Đã giao" ? "status-xong" : "status-cho");
           tbody.innerHTML += `
             <tr>
               <td><b>#${ord.id}</b></td>
@@ -124,17 +155,34 @@
                 <button class="btn btn-ship" onclick="updateStatus(${ord.id}, 'Đang giao')">Giao</button>
                 <button class="btn btn-done" onclick="updateStatus(${ord.id}, 'Đã giao')">Xong</button>
               </td>
-            </tr>
-          `;
+            </tr>`;
         });
-      } catch (err) {
-        tbody.innerHTML = '<tr><td colspan="6" style="color:red">Lỗi tải dữ liệu. Hãy thử đăng nhập lại!</td></tr>';
-      }
+      } catch (err) { tbody.innerHTML = '<tr><td colspan="6" style="color:red">Lỗi tải đơn hàng.</td></tr>'; }
+    }
+
+    // 4. Load Tài khoản (Dành cho Tab User)
+    async function loadUsers() {
+      const tbody = document.getElementById('userTableBody');
+      try {
+        const res = await fetch('/users', { // Giả sử bạn có route /users ở main.py
+          headers: { 'Authorization': 'Bearer ' + token }
+        });
+        const users = await res.json();
+        tbody.innerHTML = '';
+        users.forEach(u => {
+          tbody.innerHTML += `
+            <tr>
+              <td>${u.id}</td>
+              <td>${u.email}</td>
+              <td><b>${u.role}</b></td>
+              <td><button class="btn btn-logout" onclick="alert('Khóa tài khoản ${u.email}')">Khóa</button></td>
+            </tr>`;
+        });
+      } catch (err) { tbody.innerHTML = '<tr><td colspan="4">Không thể tải danh sách (Cần API /users ở Python).</td></tr>'; }
     }
 
     async function updateStatus(id, status) {
         alert("Đang cập nhật đơn #" + id + " thành " + status);
-        // Sau này mình sẽ thêm code fetch PUT ở đây để lưu vào DB
     }
 
     function logout() {
@@ -142,7 +190,7 @@
       window.location.href = "/login";
     }
 
-    // Khởi chạy
+    // Chạy mặc định
     checkAuth();
     loadOrders();
   </script>
