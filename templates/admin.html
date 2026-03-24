@@ -24,6 +24,7 @@
     .nav-tabs { margin-bottom: 20px; }
     .nav-tabs button { padding: 10px 25px; cursor: pointer; border: none; background: #e5e7eb; margin-right: 8px; border-radius: 6px; font-weight: bold; transition: 0.3s; }
     .nav-tabs button.active { background: #111827; color: white; }
+    .banned { color: #999; text-decoration: line-through; }
   </style>
 </head>
 <body>
@@ -97,39 +98,78 @@
 
   <script>
     const token = localStorage.getItem("access_token");
+    let currentAdminEmail = "";
 
-    // 1. Kiểm tra đăng nhập
+    // 1. Kiểm tra quyền Admin
     async function checkAuth() {
       if (!token) { window.location.href = "/login"; return; }
       try {
         const res = await fetch("/me", { headers: { "Authorization": "Bearer " + token } });
         const data = await res.json();
-        if (data.role.toUpperCase() !== "ADMIN") { window.location.href = "/shop"; }
+        if (data.role.toUpperCase() !== "ADMIN") { 
+            window.location.href = "/shop"; 
+        } else {
+            currentAdminEmail = data.email; // Lưu email để bảo vệ chính mình
+        }
       } catch (err) { window.location.href = "/login"; }
     }
 
-    // 2. Hàm chuyển Tab
+    // 2. Chuyển Tab
     function showTab(tabName) {
-        // Ẩn tất cả tabs
         document.getElementById('tab-orders').style.display = 'none';
         document.getElementById('tab-products').style.display = 'none';
         document.getElementById('tab-users').style.display = 'none';
-        
-        // Bỏ active tất cả nút
         document.getElementById('btn-orders').classList.remove('active');
         document.getElementById('btn-products').classList.remove('active');
         document.getElementById('btn-users').classList.remove('active');
 
-        // Hiện tab được chọn
         document.getElementById('tab-' + tabName).style.display = 'block';
         document.getElementById('btn-' + tabName).classList.add('active');
 
-        // Gọi hàm load dữ liệu tương ứng
         if(tabName === 'orders') loadOrders();
         if(tabName === 'users') loadUsers();
     }
 
-    // Cập nhật bảng User với nút Ban/Unban
+    // 3. Quản lý Đơn hàng
+    async function loadOrders() {
+      const tbody = document.getElementById('orderTableBody');
+      try {
+        const res = await fetch('/admin/orders', { headers: { 'Authorization': 'Bearer ' + token } });
+        const orders = await res.json();
+        tbody.innerHTML = '';
+        if (orders.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="6">Không có đơn hàng nào.</td></tr>';
+            return;
+        }
+        orders.forEach(ord => {
+          let sClass = ord.status === "Đang giao" ? "status-giao" : (ord.status === "Đã giao" ? "status-xong" : "status-cho");
+          tbody.innerHTML += `
+            <tr>
+              <td><b>#${ord.id}</b></td>
+              <td>${ord.email}</td>
+              <td>${ord.created_at}</td>
+              <td><span style="color:red; font-weight:bold">${ord.total.toLocaleString()}đ</span></td>
+              <td><span class="order-status ${sClass}">${ord.status || 'Chờ xác nhận'}</span></td>
+              <td>
+                <button class="btn btn-ship" onclick="updateOrderStatus(${ord.id}, 'Đang giao')">Giao</button>
+                <button class="btn btn-done" onclick="updateOrderStatus(${ord.id}, 'Đã giao')">Xong</button>
+              </td>
+            </tr>`;
+        });
+      } catch (err) { console.error(err); }
+    }
+
+    async function updateOrderStatus(orderId, newStatus) {
+        try {
+            const res = await fetch(`/admin/orders/${orderId}/status?new_status=${encodeURIComponent(newStatus)}`, {
+                method: 'PUT',
+                headers: { 'Authorization': 'Bearer ' + token }
+            });
+            if(res.ok) { loadOrders(); } else { alert("Lỗi cập nhật!"); }
+        } catch (err) { console.error(err); }
+    }
+
+    // 4. Quản lý Tài khoản (Ban/Unban/Delete)
     async function loadUsers() {
       const tbody = document.getElementById('userTableBody');
       try {
@@ -138,68 +178,54 @@
         tbody.innerHTML = '';
 
         users.forEach(u => {
-          // Nếu là chính mình thì ẩn nút, hoặc làm mờ nút
-          const isMe = u.email === localStorage.getItem("user_email"); // Bạn nên lưu email lúc login
-          const btnBanText = u.is_active ? "Khóa (Ban)" : "Mở khóa (Unban)";
-          const btnBanClass = u.is_active ? "btn-logout" : "btn-done";
+          const isMe = u.email === currentAdminEmail;
+          const isAdmin = u.role.toUpperCase() === 'ADMIN';
+          
+          // Tìm đoạn này trong loadUsers() và sửa lại:
+          const isBanned = u.status === "BANNED"; 
+          const btnBanText = isBanned ? "Mở khóa" : "Khóa";
+          const btnBanClass = isBanned ? "btn-done" : "btn-logout";
+          const emailStyle = isBanned ? "style='color:gray; text-decoration:line-through'" : "";
 
           tbody.innerHTML += `
             <tr>
               <td>${u.id}</td>
-              <td>${u.email} ${isMe ? '<i style="color:gray">(Bạn)</i>' : ''}</td>
+              <td ${emailStyle}>${u.email} ${isMe ? '<b>(Tôi)</b>' : ''}</td>
               <td><b>${u.role}</b></td>
               <td>
-                ${!isMe && u.role !== 'ADMIN' ? `
+                ${!isMe && !isAdmin ? `
                   <button class="btn ${btnBanClass}" onclick="toggleBan(${u.id})">${btnBanText}</button>
                   <button class="btn" style="background:gray; color:white" onclick="deleteUser(${u.id})">Xóa</button>
-                ` : '<span style="color:gray">Hệ thống</span>'}
+                ` : '<span style="color:gray; font-size:11px">Hệ thống bảo vệ</span>'}
               </td>
             </tr>`;
         });
-      } catch (err) { console.error(err); }
+      } catch (err) { tbody.innerHTML = '<tr><td colspan="4" style="color:red">Cần API /users ở Python để hiển thị.</td></tr>'; }
     }
 
-    // Hàm gọi API khóa/mở khóa
     async function toggleBan(userId) {
-        if(!confirm("Bạn có chắc muốn thay đổi trạng thái tài khoản này?")) return;
+        if(!confirm("Xác nhận thay đổi trạng thái tài khoản này?")) return;
         try {
             const res = await fetch(`/users/${userId}/toggle-active`, {
                 method: 'PUT',
                 headers: { 'Authorization': 'Bearer ' + token }
             });
-            const data = await res.json();
-            if(res.ok) {
-                alert(data.message);
-                loadUsers(); // Load lại bảng
-            } else {
-                alert(data.detail);
+            if(res.ok) { loadUsers(); } else { 
+                const data = await res.json();
+                alert(data.detail || "Lỗi khóa tài khoản"); 
             }
         } catch (err) { alert("Lỗi kết nối!"); }
     }
 
-    // 4. Load Tài khoản (Dành cho Tab User)
-    async function loadUsers() {
-      const tbody = document.getElementById('userTableBody');
-      try {
-        const res = await fetch('/users', { // Giả sử bạn có route /users ở main.py
-          headers: { 'Authorization': 'Bearer ' + token }
-        });
-        const users = await res.json();
-        tbody.innerHTML = '';
-        users.forEach(u => {
-          tbody.innerHTML += `
-            <tr>
-              <td>${u.id}</td>
-              <td>${u.email}</td>
-              <td><b>${u.role}</b></td>
-              <td><button class="btn btn-logout" onclick="alert('Khóa tài khoản ${u.email}')">Khóa</button></td>
-            </tr>`;
-        });
-      } catch (err) { tbody.innerHTML = '<tr><td colspan="4">Không thể tải danh sách (Cần API /users ở Python).</td></tr>'; }
-    }
-
-    async function updateStatus(id, status) {
-        alert("Đang cập nhật đơn #" + id + " thành " + status);
+    async function deleteUser(userId) {
+        if(!confirm("CẢNH BÁO: Xóa tài khoản này sẽ mất dữ liệu vĩnh viễn?")) return;
+        try {
+            const res = await fetch(`/users/${userId}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': 'Bearer ' + token }
+            });
+            if(res.ok) { loadUsers(); } else { alert("Không thể xóa Admin!"); }
+        } catch (err) { alert("Lỗi kết nối!"); }
     }
 
     function logout() {
@@ -207,7 +233,7 @@
       window.location.href = "/login";
     }
 
-    // Chạy mặc định
+    // Khởi chạy
     checkAuth();
     loadOrders();
   </script>

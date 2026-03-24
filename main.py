@@ -514,7 +514,10 @@ def admin_list_users(admin: User = Depends(require_admin), db: Session = Depends
         for u in users
     ]
 
-# 1. API lấy danh sách User (Bổ sung thêm trường is_active)
+# --- PHẦN QUẢN LÝ USER DÀNH CHO ADMIN ---
+
+# 1. API Lấy danh sách tất cả người dùng
+# 1. API Lấy danh sách tất cả người dùng (Dùng cột status)
 @app.get("/users")
 async def get_all_users(db: Session = Depends(get_db), current_user: User = Depends(require_admin)):
     users = db.query(User).all()
@@ -522,39 +525,57 @@ async def get_all_users(db: Session = Depends(get_db), current_user: User = Depe
         "id": u.id, 
         "email": u.email, 
         "role": u.role, 
-        "is_active": u.is_active # Giả sử bảng User của bạn có trường này, nếu chưa có hãy báo tớ
+        "status": u.status # Trả về ACTIVE hoặc BANNED
     } for u in users]
 
-# 2. API Ban/Unban (Khóa/Mở khóa)
+# 2. API Khóa hoặc Mở khóa tài khoản (Toggle ACTIVE/BANNED)
 @app.put("/users/{user_id}/toggle-active")
 async def toggle_user_active(user_id: int, db: Session = Depends(get_db), current_user: User = Depends(require_admin)):
     # Không cho tự khóa chính mình
     if user_id == current_user.id:
-        raise HTTPException(status_code=400, detail="Bạn không thể tự khóa tài khoản của chính mình!")
+        raise HTTPException(status_code=400, detail="Bạn không thể tự khóa chính mình!")
         
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
-        raise HTTPException(status_code=404, detail="Không tìm thấy người dùng")
+        raise HTTPException(status_code=404, detail="Người dùng không tồn tại")
     
-    # Đảo ngược trạng thái hoạt động
-    user.is_active = not user.is_active
+    # Logic đổi trạng thái dựa trên cột status cũ của bạn
+    if user.status == "ACTIVE":
+        user.status = "BANNED"
+        msg = f"Đã khóa tài khoản {user.email}"
+    else:
+        user.status = "ACTIVE"
+        msg = f"Đã mở khóa tài khoản {user.email}"
+        
     db.commit()
-    status = "mở khóa" if user.is_active else "khóa"
-    return {"message": f"Đã {status} tài khoản {user.email}"}
+    return {"message": msg}
 
-# 3. API Xóa User (Bảo vệ Admin)
+# 3. API Xóa tài khoản (Giữ nguyên logic bảo vệ Admin)
 @app.delete("/users/{user_id}")
 async def delete_user(user_id: int, db: Session = Depends(get_db), current_user: User = Depends(require_admin)):
     if user_id == current_user.id:
-        raise HTTPException(status_code=400, detail="Bạn không thể tự xóa tài khoản của chính mình!")
+        raise HTTPException(status_code=400, detail="Không thể tự xóa chính mình!")
     
     user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="Người dùng không tồn tại")
+        
     if user.role.upper() == "ADMIN":
-        raise HTTPException(status_code=400, detail="Không được xóa tài khoản Admin khác!")
+        raise HTTPException(status_code=400, detail="Không được xóa Admin khác!")
         
     db.delete(user)
     db.commit()
-    return {"message": "Đã xóa thành công"}
+    return {"message": "Đã xóa người dùng thành công"}
+
+# --- QUẢN LÝ ĐƠN HÀNG ---
+@app.put("/admin/orders/{order_id}/status")
+async def update_order_status(order_id: int, new_status: str, db: Session = Depends(get_db), current_user: User = Depends(require_admin)):
+    order = db.query(Order).filter(Order.id == order_id).first()
+    if not order:
+        raise HTTPException(status_code=404, detail="Đơn hàng không tồn tại")
+    order.status = new_status
+    db.commit()
+    return {"message": "Thành công"}
 
 
 @app.post("/admin/create-staff")
