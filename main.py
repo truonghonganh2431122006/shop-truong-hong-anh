@@ -800,6 +800,38 @@ def create_order(data: OrderCreateSchema, user: User = Depends(get_current_user)
     db.commit()
     return {"message": "Tạo đơn hàng thành công", "order_id": order.id, "status": order.status}
 
+# ===================== CHÈN ĐOẠN NÀY VÀO CUỐI FILE MAIN.PY =====================
+
+@app.get("/admin/orders")
+async def get_all_orders_admin(db: Session = Depends(get_db), current_user: User = Depends(require_admin)):
+    try:
+        # Lấy tất cả đơn hàng từ bảng orders, sắp xếp cái mới nhất lên trên cùng
+        orders = db.query(Order).order_by(Order.created_at.desc()).all()
+        
+        result = []
+        for o in orders:
+            # Tính tổng tiền của đơn hàng đó
+            total = sum(i.quantity * i.unit_price for i in o.items)
+            
+            result.append({
+                "id": o.id,
+                "email": o.user.email if o.user else "N/A",
+                "status": o.status,
+                "total": total,
+                "created_at": o.created_at.strftime("%H:%M %d/%m/%Y") if o.created_at else "N/A",
+                # Nếu bạn có lưu thông tin địa chỉ trong bảng Order thì thêm ở đây
+                "items": [
+                    {"name": i.product_id, "qty": i.quantity, "price": i.unit_price} 
+                    for i in o.items
+                ]
+            })
+            
+        print(f">>> ADMIN API: Tìm thấy {len(result)} đơn hàng")
+        return result
+    except Exception as e:
+        print(f">>> LOI ADMIN ORDERS: {e}")
+        return []
+
 
 @app.get("/orders/me")
 def my_orders(user: User = Depends(get_current_user), db: Session = Depends(get_db)):
