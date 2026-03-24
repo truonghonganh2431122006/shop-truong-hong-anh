@@ -118,13 +118,15 @@ def admin_p():
     return FileResponse(str(BASE_DIR / "templates" / "admin.html"))
 
 @app.get("/shop", response_class=HTMLResponse)
-async def shop_p(request: Request):
-    # CHÚ Ý: Phải là templates.TemplateResponse chứ KHÔNG PHẢI FileResponse
-    return templates.TemplateResponse("shop_3_2.html", {"request": request})
+async def shop_p():
+    # Đưa về cách đơn giản nhất: Chỉ trả về file, không truyền request, không dùng TemplateResponse
+    file_path = os.path.join(os.getcwd(), "templates", "shop_3_2.html")
+    return FileResponse(file_path)
 
 @app.get("/order-history.html", response_class=HTMLResponse)
-async def get_order_history(request: Request):
-    return templates.TemplateResponse("order-history.html", {"request": request})
+async def get_order_history():
+    file_path = os.path.join(os.getcwd(), "templates", "order-history.html")
+    return FileResponse(file_path)
 
 # (Tuỳ chọn) nếu bạn muốn có staff.html thì tạo trong static/
 @app.get("/staff")
