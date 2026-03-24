@@ -129,35 +129,52 @@
         if(tabName === 'users') loadUsers();
     }
 
-    // 3. Load Đơn hàng từ Server
-    async function loadOrders() {
-      const tbody = document.getElementById('orderTableBody');
+    // Cập nhật bảng User với nút Ban/Unban
+    async function loadUsers() {
+      const tbody = document.getElementById('userTableBody');
       try {
-        const res = await fetch('/admin/orders', {
-          headers: { 'Authorization': 'Bearer ' + token }
-        });
-        const orders = await res.json();
+        const res = await fetch('/users', { headers: { 'Authorization': 'Bearer ' + token } });
+        const users = await res.json();
         tbody.innerHTML = '';
-        if (orders.length === 0) {
-          tbody.innerHTML = '<tr><td colspan="6">Chưa có đơn hàng nào.</td></tr>';
-          return;
-        }
-        orders.forEach(ord => {
-          let sClass = (ord.status === "Đang giao") ? "status-giao" : (ord.status === "Đã giao" ? "status-xong" : "status-cho");
+
+        users.forEach(u => {
+          // Nếu là chính mình thì ẩn nút, hoặc làm mờ nút
+          const isMe = u.email === localStorage.getItem("user_email"); // Bạn nên lưu email lúc login
+          const btnBanText = u.is_active ? "Khóa (Ban)" : "Mở khóa (Unban)";
+          const btnBanClass = u.is_active ? "btn-logout" : "btn-done";
+
           tbody.innerHTML += `
             <tr>
-              <td><b>#${ord.id}</b></td>
-              <td>${ord.email}</td>
-              <td>${ord.created_at}</td>
-              <td><span style="color:red; font-weight:bold">${ord.total.toLocaleString()}đ</span></td>
-              <td><span class="order-status ${sClass}">${ord.status || 'Chờ xác nhận'}</span></td>
+              <td>${u.id}</td>
+              <td>${u.email} ${isMe ? '<i style="color:gray">(Bạn)</i>' : ''}</td>
+              <td><b>${u.role}</b></td>
               <td>
-                <button class="btn btn-ship" onclick="updateStatus(${ord.id}, 'Đang giao')">Giao</button>
-                <button class="btn btn-done" onclick="updateStatus(${ord.id}, 'Đã giao')">Xong</button>
+                ${!isMe && u.role !== 'ADMIN' ? `
+                  <button class="btn ${btnBanClass}" onclick="toggleBan(${u.id})">${btnBanText}</button>
+                  <button class="btn" style="background:gray; color:white" onclick="deleteUser(${u.id})">Xóa</button>
+                ` : '<span style="color:gray">Hệ thống</span>'}
               </td>
             </tr>`;
         });
-      } catch (err) { tbody.innerHTML = '<tr><td colspan="6" style="color:red">Lỗi tải đơn hàng.</td></tr>'; }
+      } catch (err) { console.error(err); }
+    }
+
+    // Hàm gọi API khóa/mở khóa
+    async function toggleBan(userId) {
+        if(!confirm("Bạn có chắc muốn thay đổi trạng thái tài khoản này?")) return;
+        try {
+            const res = await fetch(`/users/${userId}/toggle-active`, {
+                method: 'PUT',
+                headers: { 'Authorization': 'Bearer ' + token }
+            });
+            const data = await res.json();
+            if(res.ok) {
+                alert(data.message);
+                loadUsers(); // Load lại bảng
+            } else {
+                alert(data.detail);
+            }
+        } catch (err) { alert("Lỗi kết nối!"); }
     }
 
     // 4. Load Tài khoản (Dành cho Tab User)

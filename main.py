@@ -514,23 +514,47 @@ def admin_list_users(admin: User = Depends(require_admin), db: Session = Depends
         for u in users
     ]
 
-# API này giúp Admin lấy danh sách tài khoản từ Database
+# 1. API lấy danh sách User (Bổ sung thêm trường is_active)
 @app.get("/users")
 async def get_all_users(db: Session = Depends(get_db), current_user: User = Depends(require_admin)):
-    try:
-        # Lấy tất cả người dùng trong bảng User
-        users = db.query(User).all()
-        result = []
-        for u in users:
-            result.append({
-                "id": u.id,
-                "email": u.email,
-                "role": u.role
-            })
-        return result
-    except Exception as e:
-        print(f"Loi lay danh sach user: {e}")
-        return []
+    users = db.query(User).all()
+    return [{
+        "id": u.id, 
+        "email": u.email, 
+        "role": u.role, 
+        "is_active": u.is_active # Giả sử bảng User của bạn có trường này, nếu chưa có hãy báo tớ
+    } for u in users]
+
+# 2. API Ban/Unban (Khóa/Mở khóa)
+@app.put("/users/{user_id}/toggle-active")
+async def toggle_user_active(user_id: int, db: Session = Depends(get_db), current_user: User = Depends(require_admin)):
+    # Không cho tự khóa chính mình
+    if user_id == current_user.id:
+        raise HTTPException(status_code=400, detail="Bạn không thể tự khóa tài khoản của chính mình!")
+        
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="Không tìm thấy người dùng")
+    
+    # Đảo ngược trạng thái hoạt động
+    user.is_active = not user.is_active
+    db.commit()
+    status = "mở khóa" if user.is_active else "khóa"
+    return {"message": f"Đã {status} tài khoản {user.email}"}
+
+# 3. API Xóa User (Bảo vệ Admin)
+@app.delete("/users/{user_id}")
+async def delete_user(user_id: int, db: Session = Depends(get_db), current_user: User = Depends(require_admin)):
+    if user_id == current_user.id:
+        raise HTTPException(status_code=400, detail="Bạn không thể tự xóa tài khoản của chính mình!")
+    
+    user = db.query(User).filter(User.id == user_id).first()
+    if user.role.upper() == "ADMIN":
+        raise HTTPException(status_code=400, detail="Không được xóa tài khoản Admin khác!")
+        
+    db.delete(user)
+    db.commit()
+    return {"message": "Đã xóa thành công"}
 
 
 @app.post("/admin/create-staff")
