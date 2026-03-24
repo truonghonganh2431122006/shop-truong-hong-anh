@@ -77,7 +77,6 @@ app = FastAPI(
     openapi_url="/openapi.json"
 )
 
-# Đảm bảo đường dẫn luôn đúng dù chạy ở máy hay ở Render
 BASE_DIR = Path(__file__).resolve().parent
 templates = Jinja2Templates(directory=str(BASE_DIR / "templates"))
 
@@ -120,11 +119,8 @@ def admin_p():
 
 @app.get("/shop", response_class=HTMLResponse)
 async def shop_p(request: Request):
-    try:
-        # Dùng TemplateResponse thì cái {"request": request} mới có tác dụng
-        return templates.TemplateResponse("shop_3_2.html", {"request": request})
-    except Exception as e:
-        return HTMLResponse(content=f"Lỗi: Không tìm thấy file. Chi tiết: {e}", status_code=500)
+    # CHÚ Ý: Phải là templates.TemplateResponse chứ KHÔNG PHẢI FileResponse
+    return templates.TemplateResponse("shop_3_2.html", {"request": request})
 
 @app.get("/order-history.html", response_class=HTMLResponse)
 async def get_order_history(request: Request):
