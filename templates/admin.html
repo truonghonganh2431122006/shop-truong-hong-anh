@@ -140,52 +140,63 @@
     }
 
     // --- CÁC HÀM QUẢN LÝ ĐƠN HÀNG (THÊM MỚI) ---
-    function loadOrders() {
-      // Đọc đơn hàng từ localStorage (nơi file test.html lưu vào)
-      const orders = JSON.parse(localStorage.getItem('orders') || '[]');
-      const tbody = document.getElementById("orderTable");
-      tbody.innerHTML = "";
+    // 1. Hàm lấy đơn hàng từ Server (Python)
+    async function loadOrders() {
+        const tbody = document.getElementById('orderTableBody');
+        tbody.innerHTML = '<tr><td colspan="6">Đang tải dữ liệu...</td></tr>';
 
-      if (orders.length === 0) {
-        tbody.innerHTML = "<tr><td colspan='6' style='text-align:center'>Chưa có đơn hàng nào mới.</td></tr>";
-        return;
-      }
+        try {
+            const res = await fetch('/admin/orders', {
+                headers: {
+                    'Authorization': 'Bearer ' + localStorage.getItem('access_token')
+                }
+            });
 
-      orders.reverse().forEach((ord) => {
-        // Xác định class CSS cho trạng thái
-        let sClass = "status-cho";
-        if (ord.status === "Đang giao") sClass = "status-giao";
-        if (ord.status === "Đã giao") sClass = "status-xong";
+            if (!res.ok) throw new Error("Không thể lấy dữ liệu từ Server");
 
-        const row = `
-          <tr>
-            <td><b>${ord.id}</b></td>
-            <td>${ord.customerName}</td>
-            <td>${ord.phone || 'N/A'}</td>
-            <td><span style="color:red; font-weight:bold">${ord.total.toLocaleString()}đ</span></td>
-            <td><span class="order-status ${sClass}">${ord.status || 'Chờ xác nhận'}</span></td>
-            <td>
-              <button class="btn btn-ship" onclick="updateOrderStatus('${ord.id}', 'Đang giao')">Giao hàng</button>
-              <button class="btn btn-done" onclick="updateOrderStatus('${ord.id}', 'Đã giao')">Hoàn tất</button>
-            </td>
-          </tr>
-        `;
-        tbody.innerHTML += row;
-      });
+            const orders = await res.json();
+            tbody.innerHTML = ''; // Xóa chữ đang tải
+
+            if (orders.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6">Chưa có đơn hàng nào.</td></tr>';
+                return;
+            }
+
+            orders.forEach(ord => {
+                let sClass = "status-cho";
+                if (ord.status === "Đang giao") sClass = "status-giao";
+                if (ord.status === "Đã giao") sClass = "status-xong";
+
+                // Chú ý: ord.email và ord.total phải khớp với API Python trả về
+                const row = `
+                    <tr>
+                        <td><b>#${ord.id}</b></td>
+                        <td>${ord.email}</td>
+                        <td>${ord.created_at}</td>
+                        <td><span style="color:red; font-weight:bold">${ord.total.toLocaleString()}đ</span></td>
+                        <td><span class="order-status ${sClass}">${ord.status || 'Chờ xác nhận'}</span></td>
+                        <td>
+                            <button class="btn btn-ship" onclick="updateOrderStatus('${ord.id}', 'Đang giao')">Giao hàng</button>
+                            <button class="btn btn-done" onclick="updateOrderStatus('${ord.id}', 'Đã giao')">Hoàn tất</button>
+                        </td>
+                    </tr>
+                `;
+                tbody.innerHTML += row;
+            });
+        } catch (err) {
+            console.error("Lỗi:", err);
+            tbody.innerHTML = '<tr><td colspan="6" style="color:red">Lỗi kết nối Server!</td></tr>';
+        }
     }
 
-    function updateOrderStatus(orderId, newStatus) {
-      let orders = JSON.parse(localStorage.getItem('orders') || '[]');
-      // Cập nhật trạng thái mới
-      orders = orders.map(o => {
-        if (o.id === orderId) o.status = newStatus;
-        return o;
-      });
-      // Lưu lại vào kho chung
-      localStorage.setItem('orders', JSON.stringify(orders));
-      alert("Đã cập nhật đơn " + orderId + " thành: " + newStatus);
-      loadOrders(); // Tải lại bảng ngay lập tức
+    // 2. Hàm cập nhật trạng thái (Cũng phải gửi lên Server)
+    async function updateOrderStatus(orderId, newStatus) {
+        // Tạm thời báo cho bạn biết, hàm này cần viết thêm API ở Python để đổi trạng thái trong DB
+        alert("Chức năng đổi trạng thái đơn " + orderId + " sang " + newStatus + " cần thêm API ở Python mới lưu vĩnh viễn được!");
     }
+
+    // Chạy hàm load ngay khi vào trang
+    window.onload = loadOrders;
 
     function logout() {
       localStorage.clear();
