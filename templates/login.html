@@ -1,225 +1,666 @@
 <!DOCTYPE html>
 <html lang="vi">
-
 <head>
-  <meta charset="UTF-8" />
-  <title>Đăng nhập</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Đăng nhập - ShopOnline</title>
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
-  <style>
-    body {
-      margin: 0;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-      background: linear-gradient(135deg, #eef2ff, #f8fafc);
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
+:root {
+  --bg: #f8f9fa;
+  --card: #ffffff;
+  --text: #1a1a2e;
+  --text-secondary: #6b7280;
+  --input-bg: #f3f4f6;
+  --input-border: #d1d5db;
+  --primary: #f97316;
+  --primary-hover: #ea580c;
+  --error: #ef4444;
+  --shadow: 0 25px 60px rgba(0,0,0,0.12);
+  --transition: 0.3s ease;
+}
 
-    .card {
-      background: white;
-      width: 100%;
-      max-width: 400px;
-      padding: 32px;
-      border-radius: 16px;
-      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
-    }
+.dark {
+  --bg: #0f0f1a;
+  --card: #1a1a2e;
+  --text: #f1f1f1;
+  --text-secondary: #9ca3af;
+  --input-bg: #16213e;
+  --input-border: #2a2a4a;
+  --shadow: 0 25px 60px rgba(0,0,0,0.4);
+}
 
-    h1 {
-      margin: 0 0 8px;
-      text-align: center;
-    }
+body {
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background var(--transition);
+  overflow: hidden;
+}
 
-    p {
-      margin: 0 0 24px;
-      text-align: center;
-      color: #6b7280;
-    }
+/* ========== ANIMATED GRADIENT BACKGROUND ========== */
+.bg-gradient {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  background: linear-gradient(-45deg, #f97316, #8b5cf6, #3b82f6, #06b6d4, #f97316, #ec4899);
+  background-size: 400% 400%;
+  animation: gradientFlow 12s ease infinite;
+}
 
-    label {
-      display: block;
-      margin-bottom: 6px;
-      font-size: 14px;
-      font-weight: 500;
-    }
+@keyframes gradientFlow {
+  0%   { background-position: 0% 50%; }
+  25%  { background-position: 50% 100%; }
+  50%  { background-position: 100% 50%; }
+  75%  { background-position: 50% 0%; }
+  100% { background-position: 0% 50%; }
+}
 
-    input {
-      width: 100%;
-      padding: 12px;
-      margin-bottom: 14px;
-      border-radius: 8px;
-      border: 1px solid #d1d5db;
-      font-size: 14px;
-    }
+/* Floating orbs */
+.orb {
+  position: fixed;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.08);
+  animation: float 20s ease-in-out infinite;
+  z-index: 1;
+}
+.orb:nth-child(1) { width: 300px; height: 300px; top: -80px; left: -80px; animation-duration: 18s; }
+.orb:nth-child(2) { width: 200px; height: 200px; top: 60%; right: -60px; animation-duration: 22s; animation-delay: -5s; }
+.orb:nth-child(3) { width: 150px; height: 150px; bottom: -40px; left: 30%; animation-duration: 16s; animation-delay: -8s; }
+.orb:nth-child(4) { width: 100px; height: 100px; top: 20%; left: 60%; animation-duration: 25s; animation-delay: -3s; }
 
-    input:focus {
-      outline: none;
-      border-color: #6366f1;
-      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
-    }
+@keyframes float {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  25% { transform: translate(30px, -40px) scale(1.05); }
+  50% { transform: translate(-20px, 20px) scale(0.95); }
+  75% { transform: translate(15px, 35px) scale(1.02); }
+}
 
-    .row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 10px;
-      margin: 4px 0 14px;
-      font-size: 14px;
-      color: #374151;
-    }
+/* ========== MAIN CONTAINER ========== */
+.login-container {
+  position: relative;
+  z-index: 10;
+  display: flex;
+  width: 950px;
+  max-width: 95vw;
+  min-height: 580px;
+  border-radius: 24px;
+  overflow: hidden;
+  box-shadow: var(--shadow);
+  animation: cardEntry 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  opacity: 0;
+  transform: translateY(30px) scale(0.97);
+}
 
-    .row label {
-      margin: 0;
-      font-weight: 400;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      cursor: pointer;
-    }
+@keyframes cardEntry {
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
 
-    .row input[type="checkbox"] {
-      width: 16px;
-      height: 16px;
-      margin: 0;
-      accent-color: #4f46e5;
-    }
+/* ========== LEFT BANNER ========== */
+.banner {
+  flex: 1;
+  background: linear-gradient(135deg, #f97316 0%, #8b5cf6 50%, #3b82f6 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 36px;
+  position: relative;
+  overflow: hidden;
+}
 
-    button {
-      width: 100%;
-      padding: 12px;
-      border: none;
-      border-radius: 10px;
-      background: #4f46e5;
-      color: white;
-      font-size: 16px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: 0.2s ease;
-    }
+.banner::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+}
 
-    button:hover {
-      background: #4338ca;
-    }
+.banner-icon {
+  font-size: 72px;
+  margin-bottom: 20px;
+  animation: bounceIn 1s ease 0.4s forwards;
+  opacity: 0;
+  transform: scale(0);
+}
 
-    button:disabled {
-      opacity: 0.7;
-      cursor: not-allowed;
-    }
+@keyframes bounceIn {
+  0% { opacity: 0; transform: scale(0); }
+  60% { opacity: 1; transform: scale(1.15); }
+  100% { opacity: 1; transform: scale(1); }
+}
 
-    .footer {
-      text-align: center;
-      margin-top: 16px;
-      font-size: 14px;
-    }
+.banner h1 {
+  color: #fff;
+  font-size: 28px;
+  font-weight: 800;
+  margin-bottom: 12px;
+  text-align: center;
+  animation: fadeUp 0.6s ease 0.5s forwards;
+  opacity: 0;
+}
 
-    .footer a {
-      color: #4f46e5;
-      text-decoration: none;
-      font-weight: 600;
-    }
+.banner p {
+  color: rgba(255,255,255,0.85);
+  font-size: 15px;
+  text-align: center;
+  line-height: 1.6;
+  max-width: 280px;
+  animation: fadeUp 0.6s ease 0.7s forwards;
+  opacity: 0;
+}
 
-    .msg {
-      text-align: center;
-      margin-bottom: 12px;
-      display: none;
-      font-size: 14px;
-      padding: 10px 12px;
-      border-radius: 10px;
-    }
+.banner-features {
+  margin-top: 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  animation: fadeUp 0.6s ease 0.9s forwards;
+  opacity: 0;
+}
 
-    .msg.error {
-      display: block;
-      color: #991b1b;
-      background: #fee2e2;
-      border: 1px solid #fecaca;
-    }
+.banner-features li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: rgba(255,255,255,0.9);
+  font-size: 14px;
+  list-style: none;
+}
 
-    .msg.success {
-      display: block;
-      color: #065f46;
-      background: #d1fae5;
-      border: 1px solid #a7f3d0;
-    }
-  </style>
+.banner-features li .check {
+  width: 22px;
+  height: 22px;
+  background: rgba(255,255,255,0.2);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  flex-shrink: 0;
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(15px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ========== RIGHT FORM ========== */
+.form-side {
+  flex: 1;
+  background: var(--card);
+  padding: 48px 40px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  transition: background var(--transition);
+}
+
+/* Dark mode toggle */
+.dark-toggle {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  z-index: 50;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255,255,255,0.15);
+  backdrop-filter: blur(10px);
+  cursor: pointer;
+  font-size: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition);
+}
+.dark-toggle:hover {
+  background: rgba(255,255,255,0.25);
+  transform: rotate(20deg) scale(1.1);
+}
+
+.form-title {
+  font-size: 26px;
+  font-weight: 800;
+  color: var(--text);
+  margin-bottom: 6px;
+  transition: color var(--transition);
+}
+
+.form-subtitle {
+  font-size: 14px;
+  color: var(--text-secondary);
+  margin-bottom: 32px;
+  transition: color var(--transition);
+}
+
+/* Input groups */
+.input-group {
+  margin-bottom: 20px;
+}
+
+.input-group label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 6px;
+  transition: color var(--transition);
+}
+
+.input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.input-icon {
+  position: absolute;
+  left: 14px;
+  font-size: 16px;
+  z-index: 2;
+  opacity: 0.5;
+  transition: opacity var(--transition);
+}
+
+.input-wrapper input {
+  width: 100%;
+  padding: 14px 14px 14px 44px;
+  border: 2px solid var(--input-border);
+  border-radius: 12px;
+  font-size: 15px;
+  background: var(--input-bg);
+  color: var(--text);
+  outline: none;
+  transition: all var(--transition);
+}
+
+.input-wrapper input::placeholder {
+  color: var(--text-secondary);
+  opacity: 0.6;
+}
+
+.input-wrapper input:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 4px rgba(249, 115, 22, 0.15);
+}
+
+.input-wrapper input:focus ~ .input-icon,
+.input-wrapper input:focus + .input-icon {
+  opacity: 1;
+}
+
+.input-wrapper input.error {
+  border-color: var(--error);
+  box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.1);
+}
+
+.toggle-pass {
+  position: absolute;
+  right: 14px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 18px;
+  opacity: 0.5;
+  transition: opacity var(--transition);
+  z-index: 2;
+}
+.toggle-pass:hover { opacity: 1; }
+
+.error-text {
+  color: var(--error);
+  font-size: 12px;
+  margin-top: 5px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  animation: shakeIn 0.3s ease;
+}
+
+@keyframes shakeIn {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-4px); }
+  40% { transform: translateX(4px); }
+  60% { transform: translateX(-2px); }
+  80% { transform: translateX(2px); }
+}
+
+/* Options row */
+.options-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 28px;
+}
+
+.remember-me {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-size: 13px;
+  color: var(--text-secondary);
+  transition: color var(--transition);
+}
+
+.remember-me input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--primary);
+  cursor: pointer;
+}
+
+.forgot-link {
+  font-size: 13px;
+  color: var(--primary);
+  text-decoration: none;
+  font-weight: 600;
+  transition: opacity var(--transition);
+}
+.forgot-link:hover { opacity: 0.8; }
+
+/* Submit button */
+.btn-submit {
+  width: 100%;
+  padding: 15px;
+  border: none;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 700;
+  color: #fff;
+  background: linear-gradient(135deg, #f97316, #ea580c);
+  cursor: pointer;
+  transition: all var(--transition);
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-submit::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, #ea580c, #dc2626);
+  opacity: 0;
+  transition: opacity var(--transition);
+}
+
+.btn-submit:hover::before { opacity: 1; }
+.btn-submit:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 30px rgba(249, 115, 22, 0.35);
+}
+
+.btn-submit:active { transform: translateY(0); }
+
+.btn-submit span {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.btn-submit:disabled {
+  cursor: not-allowed;
+  opacity: 0.8;
+}
+
+/* Spinner */
+.spinner {
+  width: 20px;
+  height: 20px;
+  border: 2.5px solid rgba(255,255,255,0.3);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Register link */
+.register-text {
+  text-align: center;
+  margin-top: 24px;
+  font-size: 14px;
+  color: var(--text-secondary);
+  transition: color var(--transition);
+}
+
+.register-text a {
+  color: var(--primary);
+  font-weight: 700;
+  text-decoration: none;
+}
+.register-text a:hover { text-decoration: underline; }
+
+/* Toast notification */
+.toast {
+  position: fixed;
+  top: 30px;
+  right: 30px;
+  z-index: 100;
+  padding: 16px 28px;
+  border-radius: 14px;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  box-shadow: 0 15px 40px rgba(0,0,0,0.2);
+  animation: toastIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  background: linear-gradient(135deg, #10b981, #059669);
+}
+
+.toast.error-toast {
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+}
+
+@keyframes toastIn {
+  from { opacity: 0; transform: translateX(50px) scale(0.95); }
+  to { opacity: 1; transform: translateX(0) scale(1); }
+}
+
+@keyframes toastOut {
+  to { opacity: 0; transform: translateX(50px) scale(0.95); }
+}
+
+/* ========== RESPONSIVE ========== */
+@media (max-width: 768px) {
+  .login-container {
+    flex-direction: column;
+    min-height: auto;
+    max-height: 95vh;
+    margin: 16px;
+  }
+  .banner {
+    padding: 32px 24px;
+    min-height: auto;
+  }
+  .banner-features { display: none; }
+  .banner-icon { font-size: 48px; margin-bottom: 12px; }
+  .banner h1 { font-size: 22px; }
+  .banner p { font-size: 13px; }
+  .form-side { padding: 32px 24px; }
+  .form-title { font-size: 22px; }
+}
+
+@media (max-width: 480px) {
+  .banner { display: none; }
+  .login-container { border-radius: 20px; }
+  .form-side { padding: 28px 20px; }
+}
+</style>
 </head>
-
 <body>
-  <div class="card">
-    <h1>Đăng nhập (Hồng Anh)</h1>
-    <p>Chào mừng bạn quay lại</p>
 
-    <div id="msg" class="msg"></div>
+<!-- Animated gradient background -->
+<div class="bg-gradient"></div>
 
-    <form id="loginForm">
-      <label>Email</label>
-      <input type="email" id="email" placeholder="email@example.com" required />
+<!-- Floating decorative orbs -->
+<div class="orb"></div>
+<div class="orb"></div>
+<div class="orb"></div>
+<div class="orb"></div>
 
-      <label>Mật khẩu</label><input type="password" id="password" placeholder="Nhập mật khẩu" required />
+<!-- Dark mode toggle -->
+<button class="dark-toggle" id="darkToggle" title="Chuyển chế độ sáng/tối">☀️</button>
 
-      <div class="row">
-        <label>
-          <input type="checkbox" id="showPw" />
-          Hiện mật khẩu
-        </label>
-      </div>
+<!-- Main login card -->
+<div class="login-container">
 
-      <button type="submit" id="loginBtn">Đăng nhập</button>
-      <div id="error-message" style="color: red; margin-top: 10px; text-align: center;"></div>
-    </form>
-
-    <div class="footer">
-      Chưa có tài khoản?
-      <a href="/register">Đăng ký</a>
-    </div>
+  <!-- Left: Banner -->
+  <div class="banner">
+    <div class="banner-icon">🛒</div>
+    <h1>ShopOnline</h1>
+    <p>Mua sắm thông minh, tiết kiệm hơn mỗi ngày cùng hàng triệu sản phẩm chính hãng.</p>
+    <ul class="banner-features">
+      <li><span class="check">✓</span> Miễn phí vận chuyển toàn quốc</li>
+      <li><span class="check">✓</span> Đổi trả dễ dàng trong 30 ngày</li>
+      <li><span class="check">✓</span> Thanh toán an toàn, bảo mật</li>
+      <li><span class="check">✓</span> Hỗ trợ 24/7</li>
+    </ul>
   </div>
 
-  <script>
-    // Xóa token cũ
-    localStorage.clear();
+  <!-- Right: Login form -->
+  <div class="form-side">
+    <h2 class="form-title">Đăng nhập hệ thống</h2>
+    <p class="form-subtitle">Chào mừng bạn quay trở lại! 👋</p>
 
-    const form = document.getElementById("loginForm");
-    const msg = document.getElementById("msg");
-    const loginBtn = document.getElementById("loginBtn");
+    <form id="loginForm" novalidate>
+      <!-- Email -->
+      <div class="input-group">
+        <label for="email">Email</label>
+        <div class="input-wrapper">
+          <span class="input-icon">📧</span>
+          <input type="email" id="email" placeholder="Nhập email" autocomplete="email">
+        </div>
+        <div class="error-text" id="emailError" style="display:none">⚠ Email không đúng định dạng</div>
+      </div>
 
-    form.addEventListener("submit", async (e) => {
-        e.preventDefault();
-        msg.style.display = "none";
+      <!-- Password -->
+      <div class="input-group">
+        <label for="password">Mật khẩu</label>
+        <div class="input-wrapper">
+          <span class="input-icon">🔒</span>
+          <input type="password" id="password" placeholder="Nhập mật khẩu" autocomplete="current-password">
+          <button type="button" class="toggle-pass" id="togglePass" title="Hiện/ẩn mật khẩu">👁</button>
+        </div>
+        <div class="error-text" id="passError" style="display:none">⚠ Vui lòng nhập mật khẩu (tối thiểu 6 ký tự)</div>
+      </div>
 
-        const email = document.getElementById("email").value.trim();
-        const password = document.getElementById("password").value;
+      <!-- Options -->
+      <div class="options-row">
+        <label class="remember-me">
+          <input type="checkbox" id="remember"> Ghi nhớ đăng nhập
+        </label>
+        <a href="#" class="forgot-link">Quên mật khẩu?</a>
+      </div>
 
-        loginBtn.disabled = true;
-        loginBtn.textContent = "Đang đăng nhập...";
+      <!-- Submit -->
+      <button type="submit" class="btn-submit" id="submitBtn">
+        <span id="btnContent">Đăng nhập</span>
+      </button>
+    </form>
 
-        try {
-            const res = await fetch("/auth/login", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ email, password })
-            });
+    <p class="register-text">
+      Chưa có tài khoản? <a href="/register">Đăng ký tài khoản</a>
+    </p>
+  </div>
+</div>
 
-            const data = await res.json();
+<script>
+// 1. Khai báo các thành phần giao diện
+const loginForm = document.getElementById('loginForm');
+const emailInput = document.getElementById('email');
+const passInput = document.getElementById('password');
+const emailError = document.getElementById('emailError');
+const passError = document.getElementById('passError');
+const togglePass = document.getElementById('togglePass');
+const submitBtn = document.getElementById('submitBtn');
+const btnContent = document.getElementById('btnContent');
+const darkToggle = document.getElementById('darkToggle');
 
-            if (data.success === true) {
-                // Lưu token vào máy
-                localStorage.setItem("access_token", data.access_token);
-                // CHUYỂN TRANG THEO LỆNH SERVER
-                window.location.href = data.redirect;
-            } else {
-                msg.textContent = data.message || "Lỗi đăng nhập";
-                msg.className = "msg error";
-                msg.style.display = "block";
-                loginBtn.disabled = false;
-                loginBtn.textContent = "Đăng nhập";
-            }
-        } catch (err) {
-            console.error(err);
-            loginBtn.disabled = false;
-            loginBtn.textContent = "Đăng nhập";
+// Xóa sạch phiên đăng nhập cũ mỗi khi quay lại trang login
+localStorage.clear();
+
+// 2. Hiệu ứng hiện/ẩn mật khẩu (Giữ nguyên tính năng của bạn)
+togglePass.addEventListener('click', () => {
+    const isPassword = passInput.type === 'password';
+    passInput.type = isPassword ? 'text' : 'password';
+    togglePass.textContent = isPassword ? '🙈' : '👁';
+});
+
+// 3. Xử lý Đăng Nhập khi bấm nút
+loginForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    // Hiệu ứng Loading trên nút bấm của bạn
+    submitBtn.disabled = true;
+    btnContent.innerHTML = '<div class="spinner"></div> Đang xử lý...';
+
+    const email = emailInput.value.trim();
+    const password = passInput.value;
+
+    try {
+        // Gửi dữ liệu lên Server Python (Lưu ý: /auth/login phải khớp với main.py)
+        const res = await fetch("/auth/login", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email, password })
+        });
+
+        const data = await res.json();
+
+        if (res.ok && data.success === true) {
+            // LƯU TOKEN - Tấm vé để vào trang Shop/Admin
+            localStorage.setItem("access_token", data.access_token);
+            localStorage.setItem("user_email", email);
+            
+            showToast('✅ Đăng nhập thành công! Đang chuyển hướng...');
+            
+            // Chuyển hướng sau 1.2 giây
+            setTimeout(() => {
+                window.location.href = data.redirect; 
+            }, 1200);
+        } else {
+            // Báo lỗi nếu sai pass hoặc mail
+            showToast('❌ ' + (data.message || 'Thông tin không chính xác'), true);
+            submitBtn.disabled = false;
+            btnContent.textContent = 'Đăng nhập';
         }
-    }); // Đảm bảo đóng ngoặc đúng ở đây
-</script>
-</body>
+    } catch (err) {
+        showToast('❌ Lỗi kết nối Server!', true);
+        submitBtn.disabled = false;
+        btnContent.textContent = 'Đăng nhập';
+    }
+});
 
+// 4. Hàm hiện thông báo (Toast) - Giữ nguyên giao diện đẹp của bạn
+function showToast(message, isError = false) {
+    const existing = document.querySelector('.toast');
+    if (existing) existing.remove();
+    const toast = document.createElement('div');
+    toast.className = 'toast' + (isError ? ' error-toast' : '');
+    toast.textContent = message;
+    document.body.appendChild(toast);
+    setTimeout(() => {
+        toast.style.animation = 'toastOut 0.4s ease forwards';
+        setTimeout(() => toast.remove(), 400);
+    }, 3000);
+}
+
+// 5. Chế độ sáng tối (Dark mode)
+darkToggle.addEventListener('click', () => {
+    document.documentElement.classList.toggle('dark');
+    darkToggle.textContent = document.documentElement.classList.contains('dark') ? '🌙' : '☀️';
+});
+</script>
+
+</body>
 </html>
