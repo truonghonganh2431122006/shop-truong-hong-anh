@@ -4,103 +4,581 @@
   <meta charset="UTF-8" />
   <title>Admin Dashboard - Shop Hồng Anh</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
-    body { margin: 0; font-family: sans-serif; background: #f3f4f6; }
-    header { background: #111827; color: white; padding: 16px 24px; display: flex; justify-content: space-between; align-items: center; }
-    .container { max-width: 1100px; margin: 24px auto; padding: 0 16px; }
-    .card { background: white; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); padding: 24px; margin-bottom: 24px; }
-    h2 { margin-top: 0; color: #111827; border-bottom: 2px solid #eee; padding-bottom: 10px; }
-    table { width: 100%; border-collapse: collapse; margin-top: 16px; }
-    th, td { text-align: left; padding: 12px; border-bottom: 1px solid #e5e7eb; }
-    th { background: #f9fafb; color: #4b5563; text-transform: uppercase; font-size: 12px; }
-    .order-status { padding: 4px 8px; border-radius: 999px; font-size: 12px; font-weight: 600; }
-    .status-cho { background: #fef3c7; color: #92400e; }
-    .status-giao { background: #dbeafe; color: #1e40af; }
-    .status-xong { background: #d1fae5; color: #065f46; }
-    .btn { padding: 6px 12px; border: none; border-radius: 4px; cursor: pointer; font-size: 13px; margin-right: 5px; }
-    .btn-ship { background: #3b82f6; color: white; }
-    .btn-done { background: #10b981; color: white; }
-    .btn-logout { background: #ef4444; color: white; }
-    .nav-tabs { margin-bottom: 20px; }
-    .nav-tabs button { padding: 10px 25px; cursor: pointer; border: none; background: #e5e7eb; margin-right: 8px; border-radius: 6px; font-weight: bold; transition: 0.3s; }
-    .nav-tabs button.active { background: #111827; color: white; }
-    .banned { color: #999; text-decoration: line-through; }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #f0f2f5;
+      --bg-gradient: linear-gradient(135deg, #f0f2f5 0%, #e8ecf4 100%);
+      --sidebar-bg: #0f172a;
+      --sidebar-hover: #1e293b;
+      --sidebar-active: linear-gradient(135deg, #6366f1, #4f46e5);
+      --header-bg: #ffffff;
+      --card-bg: #ffffff;
+      --text: #1e293b;
+      --text-muted: #64748b;
+      --text-light: #94a3b8;
+      --border: #e2e8f0;
+      --primary: #6366f1;
+      --primary-light: #818cf8;
+      --success: #10b981;
+      --success-bg: #ecfdf5;
+      --warning: #f59e0b;
+      --warning-bg: #fffbeb;
+      --danger: #ef4444;
+      --danger-bg: #fef2f2;
+      --info: #3b82f6;
+      --info-bg: #eff6ff;
+      --shadow-sm: 0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.06);
+      --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.07), 0 2px 4px -2px rgba(0,0,0,0.05);
+      --shadow-lg: 0 10px 25px -3px rgba(0,0,0,0.08), 0 4px 6px -4px rgba(0,0,0,0.05);
+      --shadow-xl: 0 20px 40px -5px rgba(0,0,0,0.1);
+      --radius: 14px;
+      --radius-sm: 8px;
+      --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    html.dark {
+      --bg: #0c1222;
+      --bg-gradient: linear-gradient(135deg, #0c1222 0%, #111827 100%);
+      --sidebar-bg: #060d1b;
+      --sidebar-hover: #111d35;
+      --header-bg: #111827;
+      --card-bg: #1e293b;
+      --text: #e2e8f0;
+      --text-muted: #94a3b8;
+      --text-light: #64748b;
+      --border: #334155;
+      --success-bg: #064e3b33;
+      --warning-bg: #78350f33;
+      --danger-bg: #7f1d1d33;
+      --info-bg: #1e3a5f33;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg-gradient);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      transition: var(--transition);
+    }
+
+    /* ============ SIDEBAR ============ */
+    .sidebar {
+      width: 260px;
+      min-height: 100vh;
+      background: var(--sidebar-bg);
+      display: flex;
+      flex-direction: column;
+      position: fixed;
+      top: 0; left: 0; bottom: 0;
+      z-index: 100;
+      transition: transform 0.3s ease;
+    }
+
+    .sidebar-logo {
+      padding: 28px 24px;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .sidebar-logo .logo-icon {
+      width: 42px; height: 42px;
+      background: var(--sidebar-active);
+      border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px; font-weight: 800; color: #fff;
+      box-shadow: 0 4px 12px rgba(99,102,241,0.4);
+    }
+
+    .sidebar-logo .logo-text {
+      color: #fff; font-size: 16px; font-weight: 700;
+      letter-spacing: -0.3px;
+    }
+
+    .sidebar-logo .logo-sub {
+      color: #64748b; font-size: 11px; font-weight: 400;
+      margin-top: 2px;
+    }
+
+    .sidebar-nav { flex: 1; padding: 20px 12px; }
+
+    .nav-tabs { display: flex; flex-direction: column; gap: 4px; margin-bottom: 0; }
+
+    .nav-tabs button {
+      width: 100%;
+      display: flex; align-items: center; gap: 14px;
+      padding: 13px 18px;
+      border: none; border-radius: 10px;
+      background: transparent;
+      color: #94a3b8;
+      font-size: 14px; font-weight: 500;
+      cursor: pointer;
+      transition: var(--transition);
+      text-align: left;
+      position: relative;
+      font-family: inherit;
+    }
+
+    .nav-tabs button:hover {
+      background: var(--sidebar-hover);
+      color: #e2e8f0;
+    }
+
+    .nav-tabs button.active {
+      background: var(--sidebar-active);
+      color: #fff;
+      box-shadow: 0 4px 15px rgba(99,102,241,0.35);
+      font-weight: 600;
+    }
+
+    .nav-tabs button .nav-icon {
+      font-size: 18px;
+      width: 24px; text-align: center;
+    }
+
+    .sidebar-footer {
+      padding: 20px 16px;
+      border-top: 1px solid rgba(255,255,255,0.06);
+    }
+
+    .sidebar-user {
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px;
+      border-radius: 10px;
+      background: rgba(255,255,255,0.03);
+    }
+
+    .sidebar-user .user-avatar {
+      width: 36px; height: 36px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #6366f1, #8b5cf6);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px; color: #fff; font-weight: 600;
+    }
+
+    .sidebar-user .user-info { flex: 1; min-width: 0; }
+    .sidebar-user .user-name { color: #e2e8f0; font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .sidebar-user .user-role { color: #64748b; font-size: 11px; }
+
+    /* ============ MAIN CONTENT ============ */
+    .main-wrap {
+      margin-left: 260px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    header {
+      background: var(--header-bg);
+      color: var(--text);
+      padding: 0 32px;
+      height: 68px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--border);
+      box-shadow: var(--shadow-sm);
+      position: sticky; top: 0;
+      z-index: 50;
+      backdrop-filter: blur(12px);
+    }
+
+    header h1 {
+      font-size: 20px; font-weight: 700;
+      letter-spacing: -0.4px;
+    }
+
+    .header-right {
+      display: flex; align-items: center; gap: 12px;
+    }
+
+    .dark-toggle {
+      width: 40px; height: 40px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: var(--card-bg);
+      cursor: pointer;
+      font-size: 18px;
+      display: flex; align-items: center; justify-content: center;
+      transition: var(--transition);
+    }
+    .dark-toggle:hover { background: var(--border); transform: scale(1.05); }
+
+    .btn-logout {
+      padding: 10px 22px;
+      border: none; border-radius: 10px;
+      background: linear-gradient(135deg, #ef4444, #dc2626);
+      color: #fff;
+      font-size: 13px; font-weight: 600;
+      cursor: pointer;
+      transition: var(--transition);
+      box-shadow: 0 2px 8px rgba(239,68,68,0.3);
+      font-family: inherit;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .btn-logout:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(239,68,68,0.4);
+    }
+
+    .header-avatar {
+      width: 38px; height: 38px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #6366f1, #8b5cf6);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px; color: #fff;
+      cursor: pointer;
+    }
+
+    /* ============ CONTAINER ============ */
+    .container {
+      max-width: 100%;
+      margin: 0;
+      padding: 28px 32px;
+      flex: 1;
+    }
+
+    /* ============ CARDS ============ */
+    .card {
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-md);
+      padding: 28px;
+      margin-bottom: 24px;
+      border: 1px solid var(--border);
+      animation: fadeSlideIn 0.4s ease;
+    }
+
+    @keyframes fadeSlideIn {
+      from { opacity: 0; transform: translateY(16px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    h2 {
+      font-size: 20px; font-weight: 700;
+      color: var(--text);
+      border-bottom: none;
+      padding-bottom: 0;
+      margin-bottom: 22px;
+      display: flex; align-items: center; gap: 10px;
+    }
+
+    h2::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: linear-gradient(90deg, var(--border) 0%, transparent 100%);
+      margin-left: 12px;
+    }
+
+    /* ============ TABLE ============ */
+    table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      margin-top: 8px;
+    }
+
+    th {
+      background: var(--bg);
+      color: var(--text-muted);
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      padding: 14px 18px;
+      border-bottom: 2px solid var(--border);
+      text-align: left;
+      white-space: nowrap;
+    }
+
+    th:first-child { border-radius: var(--radius-sm) 0 0 0; }
+    th:last-child { border-radius: 0 var(--radius-sm) 0 0; }
+
+    td {
+      padding: 16px 18px;
+      border-bottom: 1px solid var(--border);
+      font-size: 14px;
+      color: var(--text);
+      vertical-align: middle;
+      transition: var(--transition);
+    }
+
+    tbody tr {
+      transition: var(--transition);
+    }
+
+    tbody tr:hover {
+      background: rgba(99,102,241,0.04);
+    }
+
+    tbody tr:nth-child(even) {
+      background: rgba(0,0,0,0.015);
+    }
+
+    html.dark tbody tr:nth-child(even) {
+      background: rgba(255,255,255,0.015);
+    }
+
+    html.dark tbody tr:hover {
+      background: rgba(99,102,241,0.08);
+    }
+
+    /* ============ STATUS BADGES ============ */
+    .order-status {
+      padding: 5px 14px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.2px;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .status-cho { background: var(--warning-bg); color: var(--warning); }
+    .status-giao { background: var(--info-bg); color: var(--info); }
+    .status-xong { background: var(--success-bg); color: var(--success); }
+
+    .status-cho::before { content: '⏳'; font-size: 11px; }
+    .status-giao::before { content: '🚚'; font-size: 11px; }
+    .status-xong::before { content: '✅'; font-size: 11px; }
+
+    /* ============ BUTTONS ============ */
+    .btn {
+      padding: 8px 18px;
+      border: none;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 600;
+      margin-right: 6px;
+      transition: var(--transition);
+      font-family: inherit;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+    }
+
+    .btn:active {
+      transform: translateY(0);
+    }
+
+    .btn-ship {
+      background: linear-gradient(135deg, #3b82f6, #2563eb);
+      color: white;
+      box-shadow: 0 2px 8px rgba(59,130,246,0.3);
+    }
+    .btn-ship:hover { box-shadow: 0 6px 20px rgba(59,130,246,0.4); }
+
+    .btn-done {
+      background: linear-gradient(135deg, #10b981, #059669);
+      color: white;
+      box-shadow: 0 2px 8px rgba(16,185,129,0.3);
+    }
+    .btn-done:hover { box-shadow: 0 6px 20px rgba(16,185,129,0.4); }
+
+    .banned { color: var(--text-light); text-decoration: line-through; }
+
+    /* ============ TOAST ============ */
+    .toast {
+      position: fixed;
+      bottom: 28px; right: 28px;
+      padding: 14px 24px;
+      border-radius: 12px;
+      background: var(--sidebar-bg);
+      color: #fff;
+      font-size: 14px; font-weight: 500;
+      box-shadow: var(--shadow-xl);
+      transform: translateY(100px);
+      opacity: 0;
+      transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+      z-index: 9999;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .toast.show { transform: translateY(0); opacity: 1; }
+
+    /* ============ MOBILE OVERLAY ============ */
+    .sidebar-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 99;
+      backdrop-filter: blur(4px);
+    }
+
+    .mobile-menu-btn {
+      display: none;
+      width: 40px; height: 40px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: var(--card-bg);
+      cursor: pointer;
+      font-size: 20px;
+      align-items: center; justify-content: center;
+    }
+
+    /* ============ RESPONSIVE ============ */
+    @media (max-width: 768px) {
+      .sidebar {
+        transform: translateX(-100%);
+      }
+      .sidebar.open {
+        transform: translateX(0);
+      }
+      .sidebar-overlay.show { display: block; }
+      .main-wrap { margin-left: 0; }
+      .container { padding: 16px; }
+      header { padding: 0 16px; }
+      .mobile-menu-btn { display: flex; }
+      .card { padding: 18px; }
+
+      table {
+        display: block;
+        overflow-x: auto;
+        white-space: nowrap;
+        -webkit-overflow-scrolling: touch;
+      }
+    }
+
+    /* ============ SCROLLBAR ============ */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--text-light); border-radius: 10px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
   </style>
 </head>
 <body>
 
-  <header>
-    <h1>Hồng Anh Admin Dashboard</h1>
-    <button class="btn btn-logout" onclick="logout()">Đăng xuất</button>
-  </header>
+  <!-- Sidebar Overlay (mobile) -->
+  <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
 
-  <div class="container">
-    <div class="nav-tabs">
-        <button id="btn-orders" class="active" onclick="showTab('orders')">📦 Đơn hàng</button>
-        <button id="btn-products" onclick="showTab('products')">🛍️ Sản phẩm</button>
-        <button id="btn-users" onclick="showTab('users')">👥 Tài khoản</button>
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-icon">HA</div>
+      <div>
+        <div class="logo-text">Hồng Anh Admin</div>
+        <div class="logo-sub">Quản lý hệ thống</div>
+      </div>
     </div>
 
-    <div id="tab-orders" class="card">
-      <h2>Danh sách đơn đặt hàng</h2>
-      <table>
-        <thead>
-          <tr>
-            <th>Mã đơn</th>
-            <th>Email khách</th>
-            <th>Ngày đặt</th>
-            <th>Tổng tiền</th>
-            <th>Trạng thái</th>
-            <th>Thao tác</th>
-          </tr>
-        </thead>
-        <tbody id="orderTableBody">
-          <tr><td colspan="6">Đang tải dữ liệu...</td></tr>
-        </tbody>
-      </table>
-    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-tabs">
+        <button id="btn-orders" class="active" onclick="showTab('orders')">
+          <span class="nav-icon">📦</span> Đơn hàng
+        </button>
+        <button id="btn-products" onclick="showTab('products')">
+          <span class="nav-icon">🛍️</span> Sản phẩm
+        </button>
+        <button id="btn-users" onclick="showTab('users')">
+          <span class="nav-icon">👥</span> Tài khoản
+        </button>
+      </div>
+    </nav>
 
-    <div id="tab-products" class="card" style="display:none;">
-      <h2>Quản lý sản phẩm</h2>
-      <button class="btn btn-ship" onclick="alert('Chức năng thêm sản phẩm sẽ sớm cập nhật')">+ Thêm sản phẩm mới</button>
-      <table>
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Tên sản phẩm</th>
-            <th>Giá</th>
-            <th>Thao tác</th>
-          </tr>
-        </thead>
-        <tbody id="productTableBody">
-          <tr><td colspan="4">Chức năng đang cập nhật...</td></tr>
-        </tbody>
-      </table>
+    <div class="sidebar-footer">
+      <div class="sidebar-user">
+        <div class="user-avatar">👤</div>
+        <div class="user-info">
+          <div class="user-name" id="sidebarEmail">admin@shop.com</div>
+          <div class="user-role">Super Admin</div>
+        </div>
+      </div>
     </div>
+  </aside>
 
-    <div id="tab-users" class="card" style="display:none;">
-      <h2>Quản lý người dùng</h2>
-      <table>
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Email</th>
-            <th>Vai trò</th>
-            <th>Thao tác</th>
-          </tr>
-        </thead>
-        <tbody id="userTableBody">
-          <tr><td colspan="4">Đang tải danh sách thành viên...</td></tr>
-        </tbody>
-      </table>
+  <!-- Main Content -->
+  <div class="main-wrap">
+    <header>
+      <div style="display:flex;align-items:center;gap:12px;">
+        <button class="mobile-menu-btn" onclick="openSidebar()">☰</button>
+        <h1 id="pageTitle">📦 Đơn hàng</h1>
+      </div>
+      <div class="header-right">
+        <button class="dark-toggle" onclick="toggleDark()" title="Dark Mode">🌙</button>
+        <div class="header-avatar">👤</div>
+        <button class="btn btn-logout" onclick="logout()">🚪 Đăng xuất</button>
+      </div>
+    </header>
+
+    <div class="container">
+      <div id="tab-orders" class="card">
+        <h2>Danh sách đơn đặt hàng</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Mã đơn</th>
+              <th>Email khách</th>
+              <th>Ngày đặt</th>
+              <th>Tổng tiền</th>
+              <th>Trạng thái</th>
+              <th>Thao tác</th>
+            </tr>
+          </thead>
+          <tbody id="orderTableBody">
+            <tr><td colspan="6" style="text-align:center;padding:40px;color:var(--text-muted)">Đang tải dữ liệu...</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div id="tab-products" class="card" style="display:none;">
+        <h2>Quản lý sản phẩm</h2>
+        <button class="btn btn-ship" onclick="alert('Chức năng thêm sản phẩm sẽ sớm cập nhật')" style="margin-bottom:16px;">+ Thêm sản phẩm mới</button>
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Tên sản phẩm</th>
+              <th>Giá</th>
+              <th>Thao tác</th>
+            </tr>
+          </thead>
+          <tbody id="productTableBody">
+            <tr><td colspan="4" style="text-align:center;padding:40px;color:var(--text-muted)">Chức năng đang cập nhật...</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div id="tab-users" class="card" style="display:none;">
+        <h2>Quản lý người dùng</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Email</th>
+              <th>Vai trò</th>
+              <th>Thao tác</th>
+            </tr>
+          </thead>
+          <tbody id="userTableBody">
+            <tr><td colspan="4" style="text-align:center;padding:40px;color:var(--text-muted)">Đang tải danh sách thành viên...</td></tr>
+          </tbody>
+        </table>
+      </div>
     </div>
   </div>
 
-  <script>
+  <!-- Toast -->
+  <div class="toast" id="toast"></div>
+
+<script>
+    // Lấy token từ bộ nhớ trình duyệt
     const token = localStorage.getItem("access_token");
     let currentAdminEmail = "";
 
-    // 1. Kiểm tra quyền Admin
+    // 1. Kiểm tra quyền Admin (Giữ nguyên logic của bạn)
     async function checkAuth() {
       if (!token) { window.location.href = "/login"; return; }
       try {
@@ -109,12 +587,15 @@
         if (data.role.toUpperCase() !== "ADMIN") { 
             window.location.href = "/shop"; 
         } else {
-            currentAdminEmail = data.email; // Lưu email để bảo vệ chính mình
+            currentAdminEmail = data.email; 
+            // Hiển thị email lên giao diện cho đẹp
+            const el = document.getElementById('sidebarEmail');
+            if (el) el.textContent = data.email;
         }
       } catch (err) { window.location.href = "/login"; }
     }
 
-    // 2. Chuyển Tab
+    // 2. Chuyển Tab (Giữ nguyên logic ẩn/hiện của bạn)
     function showTab(tabName) {
         document.getElementById('tab-orders').style.display = 'none';
         document.getElementById('tab-products').style.display = 'none';
@@ -126,8 +607,17 @@
         document.getElementById('tab-' + tabName).style.display = 'block';
         document.getElementById('btn-' + tabName).classList.add('active');
 
+        // Cập nhật tiêu đề trang cho khớp giao diện
+        const titles = { orders: '📦 Đơn hàng', products: '🛍️ Sản phẩm', users: '👥 Tài khoản' };
+        if (document.getElementById('pageTitle')) {
+            document.getElementById('pageTitle').textContent = titles[tabName];
+        }
+
         if(tabName === 'orders') loadOrders();
         if(tabName === 'users') loadUsers();
+        
+        // Đóng sidebar nếu đang ở trên điện thoại
+        if (typeof closeSidebar === 'function') closeSidebar();
     }
 
     // 3. Quản lý Đơn hàng
@@ -138,7 +628,7 @@
         const orders = await res.json();
         tbody.innerHTML = '';
         if (orders.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="6">Không có đơn hàng nào.</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:20px">Không có đơn hàng nào.</td></tr>';
             return;
         }
         orders.forEach(ord => {
@@ -148,7 +638,7 @@
               <td><b>#${ord.id}</b></td>
               <td>${ord.email}</td>
               <td>${ord.created_at}</td>
-              <td><span style="color:red; font-weight:bold">${ord.total.toLocaleString()}đ</span></td>
+              <td><span style="color:var(--danger); font-weight:bold">${ord.total.toLocaleString()}đ</span></td>
               <td><span class="order-status ${sClass}">${ord.status || 'Chờ xác nhận'}</span></td>
               <td>
                 <button class="btn btn-ship" onclick="updateOrderStatus(${ord.id}, 'Đang giao')">Giao</button>
@@ -169,7 +659,7 @@
         } catch (err) { console.error(err); }
     }
 
-    // 4. Quản lý Tài khoản (Ban/Unban/Delete)
+    // 4. Quản lý Tài khoản (Dùng đúng logic fix của bạn)
     async function loadUsers() {
       const tbody = document.getElementById('userTableBody');
       try {
@@ -181,7 +671,6 @@
           const isMe = u.email === currentAdminEmail;
           const isAdmin = u.role.toUpperCase() === 'ADMIN';
           
-          // Tìm đoạn này trong loadUsers() và sửa lại:
           const isBanned = u.status === "BANNED"; 
           const btnBanText = isBanned ? "Mở khóa" : "Khóa";
           const btnBanClass = isBanned ? "btn-done" : "btn-logout";
@@ -195,12 +684,12 @@
               <td>
                 ${!isMe && !isAdmin ? `
                   <button class="btn ${btnBanClass}" onclick="toggleBan(${u.id})">${btnBanText}</button>
-                  <button class="btn" style="background:gray; color:white" onclick="deleteUser(${u.id})">Xóa</button>
+                  <button class="btn" style="background:#64748b; color:white" onclick="deleteUser(${u.id})">Xóa</button>
                 ` : '<span style="color:gray; font-size:11px">Hệ thống bảo vệ</span>'}
               </td>
             </tr>`;
         });
-      } catch (err) { tbody.innerHTML = '<tr><td colspan="4" style="color:red">Cần API /users ở Python để hiển thị.</td></tr>'; }
+      } catch (err) { tbody.innerHTML = '<tr><td colspan="4" style="color:red; text-align:center">Cần API /users ở Python để hiển thị.</td></tr>'; }
     }
 
     async function toggleBan(userId) {
@@ -228,14 +717,30 @@
         } catch (err) { alert("Lỗi kết nối!"); }
     }
 
+    // Hàm Đăng xuất
     function logout() {
       localStorage.clear();
       window.location.href = "/login";
     }
 
+    // --- CÁC HÀM PHỤ TRỢ GIAO DIỆN (Để Darkmode và Sidebar hoạt động) ---
+    function openSidebar() {
+      document.getElementById('sidebar').classList.add('open');
+      document.getElementById('sidebarOverlay').classList.add('show');
+    }
+    function closeSidebar() {
+      document.getElementById('sidebar').classList.remove('open');
+      document.getElementById('sidebarOverlay').classList.remove('show');
+    }
+    function toggleDark() {
+      document.documentElement.classList.toggle('dark');
+      const btn = document.querySelector('.dark-toggle');
+      btn.textContent = document.documentElement.classList.contains('dark') ? '☀️' : '🌙';
+    }
+
     // Khởi chạy
     checkAuth();
     loadOrders();
-  </script>
+</script>
 </body>
 </html>
