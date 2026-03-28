@@ -687,17 +687,20 @@ def delete_category(category_id: int, admin: User = Depends(require_admin), db: 
 
 
 # ===================== PRODUCTS (PUBLIC) =====================
+
 @app.get("/products")
 def list_products(
     q: Optional[str] = None,
     category_id: Optional[int] = None,
     sort: str = "new",  # new | price_asc | price_desc
-    include_inactive: bool = False,  # admin UI có thể bật
+    include_inactive: bool = False,  # Admin UI truyền True để quản lý hết
     db: Session = Depends(get_db),
 ):
     query = db.query(Product)
+    
+    # Nếu không phải Admin yêu cầu xem hết, thì chỉ lấy sản phẩm đang hoạt động
     if not include_inactive:
-        query = query.filter(Product.is_active == True)  # noqa: E712
+        query = query.filter(Product.is_active == True)
 
     if q:
         query = query.filter(Product.name.ilike(f"%{q.strip()}%"))
@@ -705,6 +708,7 @@ def list_products(
     if category_id is not None:
         query = query.filter(Product.category_id == category_id)
 
+    # Xử lý sắp xếp
     if sort == "price_asc":
         query = query.order_by(Product.price.asc())
     elif sort == "price_desc":
@@ -712,46 +716,25 @@ def list_products(
     else:
         query = query.order_by(Product.id.desc())
 
-    items = query.all()
-    return [
-        {
-            "id": p.id,
-            "name": p.name,
-            "price": p.price,
-            "stock": p.stock,
-            "description": p.description,
-            "image_url": p.image_url,
-            "is_active": p.is_active,
-            "category_id": p.category_id,
-        }
-        for p in items
-    ]
+    return query.all()
 
 
 @app.get("/products/{product_id}")
 def product_detail(product_id: int, db: Session = Depends(get_db)):
     p = db.query(Product).filter(Product.id == product_id).first()
     if not p or not p.is_active:
-        raise HTTPException(status_code=404, detail="Không tìm thấy sản phẩm")
-    return {
-        "id": p.id,
-        "name": p.name,
-        "price": p.price,
-        "stock": p.stock,
-        "description": p.description,
-        "image_url": p.image_url,
-        "is_active": p.is_active,
-        "category_id": p.category_id,
-    }
+        raise HTTPException(status_code=404, detail="Không tìm thấy sản phẩm hoặc sản phẩm đã bị ẩn")
+    return p
 
 
 # ===================== PRODUCTS (ADMIN) =====================
+
 @app.post("/admin/products")
 def create_product(data: ProductCreateSchema, admin: User = Depends(require_admin), db: Session = Depends(get_db)):
     if data.category_id is not None:
         c = db.query(Category).filter(Category.id == data.category_id).first()
         if not c:
-            raise HTTPException(status_code=400, detail="category_id không hợp lệ")
+            raise HTTPException(status_code=400, detail="Mã danh mục không tồn tại")
 
     p = Product(
         name=data.name.strip(),
@@ -760,11 +743,12 @@ def create_product(data: ProductCreateSchema, admin: User = Depends(require_admi
         description=data.description,
         image_url=data.image_url,
         category_id=data.category_id,
-        is_active=data.is_active,
+        is_active=data.is_active if data.is_active is not None else True,
     )
     db.add(p)
     db.commit()
-    return {"message": "Tạo sản phẩm thành công", "id": p.id}
+    db.refresh(p)
+    return {"message": "Tạo sản phẩm thành success", "id": p.id}
 
 
 @app.put("/admin/products/{product_id}")
@@ -773,27 +757,21 @@ def update_product(product_id: int, data: ProductUpdateSchema, admin: User = Dep
     if not p:
         raise HTTPException(status_code=404, detail="Không tìm thấy sản phẩm")
 
-    if data.category_id is not None:
-        if data.category_id == 0:
-            p.category_id = None
+    # Lấy các trường dữ liệu người dùng thực sự gửi lên (tránh ghi đè None)
+    update_data = data.dict(exclude_unset=True)
+    
+    for key, value in update_data.items():
+        if key == "category_id":
+            if value == 0:
+                p.category_id = None
+            else:
+                c = db.query(Category).filter(Category.id == value).first()
+                if not c: raise HTTPException(status_code=400, detail="Danh mục không hợp lệ")
+                p.category_id = value
+        elif key == "name" and value is not None:
+            p.name = value.strip()
         else:
-            c = db.query(Category).filter(Category.id == data.category_id).first()
-            if not c:
-                raise HTTPException(status_code=400, detail="category_id không hợp lệ")
-            p.category_id = data.category_id
-
-    if data.name is not None:
-        p.name = data.name.strip()
-    if data.price is not None:
-        p.price = data.price
-    if data.stock is not None:
-        p.stock = data.stock
-    if data.description is not None:
-        p.description = data.description
-    if data.image_url is not None:
-        p.image_url = data.image_url
-    if data.is_active is not None:
-        p.is_active = data.is_active
+            setattr(p, key, value)
 
     db.commit()
     return {"message": "Cập nhật sản phẩm thành công"}
@@ -804,9 +782,18 @@ def delete_product(product_id: int, admin: User = Depends(require_admin), db: Se
     p = db.query(Product).filter(Product.id == product_id).first()
     if not p:
         raise HTTPException(status_code=404, detail="Không tìm thấy sản phẩm")
-    db.delete(p)
-    db.commit()
-    return {"message": "Xóa sản phẩm thành công"}
+    
+    try:
+        db.delete(p)
+        db.commit()
+    except Exception:
+        # Nếu sản phẩm dính lỗi khóa ngoại (do đã có trong đơn hàng), tự động chuyển sang ẨN
+        db.rollback()
+        p.is_active = False
+        db.commit()
+        return {"message": "Sản phẩm đã có lịch sử đơn hàng, đã tự động ẨN sản phẩm này."}
+
+    return {"message": "Đã xóa sản phẩm thành công"}
 
 
 @app.post("/admin/products/{product_id}/hide")
@@ -816,7 +803,7 @@ def hide_product(product_id: int, admin: User = Depends(require_admin), db: Sess
         raise HTTPException(status_code=404, detail="Không tìm thấy sản phẩm")
     p.is_active = False
     db.commit()
-    return {"message": "Đã ẩn sản phẩm"}
+    return {"message": "Sản phẩm đã được ẩn khỏi shop"}
 
 
 @app.post("/admin/products/{product_id}/show")
@@ -826,7 +813,7 @@ def show_product(product_id: int, admin: User = Depends(require_admin), db: Sess
         raise HTTPException(status_code=404, detail="Không tìm thấy sản phẩm")
     p.is_active = True
     db.commit()
-    return {"message": "Đã hiện sản phẩm"}
+    return {"message": "Sản phẩm đã hiện lại trên shop"}
 
 
 # ===================== ORDERS (USER) =====================

@@ -534,19 +534,22 @@
       </div>
 
       <div id="tab-products" class="card" style="display:none;">
-        <h2>Quản lý sản phẩm</h2>
-        <button class="btn btn-ship" onclick="alert('Chức năng thêm sản phẩm sẽ sớm cập nhật')" style="margin-bottom:16px;">+ Thêm sản phẩm mới</button>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+          <h2>Danh sách sản phẩm kho</h2>
+          <button class="btn btn-done" onclick="alert('Tính năng thêm sản phẩm sẽ sớm cập nhật')">+ Thêm sản phẩm mới</button>
+        </div>
         <table>
           <thead>
             <tr>
               <th>ID</th>
-              <th>Tên sản phẩm</th>
+              <th>Sản phẩm</th>
               <th>Giá</th>
+              <th>Trạng thái</th>
               <th>Thao tác</th>
             </tr>
           </thead>
           <tbody id="productTableBody">
-            <tr><td colspan="4" style="text-align:center;padding:40px;color:var(--text-muted)">Chức năng đang cập nhật...</td></tr>
+            <tr><td colspan="5" style="text-align:center;padding:40px;color:var(--text-muted)">🔄 Đang đồng bộ sản phẩm từ shop...</td></tr>
           </tbody>
         </table>
       </div>
@@ -578,75 +581,79 @@
     const token = localStorage.getItem("access_token");
     let currentAdminEmail = "";
 
-    // 1. Kiểm tra quyền Admin (Giữ nguyên logic của bạn)
+    // 1. Kiểm tra quyền Admin
     async function checkAuth() {
-      if (!token) { window.location.href = "/login"; return; }
-      try {
-        const res = await fetch("/me", { headers: { "Authorization": "Bearer " + token } });
-        const data = await res.json();
-        if (data.role.toUpperCase() !== "ADMIN") { 
-            window.location.href = "/shop"; 
-        } else {
-            currentAdminEmail = data.email; 
-            // Hiển thị email lên giao diện cho đẹp
-            const el = document.getElementById('sidebarEmail');
-            if (el) el.textContent = data.email;
-        }
-      } catch (err) { window.location.href = "/login"; }
+        if (!token) { window.location.href = "/login"; return; }
+        try {
+            const res = await fetch("/me", { headers: { "Authorization": "Bearer " + token } });
+            const data = await res.json();
+            if (data.role.toUpperCase() !== "ADMIN") { 
+                window.location.href = "/shop"; 
+            } else {
+                currentAdminEmail = data.email; 
+                const el = document.getElementById('sidebarEmail');
+                if (el) el.textContent = data.email;
+            }
+        } catch (err) { window.location.href = "/login"; }
     }
 
-    // 2. Chuyển Tab (Giữ nguyên logic ẩn/hiện của bạn)
+    // 2. Chuyển Tab (Đã tích hợp load dữ liệu sản phẩm)
     function showTab(tabName) {
+        // Ẩn tất cả các tab
         document.getElementById('tab-orders').style.display = 'none';
         document.getElementById('tab-products').style.display = 'none';
         document.getElementById('tab-users').style.display = 'none';
+        
+        // Gỡ bỏ class active ở các nút
         document.getElementById('btn-orders').classList.remove('active');
         document.getElementById('btn-products').classList.remove('active');
         document.getElementById('btn-users').classList.remove('active');
 
+        // Hiện tab được chọn
         document.getElementById('tab-' + tabName).style.display = 'block';
         document.getElementById('btn-' + tabName).classList.add('active');
 
-        // Cập nhật tiêu đề trang cho khớp giao diện
+        // Cập nhật tiêu đề trang
         const titles = { orders: '📦 Đơn hàng', products: '🛍️ Sản phẩm', users: '👥 Tài khoản' };
         if (document.getElementById('pageTitle')) {
             document.getElementById('pageTitle').textContent = titles[tabName];
         }
 
+        // Gọi hàm load dữ liệu tương ứng
         if(tabName === 'orders') loadOrders();
         if(tabName === 'users') loadUsers();
+        if(tabName === 'products') loadProducts(); // <-- Đã thêm gọi dữ liệu sản phẩm
         
-        // Đóng sidebar nếu đang ở trên điện thoại
         if (typeof closeSidebar === 'function') closeSidebar();
     }
 
     // 3. Quản lý Đơn hàng
     async function loadOrders() {
-      const tbody = document.getElementById('orderTableBody');
-      try {
-        const res = await fetch('/admin/orders', { headers: { 'Authorization': 'Bearer ' + token } });
-        const orders = await res.json();
-        tbody.innerHTML = '';
-        if (orders.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:20px">Không có đơn hàng nào.</td></tr>';
-            return;
-        }
-        orders.forEach(ord => {
-          let sClass = ord.status === "Đang giao" ? "status-giao" : (ord.status === "Đã giao" ? "status-xong" : "status-cho");
-          tbody.innerHTML += `
-            <tr>
-              <td><b>#${ord.id}</b></td>
-              <td>${ord.email}</td>
-              <td>${ord.created_at}</td>
-              <td><span style="color:var(--danger); font-weight:bold">${ord.total.toLocaleString()}đ</span></td>
-              <td><span class="order-status ${sClass}">${ord.status || 'Chờ xác nhận'}</span></td>
-              <td>
-                <button class="btn btn-ship" onclick="updateOrderStatus(${ord.id}, 'Đang giao')">Giao</button>
-                <button class="btn btn-done" onclick="updateOrderStatus(${ord.id}, 'Đã giao')">Xong</button>
-              </td>
-            </tr>`;
-        });
-      } catch (err) { console.error(err); }
+        const tbody = document.getElementById('orderTableBody');
+        try {
+            const res = await fetch('/admin/orders', { headers: { 'Authorization': 'Bearer ' + token } });
+            const orders = await res.json();
+            tbody.innerHTML = '';
+            if (orders.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:20px">Không có đơn hàng nào.</td></tr>';
+                return;
+            }
+            orders.forEach(ord => {
+                let sClass = ord.status === "Đang giao" ? "status-giao" : (ord.status === "Đã giao" ? "status-xong" : "status-cho");
+                tbody.innerHTML += `
+                    <tr>
+                        <td><b>#${ord.id}</b></td>
+                        <td>${ord.email}</td>
+                        <td>${ord.created_at}</td>
+                        <td><span style="color:var(--danger); font-weight:bold">${ord.total.toLocaleString()}đ</span></td>
+                        <td><span class="order-status ${sClass}">${ord.status || 'Chờ xác nhận'}</span></td>
+                        <td>
+                            <button class="btn btn-ship" onclick="updateOrderStatus(${ord.id}, 'Đang giao')">Giao</button>
+                            <button class="btn btn-done" onclick="updateOrderStatus(${ord.id}, 'Đã giao')">Xong</button>
+                        </td>
+                    </tr>`;
+            });
+        } catch (err) { console.error(err); }
     }
 
     async function updateOrderStatus(orderId, newStatus) {
@@ -659,37 +666,35 @@
         } catch (err) { console.error(err); }
     }
 
-    // 4. Quản lý Tài khoản (Dùng đúng logic fix của bạn)
+    // 4. Quản lý Tài khoản
     async function loadUsers() {
-      const tbody = document.getElementById('userTableBody');
-      try {
-        const res = await fetch('/users', { headers: { 'Authorization': 'Bearer ' + token } });
-        const users = await res.json();
-        tbody.innerHTML = '';
+        const tbody = document.getElementById('userTableBody');
+        try {
+            const res = await fetch('/users', { headers: { 'Authorization': 'Bearer ' + token } });
+            const users = await res.json();
+            tbody.innerHTML = '';
+            users.forEach(u => {
+                const isMe = u.email === currentAdminEmail;
+                const isAdmin = u.role.toUpperCase() === 'ADMIN';
+                const isBanned = u.status === "BANNED"; 
+                const btnBanText = isBanned ? "Mở khóa" : "Khóa";
+                const btnBanClass = isBanned ? "btn-done" : "btn-logout";
+                const emailStyle = isBanned ? "style='color:gray; text-decoration:line-through'" : "";
 
-        users.forEach(u => {
-          const isMe = u.email === currentAdminEmail;
-          const isAdmin = u.role.toUpperCase() === 'ADMIN';
-          
-          const isBanned = u.status === "BANNED"; 
-          const btnBanText = isBanned ? "Mở khóa" : "Khóa";
-          const btnBanClass = isBanned ? "btn-done" : "btn-logout";
-          const emailStyle = isBanned ? "style='color:gray; text-decoration:line-through'" : "";
-
-          tbody.innerHTML += `
-            <tr>
-              <td>${u.id}</td>
-              <td ${emailStyle}>${u.email} ${isMe ? '<b>(Tôi)</b>' : ''}</td>
-              <td><b>${u.role}</b></td>
-              <td>
-                ${!isMe && !isAdmin ? `
-                  <button class="btn ${btnBanClass}" onclick="toggleBan(${u.id})">${btnBanText}</button>
-                  <button class="btn" style="background:#64748b; color:white" onclick="deleteUser(${u.id})">Xóa</button>
-                ` : '<span style="color:gray; font-size:11px">Hệ thống bảo vệ</span>'}
-              </td>
-            </tr>`;
-        });
-      } catch (err) { tbody.innerHTML = '<tr><td colspan="4" style="color:red; text-align:center">Cần API /users ở Python để hiển thị.</td></tr>'; }
+                tbody.innerHTML += `
+                    <tr>
+                        <td>${u.id}</td>
+                        <td ${emailStyle}>${u.email} ${isMe ? '<b>(Tôi)</b>' : ''}</td>
+                        <td><b>${u.role}</b></td>
+                        <td>
+                            ${!isMe && !isAdmin ? `
+                                <button class="btn ${btnBanClass}" onclick="toggleBan(${u.id})">${btnBanText}</button>
+                                <button class="btn" style="background:#64748b; color:white" onclick="deleteUser(${u.id})">Xóa</button>
+                            ` : '<span style="color:gray; font-size:11px">Hệ thống bảo vệ</span>'}
+                        </td>
+                    </tr>`;
+            });
+        } catch (err) { tbody.innerHTML = '<tr><td colspan="4" style="color:red; text-align:center">Lỗi tải danh sách người dùng.</td></tr>'; }
     }
 
     async function toggleBan(userId) {
@@ -699,10 +704,7 @@
                 method: 'PUT',
                 headers: { 'Authorization': 'Bearer ' + token }
             });
-            if(res.ok) { loadUsers(); } else { 
-                const data = await res.json();
-                alert(data.detail || "Lỗi khóa tài khoản"); 
-            }
+            if(res.ok) { loadUsers(); } else { alert("Lỗi khóa tài khoản"); }
         } catch (err) { alert("Lỗi kết nối!"); }
     }
 
@@ -717,28 +719,96 @@
         } catch (err) { alert("Lỗi kết nối!"); }
     }
 
+    // 5. Quản lý Sản phẩm (LẤY DỮ LIỆU TỪ SHOP)
+    async function loadProducts() {
+        const tbody = document.getElementById('productTableBody');
+        if (!tbody) return;
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:20px">🔄 Đang tải sản phẩm...</td></tr>';
+        
+        try {
+            // Gọi API lấy toàn bộ sản phẩm (kể cả sản phẩm đã ẩn)
+            const res = await fetch('/products?include_inactive=true', { 
+                headers: { 'Authorization': 'Bearer ' + token } 
+            });
+            const products = await res.json();
+            tbody.innerHTML = '';
+
+            if (products.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:20px">Kho trống.</td></tr>';
+                return;
+            }
+
+            products.forEach(p => {
+                const statusText = p.is_active ? "Đang bán" : "Đã ẩn";
+                const statusClass = p.is_active ? "status-xong" : "status-cho";
+                const toggleIcon = p.is_active ? "🚫 Ẩn" : "👁️ Hiện";
+                const toggleAction = p.is_active ? "hide" : "show";
+
+                tbody.innerHTML += `
+                    <tr>
+                        <td>#${p.id}</td>
+                        <td>
+                            <div style="display:flex; align-items:center; gap:10px">
+                                <img src="${p.image_url}" style="width:40px; height:40px; border-radius:6px; object-fit:cover; border:1px solid var(--border)">
+                                <span style="${p.is_active ? '' : 'color:gray; text-decoration:line-through'}">${p.name}</span>
+                            </div>
+                        </td>
+                        <td><b style="color:var(--primary)">${p.price.toLocaleString()}đ</b></td>
+                        <td><span class="order-status ${statusClass}">${statusText}</span></td>
+                        <td>
+                            <button class="btn btn-ship" onclick="toggleProduct(${p.id}, '${toggleAction}')">${toggleIcon}</button>
+                            <button class="btn" style="background:#64748b; color:white" onclick="deleteProduct(${p.id})">🗑️</button>
+                        </td>
+                    </tr>`;
+            });
+        } catch (err) { 
+            tbody.innerHTML = '<tr><td colspan="5" style="color:red; text-align:center">Lỗi kết nối API Sản phẩm</td></tr>'; 
+        }
+    }
+
+    async function toggleProduct(productId, action) {
+        try {
+            const res = await fetch(`/admin/products/${productId}/${action}`, {
+                method: 'POST',
+                headers: { 'Authorization': 'Bearer ' + token }
+            });
+            if(res.ok) { loadProducts(); } else { alert("Lỗi khi thực hiện!"); }
+        } catch (err) { alert("Lỗi kết nối!"); }
+    }
+
+    async function deleteProduct(productId) {
+        if(!confirm("Xác nhận xóa vĩnh viễn sản phẩm này khỏi hệ thống?")) return;
+        try {
+            const res = await fetch(`/admin/products/${productId}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': 'Bearer ' + token }
+            });
+            if(res.ok) { loadProducts(); } else { alert("Không thể xóa sản phẩm!"); }
+        } catch (err) { alert("Lỗi kết nối!"); }
+    }
+
     // Hàm Đăng xuất
     function logout() {
-      localStorage.clear();
-      window.location.href = "/login";
+        localStorage.clear();
+        window.location.href = "/login";
     }
 
-    // --- CÁC HÀM PHỤ TRỢ GIAO DIỆN (Để Darkmode và Sidebar hoạt động) ---
+    // Các hàm giao diện
     function openSidebar() {
-      document.getElementById('sidebar').classList.add('open');
-      document.getElementById('sidebarOverlay').classList.add('show');
+        document.getElementById('sidebar').classList.add('open');
+        document.getElementById('sidebarOverlay').classList.add('show');
     }
     function closeSidebar() {
-      document.getElementById('sidebar').classList.remove('open');
-      document.getElementById('sidebarOverlay').classList.remove('show');
+        document.getElementById('sidebar').classList.remove('open');
+        document.getElementById('sidebarOverlay').classList.remove('show');
     }
     function toggleDark() {
-      document.documentElement.classList.toggle('dark');
-      const btn = document.querySelector('.dark-toggle');
-      btn.textContent = document.documentElement.classList.contains('dark') ? '☀️' : '🌙';
+        document.documentElement.classList.toggle('dark');
+        const btn = document.querySelector('.dark-toggle');
+        btn.textContent = document.documentElement.classList.contains('dark') ? '☀️' : '🌙';
     }
 
-    // Khởi chạy
+    // Khởi chạy mặc định
     checkAuth();
     loadOrders();
 </script>
