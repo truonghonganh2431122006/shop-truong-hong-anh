@@ -738,7 +738,7 @@ def import_from_html(data: List[ImportProductItem], admin: User = Depends(requir
             db.add(new_p)
             count += 1
     db.commit()
-    return {"message": f"Đã nạp thành công {count} sản phẩm!"}
+    return {"message": f"Đã nạp thành công {count} sản phẩm vào SQL!"}
 
 @app.post("/admin/products/{product_id}/hide")
 def hide_product(product_id: int, admin: User = Depends(require_admin), db: Session = Depends(get_db)):
