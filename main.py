@@ -34,6 +34,8 @@ from pathlib import Path
 from typing import Optional, List, Dict, Set
 import os
 
+DATABASE_URL = "postgresql://postgres:Honganh123%40123A@db.rfgccvepfkljtjkhhcdb.supabase.co:6543/postgres"
+
 # --- Lên đầu file, dưới các dòng import, thêm 2 dòng này ---
 BANNED_LOGIN_MESSAGE = "Tài khoản của bạn đã bị cấm. Vui lòng liên hệ Admin!"
 class LoginRequest(BaseModel):
