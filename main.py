@@ -6,6 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi import Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
+from typing import Optional, List, Dict, Any
 
 from pathlib import Path
 from fastapi.staticfiles import StaticFiles
@@ -688,132 +689,86 @@ def delete_category(category_id: int, admin: User = Depends(require_admin), db: 
 
 # ===================== PRODUCTS (PUBLIC) =====================
 
+# --- 1. Khai báo cấu trúc dữ liệu gửi lên (Thêm cái này trên các hàm @app) ---
+class ImportProductItem(BaseModel):
+    name: str
+    price: int
+    image_url: str
+
+# --- 2. Các hàm API ---
+
 @app.get("/products")
 def list_products(
     q: Optional[str] = None,
     category_id: Optional[int] = None,
-    sort: str = "new",  # new | price_asc | price_desc
-    include_inactive: bool = False,  # Admin UI truyền True để quản lý hết
+    sort: str = "new", 
+    include_inactive: bool = False,
     db: Session = Depends(get_db),
 ):
     query = db.query(Product)
-    
-    # Nếu không phải Admin yêu cầu xem hết, thì chỉ lấy sản phẩm đang hoạt động
     if not include_inactive:
         query = query.filter(Product.is_active == True)
-
     if q:
         query = query.filter(Product.name.ilike(f"%{q.strip()}%"))
-
     if category_id is not None:
         query = query.filter(Product.category_id == category_id)
 
-    # Xử lý sắp xếp
     if sort == "price_asc":
         query = query.order_by(Product.price.asc())
     elif sort == "price_desc":
         query = query.order_by(Product.price.desc())
     else:
         query = query.order_by(Product.id.desc())
-
     return query.all()
 
-
-@app.get("/products/{product_id}")
-def product_detail(product_id: int, db: Session = Depends(get_db)):
-    p = db.query(Product).filter(Product.id == product_id).first()
-    if not p or not p.is_active:
-        raise HTTPException(status_code=404, detail="Không tìm thấy sản phẩm hoặc sản phẩm đã bị ẩn")
-    return p
-
-
-# ===================== PRODUCTS (ADMIN) =====================
-
-@app.post("/admin/products")
-def create_product(data: ProductCreateSchema, admin: User = Depends(require_admin), db: Session = Depends(get_db)):
-    if data.category_id is not None:
-        c = db.query(Category).filter(Category.id == data.category_id).first()
-        if not c:
-            raise HTTPException(status_code=400, detail="Mã danh mục không tồn tại")
-
-    p = Product(
-        name=data.name.strip(),
-        price=data.price,
-        stock=data.stock,
-        description=data.description,
-        image_url=data.image_url,
-        category_id=data.category_id,
-        is_active=data.is_active if data.is_active is not None else True,
-    )
-    db.add(p)
+@app.post("/admin/import-from-html")
+def import_from_html(data: List[ImportProductItem], admin: User = Depends(require_admin), db: Session = Depends(get_db)):
+    count = 0
+    for item in data:
+        # Kiểm tra trùng tên
+        exists = db.query(Product).filter(Product.name == item.name).first()
+        if not exists:
+            new_p = Product(
+                name=item.name,
+                price=item.price,
+                image_url=item.image_url,
+                stock=100,
+                is_active=True
+            )
+            db.add(new_p)
+            count += 1
     db.commit()
-    db.refresh(p)
-    return {"message": "Tạo sản phẩm thành success", "id": p.id}
-
-
-@app.put("/admin/products/{product_id}")
-def update_product(product_id: int, data: ProductUpdateSchema, admin: User = Depends(require_admin), db: Session = Depends(get_db)):
-    p = db.query(Product).filter(Product.id == product_id).first()
-    if not p:
-        raise HTTPException(status_code=404, detail="Không tìm thấy sản phẩm")
-
-    # Lấy các trường dữ liệu người dùng thực sự gửi lên (tránh ghi đè None)
-    update_data = data.dict(exclude_unset=True)
-    
-    for key, value in update_data.items():
-        if key == "category_id":
-            if value == 0:
-                p.category_id = None
-            else:
-                c = db.query(Category).filter(Category.id == value).first()
-                if not c: raise HTTPException(status_code=400, detail="Danh mục không hợp lệ")
-                p.category_id = value
-        elif key == "name" and value is not None:
-            p.name = value.strip()
-        else:
-            setattr(p, key, value)
-
-    db.commit()
-    return {"message": "Cập nhật sản phẩm thành công"}
-
-
-@app.delete("/admin/products/{product_id}")
-def delete_product(product_id: int, admin: User = Depends(require_admin), db: Session = Depends(get_db)):
-    p = db.query(Product).filter(Product.id == product_id).first()
-    if not p:
-        raise HTTPException(status_code=404, detail="Không tìm thấy sản phẩm")
-    
-    try:
-        db.delete(p)
-        db.commit()
-    except Exception:
-        # Nếu sản phẩm dính lỗi khóa ngoại (do đã có trong đơn hàng), tự động chuyển sang ẨN
-        db.rollback()
-        p.is_active = False
-        db.commit()
-        return {"message": "Sản phẩm đã có lịch sử đơn hàng, đã tự động ẨN sản phẩm này."}
-
-    return {"message": "Đã xóa sản phẩm thành công"}
-
+    return {"message": f"Đã nạp thành công {count} sản phẩm!"}
 
 @app.post("/admin/products/{product_id}/hide")
 def hide_product(product_id: int, admin: User = Depends(require_admin), db: Session = Depends(get_db)):
     p = db.query(Product).filter(Product.id == product_id).first()
-    if not p:
-        raise HTTPException(status_code=404, detail="Không tìm thấy sản phẩm")
+    if not p: raise HTTPException(status_code=404, detail="Không tìm thấy sản phẩm")
     p.is_active = False
     db.commit()
-    return {"message": "Sản phẩm đã được ẩn khỏi shop"}
-
+    return {"message": "Sản phẩm đã được ẩn"}
 
 @app.post("/admin/products/{product_id}/show")
 def show_product(product_id: int, admin: User = Depends(require_admin), db: Session = Depends(get_db)):
     p = db.query(Product).filter(Product.id == product_id).first()
-    if not p:
-        raise HTTPException(status_code=404, detail="Không tìm thấy sản phẩm")
+    if not p: raise HTTPException(status_code=404, detail="Không tìm thấy sản phẩm")
     p.is_active = True
     db.commit()
-    return {"message": "Sản phẩm đã hiện lại trên shop"}
+    return {"message": "Sản phẩm đã hiện lại"}
+
+@app.delete("/admin/products/{product_id}")
+def delete_product(product_id: int, admin: User = Depends(require_admin), db: Session = Depends(get_db)):
+    p = db.query(Product).filter(Product.id == product_id).first()
+    if not p: raise HTTPException(status_code=404, detail="Không tìm thấy")
+    try:
+        db.delete(p)
+        db.commit()
+    except:
+        db.rollback()
+        p.is_active = False # Nếu dính khóa ngoại thì chỉ ẩn đi
+        db.commit()
+        return {"message": "Đã ẩn sản phẩm (do có lịch sử đơn hàng)"}
+    return {"message": "Xóa thành công"}
 
 
 # ===================== ORDERS (USER) =====================
