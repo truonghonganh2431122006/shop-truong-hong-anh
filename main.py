@@ -20,6 +20,9 @@ from sqlalchemy.orm import sessionmaker, declarative_base, Session, relationship
 
 from passlib.context import CryptContext
 from jose import jwt, JWTError
+
+DATABASE_URL = "sqlite:///./sql_app.db"
+
 # Thay thế cho dòng bị lỗi
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -125,10 +128,15 @@ async def shop_p():
     file_path = os.path.join(os.getcwd(), "templates", "shop_3_2.html")
     return FileResponse(file_path)
 
-@app.get("/order-history.html") # Hoặc bỏ .html đi cho đẹp: "/order-history"
-async def get_order_history(request: Request):
-    # Dùng cách này để đồng bộ với các trang Shop, Home của bạn
-    return templates.TemplateResponse("order-history.html", {"request": request})
+# --- Tìm và sửa đoạn này trong file main.py của bạn ---
+
+@app.get("/order-history.html", response_class=HTMLResponse)
+async def get_order_history():
+    # Dùng cách FileResponse đơn giản giống trang Shop của bạn
+    file_path = os.path.join(os.getcwd(), "templates", "order-history.html")
+    return FileResponse(file_path)
+
+# ------------------------------------------------------
 
 # (Tuỳ chọn) nếu bạn muốn có staff.html thì tạo trong static/
 @app.get("/staff")
