@@ -27978,8 +27978,8 @@
             window._removeFromCart = removeFromCart;
             window._changeQty = changeQty;
             window._clearCart = clearCart;
-            window._confirmOrder = async function () {
-                // 1. Lấy dữ liệu từ Form
+            window._confirmOrder = function () {
+                // 1. Lấy dữ liệu từ Form (Giữ nguyên phần cũ của bạn)
                 var name = (document.getElementById('coName') || {}).value || '';
                 var phone = (document.getElementById('coPhone') || {}).value || '';
                 var city = (document.getElementById('coCity') || {}).value || ''; 
@@ -27998,66 +27998,58 @@
                 var methodText = (payMethod && payMethod.value === 'BANK') ? "Chuyển khoản (QR)" : "Tiền mặt (COD)";
 
                 // ==========================================
-                // 3. GỬI ĐƠN HÀNG LÊN SERVER (DATABASE)
+                // 3. BẮT ĐẦU ĐOẠN LƯU ĐƠN HÀNG (CÓ TRY...CATCH)
                 try {
+                    // Lấy giỏ hàng và danh sách đơn cũ (Dùng chung tên túi 'myOrders')
                     var currentCart = JSON.parse(localStorage.getItem('cart') || '[]');
-                    const token = localStorage.getItem("access_token");
+                    var orders = JSON.parse(localStorage.getItem('myOrders') || '[]');
 
                     if (currentCart.length === 0) {
                         alert("Giỏ hàng trống, không thể đặt hàng!");
                         return;
                     }
 
-                    // Chuyển đổi dữ liệu giỏ hàng sang định dạng Server cần
-                    const orderPayload = {
-                        items: currentCart.map(item => ({
-                            product_id: parseInt(item.id), // Ép kiểu số nguyên cho chắc
-                            quantity: parseInt(item.qty || 1), 
-                            unit_price: parseFloat(item.price)
-                        }))
-                    };
-
-                    // Gửi request lên Server Python
-                    const response = await fetch('/orders', {
-                        method: 'POST',
-                        headers: {
-                            'Authorization': 'Bearer ' + token,
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify(orderPayload)
-                    });
-
-                    if (!response.ok) {
-                        const errorMsg = await response.json();
-                        throw new Error(errorMsg.detail || "Lỗi server");
+                    // Tính tổng tiền an toàn
+                    var finalTotal = 0;
+                    if (typeof total !== 'undefined' && total > 0) {
+                        finalTotal = total;
+                    } else {
+                        currentCart.forEach(item => { finalTotal += (item.price * item.qty); });
                     }
 
-                    const resultFromDB = await response.json();
-                    console.log("Đã lưu vào Database thành công, ID:", resultFromDB.id);
-
-                    // --- PHẦN PHỤ: Vẫn lưu một bản vào localStorage để hiện ở trang Lịch sử nhanh ---
-                    var orders = JSON.parse(localStorage.getItem('myOrders') || '[]');
-                    var newOrderLocal = {
-                        id: resultFromDB.id, // Dùng ID thật từ Database
+                    // Tạo đơn hàng mới
+                    var newOrder = {
+                        id: 'DH' + Math.floor(Math.random() * 90000 + 10000),
                         date: new Date().toLocaleString('vi-VN'),
                         customerName: name.trim(),
                         phone: phone.trim(),
                         address: fullAddr,
                         items: currentCart,
-                        total: resultFromDB.total || 0,
+                        total: finalTotal,
                         method: methodText,
                         status: 'Chờ xác nhận'
                     };
-                    orders.push(newOrderLocal);
+
+                    // Lưu vào kho localStorage với tên 'myOrders'
+                    orders.push(newOrder);
                     localStorage.setItem('myOrders', JSON.stringify(orders)); 
                     
-                    // Xóa giỏ hàng
+                    // Xóa giỏ hàng sau khi đặt thành công
                     localStorage.removeItem('cart');
+                    if (typeof cart !== 'undefined') cart = []; 
                     
-                    // Cập nhật Badge số lượng đơn
-                    if (typeof updateOrderBadge === 'function') updateOrderBadge();
+                    // CẬP NHẬT SỐ LƯỢNG LÊN MENU (Hiện số 1, 2, 3...)
+                    if (typeof updateOrderBadge === 'function') {
+                        updateOrderBadge();
+                    } else if (typeof updateCartCount === 'function') {
+                        updateCartCount();
+                    }
                     
-                    // 4. Hiển thị giao diện thành công (Giữ nguyên giao diện của bạn)
+                    console.log("Đã lưu đơn hàng vào myOrders thành công!", newOrder);
+
+                    // 4. Hiển thị thông báo thành công (Phần HTML của bạn giữ nguyên bên dưới)
+
+                    // 4. Hiển thị thông báo thành công (Giao diện mới)
                     var el = document.getElementById('cartContent');
                     if (el) {
                         el.innerHTML = `
@@ -28066,7 +28058,7 @@
                                 <p style="margin-bottom:10px;">Cảm ơn bạn: <b>${name.trim()}</b></p>
                                 
                                 <div style="text-align:left; background:#f9f9f9; padding:15px; border-radius:8px; border:1px solid #eee; font-size:14px; line-height:1.6;">
-                                    <p style="margin:0;">📍 <b>Mã đơn:</b> #${resultFromDB.id}</p>
+                                    <p style="margin:0;">📍 <b>Địa chỉ:</b> ${fullAddr}</p>
                                     <p style="margin:5px 0 0;">📞 <b>SĐT:</b> ${phone.trim()}</p>
                                     <p style="margin:5px 0 0;">💳 <b>Thanh toán:</b> ${methodText}</p>
                                 </div>
@@ -28075,7 +28067,7 @@
                                     <button onclick="window.location.href='/order-history.html'" style="background:#288ad6; color:#fff; border:none; padding:12px 20px; border-radius:4px; cursor:pointer; font-weight:bold; width:100%;">
                                         🚚 THEO DÕI ĐƠN HÀNG NGAY
                                     </button>
-                                    <button onclick="window.location.reload()" style="margin-top:10px; background:none; border:none; color:#666; cursor:pointer; text-decoration:underline;">
+                                    <button onclick="window.location.href='/shop'" style="margin-top:10px; background:none; border:none; color:#666; cursor:pointer; text-decoration:underline;">
                                         Tiếp tục mua sắm
                                     </button>
                                 </div>
@@ -28083,10 +28075,10 @@
                     }
 
                 } catch (e) {
-                    console.error("Lỗi chi tiết:", e);
-                    // Sửa dòng alert này để xem lỗi thật là gì
-                    alert("Lỗi đặt hàng: " + (e.message || JSON.stringify(e)));
+                    console.error("Lỗi khi lưu đơn hàng:", e);
+                    alert("Có lỗi xảy ra khi lưu đơn hàng, vui lòng thử lại!");
                 }
+                // ==========================================
             };
             window.closeCartModal = function () { var o = document.getElementById('cartOverlay'); if (o) o.classList.remove('active'); };
             function openCartModal() { renderCart(); var o = document.getElementById('cartOverlay'); if (o) o.classList.add('active'); }
