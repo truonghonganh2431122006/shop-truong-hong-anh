@@ -20667,9 +20667,9 @@
                 <div id="search-result"></div>
             </form>
             <div class="profile">
-                <a href="order-history.html" class="name-order active" style="display: flex; align-items: center; text-decoration: none; background: rgba(255,255,255,0.1); padding: 5px 10px; border-radius: 5px;">
+                <a href="/order-history.html" class="name-order active" style="display: flex; align-items: center; text-decoration: none; background: rgba(255,255,255,0.1); padding: 5px 10px; border-radius: 5px;">
                     <i class="iconnewglobal-user" style="margin-right: 5px; filter: brightness(0) invert(1);"></i> 
-                    <span style="color: white; font-size: 12px;">Đơn hàng</span>
+                    <span id="order-count-badge" style="color: white; font-size: 12px;">Đơn hàng (0)</span>
                 </a>
             </div>
             <a href="/cart" class="header__cart menu-info" id="cart-box">
@@ -27979,11 +27979,10 @@
 
                 // ==========================================
                 // 3. BẮT ĐẦU ĐOẠN LƯU ĐƠN HÀNG (CÓ TRY...CATCH)
-                // ==========================================
                 try {
-                    // Lấy giỏ hàng và danh sách đơn cũ
+                    // Lấy giỏ hàng và danh sách đơn cũ (Dùng chung tên túi 'myOrders')
                     var currentCart = JSON.parse(localStorage.getItem('cart') || '[]');
-                    var orders = JSON.parse(localStorage.getItem('orders') || '[]');
+                    var orders = JSON.parse(localStorage.getItem('myOrders') || '[]');
 
                     if (currentCart.length === 0) {
                         alert("Giỏ hàng trống, không thể đặt hàng!");
@@ -28011,16 +28010,24 @@
                         status: 'Chờ xác nhận'
                     };
 
-                    // Lưu vào kho localStorage
+                    // Lưu vào kho localStorage với tên 'myOrders'
                     orders.push(newOrder);
-                    localStorage.setItem('orders', JSON.stringify(orders));
+                    localStorage.setItem('myOrders', JSON.stringify(orders)); 
                     
                     // Xóa giỏ hàng sau khi đặt thành công
                     localStorage.removeItem('cart');
                     if (typeof cart !== 'undefined') cart = []; 
-                    if (typeof updateCartCount === 'function') updateCartCount();
                     
-                    console.log("Đã lưu đơn hàng thành công!", newOrder);
+                    // CẬP NHẬT SỐ LƯỢNG LÊN MENU (Hiện số 1, 2, 3...)
+                    if (typeof updateOrderBadge === 'function') {
+                        updateOrderBadge();
+                    } else if (typeof updateCartCount === 'function') {
+                        updateCartCount();
+                    }
+                    
+                    console.log("Đã lưu đơn hàng vào myOrders thành công!", newOrder);
+
+                    // 4. Hiển thị thông báo thành công (Phần HTML của bạn giữ nguyên bên dưới)
 
                     // 4. Hiển thị thông báo thành công (Giao diện mới)
                     var el = document.getElementById('cartContent');
@@ -28501,6 +28508,18 @@
                     };
                 }).catch(function (err) { console.error("Lỗi tải địa chỉ:", err); });
         };
+        function updateOrderBadge() {
+            let orders = JSON.parse(localStorage.getItem('myOrders') || '[]');
+            let badge = document.getElementById('order-count-badge');
+            if (badge) {
+                // Nếu có đơn thì hiện số màu đỏ, không thì hiện chữ bình thường
+                badge.innerHTML = orders.length > 0 
+                    ? `Đơn hàng <b style="background:red; padding:1px 5px; border-radius:50%; margin-left:3px;">${orders.length}</b>` 
+                    : `Đơn hàng`;
+            }
+        }
+        // Chạy khi vừa mở trang
+        document.addEventListener('DOMContentLoaded', updateOrderBadge);
     </script>
     </body>
 
