@@ -20666,8 +20666,8 @@
                 </button>
                 <div id="search-result"></div>
             </form>
-            <div class="profile" style="display: flex; align-items: center;">
-                <button onclick="goToOrderHistory()" class="btn-order-nav" style="
+            <div class="profile" style="display: flex; align-items: center; margin-right: 10px;">
+                <button type="button" onclick="goToOrderHistory()" class="btn-order-nav" style="
                     background: rgba(255, 255, 255, 0.2);
                     border: 1px solid rgba(255, 255, 255, 0.4);
                     color: white;
@@ -20684,13 +20684,6 @@
                     <span id="order-count-badge" style="font-size: 12px; font-weight: 500;">Đơn hàng</span>
                 </button>
             </div>
-
-            <script>
-                // Hàm ép chuyển hướng khi nhấn nút
-                function goToOrderHistory() {
-                    window.location.href = '/order-history.html';
-                }
-            </script>
             <a href="/cart" class="header__cart menu-info" id="cart-box">
                 <div class="box-cart">
                     <i class="iconnewglobal-whitecart"></i>
@@ -28531,7 +28524,7 @@
         function goToOrderHistory() {
             window.location.href = '/order-history.html';
         }
-        
+
         function updateOrderBadge() {
             let orders = JSON.parse(localStorage.getItem('myOrders') || '[]');
             let badge = document.getElementById('order-count-badge');
