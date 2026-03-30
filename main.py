@@ -22,7 +22,7 @@ from passlib.context import CryptContext
 from jose import jwt, JWTError
 
 # Sử dụng 3 dấu xuyệt (/) sau sqlite: và đường dẫn dùng dấu xuyệt xuôi (/)
-SQLALCHEMY_DATABASE_URL = "sqlite:///./app.db"
+SQLALCHEMY_DATABASE_URL = "sqlite:///C:/Users/Lenovo/OneDrive/Desktop/shop-server/app.db"
 
 # Thay thế cho dòng bị lỗi
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -260,15 +260,6 @@ class OrderItem(Base):
     unit_price = Column(Integer, nullable=False)
 
     order = relationship("Order", back_populates="items")
-
-# 1. Định nghĩa khuôn mẫu cho từng món hàng
-class OrderItemSchema(BaseModel):
-    product_id: int
-    quantity: int
-
-# 2. Định nghĩa khuôn mẫu cho đơn hàng (chứa danh sách các món hàng)
-class OrderCreateSchema(BaseModel):
-    items: List[OrderItemSchema]
 
 
 # ===================== SCHEMAS =====================
@@ -792,61 +783,80 @@ def create_order(data: OrderCreateSchema, user: User = Depends(get_current_user)
     if not data.items:
         raise HTTPException(status_code=400, detail="Giỏ hàng trống")
 
-    try:
-        # 1. Tạo đơn hàng tổng
-        order = Order(
-            user_id=user.id, 
-            status="NEW", 
-            created_at=datetime.utcnow()
+    # kiểm tra tồn kho trước
+    product_map: Dict[int, Product] = {}
+    for it in data.items:
+        p = db.query(Product).filter(Product.id == it.product_id, Product.is_active == True).first()  # noqa: E712
+        if not p:
+            raise HTTPException(status_code=400, detail=f"Sản phẩm {it.product_id} không tồn tại/đang ẩn")
+        if it.quantity > p.stock:
+            raise HTTPException(status_code=400, detail=f"Sản phẩm '{p.name}' không đủ tồn kho")
+        product_map[it.product_id] = p
+
+    order = Order(user_id=user.id, status=ORDER_NEW)
+    db.add(order)
+    db.flush()  # lấy order.id
+
+    for it in data.items:
+        p = product_map[it.product_id]
+        p.stock -= it.quantity
+        oi = OrderItem(
+            order_id=order.id,
+            product_id=p.id,
+            quantity=it.quantity,
+            unit_price=p.price,
         )
-        db.add(order)
-        db.flush() 
+        db.add(oi)
 
-        # 2. Lưu chi tiết
-        for it in data.items:
-            p = db.query(Product).filter(Product.id == it.product_id).first()
-            if p:
-                # Trừ kho
-                p.stock -= it.quantity
-                # Lưu item
-                oi = OrderItem(
-                    order_id=order.id,
-                    product_id=p.id,
-                    quantity=it.quantity,
-                    unit_price=p.price
-                )
-                db.add(oi)
-
-        db.commit()
-        return {"message": "Thành công", "id": order.id}
-    except Exception as e:
-        db.rollback()
-        raise HTTPException(status_code=500, detail=str(e))
+    db.commit()
+    return {"message": "Tạo đơn hàng thành công", "order_id": order.id, "status": order.status}
 
 # ===================== CHÈN ĐOẠN NÀY VÀO CUỐI FILE MAIN.PY =====================
 
 @app.get("/admin/orders")
-async def get_all_orders_admin(db: Session = Depends(get_db)):
-    # BỎ QUA KIỂM TRA ADMIN ĐỂ TEST TRƯỚC
+async def get_all_orders_admin(db: Session = Depends(get_db), current_user: User = Depends(require_admin)):
     try:
-        # Lấy thẳng từ bảng Order
-        orders = db.query(Order).all()
-        print(f"--- SERVER CHECK: Tim thay {len(orders)} don trong file .db ---")
+        # 1. Ép buộc lấy dữ liệu mới nhất từ DB
+        db.expire_all() 
+        orders = db.query(Order).order_by(Order.created_at.desc()).all()
         
+        # --- KIỂM TRA LỖI Ở TERMINAL ---
+        print("-" * 30)
+        print(f">>> [DEBUG ADMIN] Số đơn hàng lấy được: {len(orders)}")
+        
+        if len(orders) > 0:
+            print(f">>> [DEBUG ADMIN] ID đơn hàng đầu tiên: {orders[0].id}")
+        else:
+            print(f">>> [DEBUG ADMIN] CẢNH BÁO: Database trả về danh sách rỗng!")
+        print("-" * 30)
+
         result = []
         for o in orders:
-            # Lấy email từ bảng User liên kết
-            user_email = o.user.email if o.user else "Khách ẩn danh"
-            result.append({
-                "id": o.id,
-                "email": user_email,
-                "total": 150000, # Tạm thời để số cứng nếu chưa tính được tổng
-                "status": o.status or "Mới",
-                "created_at": o.created_at.isoformat() if o.created_at else None
-            })
+            try:
+                # Tính tổng tiền
+                total = sum(i.quantity * i.unit_price for i in o.items) if o.items else 0
+                
+                result.append({
+                    "id": o.id,
+                    "email": o.user.email if o.user else "N/A",
+                    "status": o.status or "NEW",
+                    "total": total,
+                    "created_at": o.created_at.isoformat() if o.created_at else None,
+                    "items": [
+                        {"name": i.product_id, "qty": i.quantity, "price": i.unit_price} 
+                        for i in o.items
+                    ]
+                })
+            except Exception as e_item:
+                print(f">>> [LỖI DÒNG] Đơn hàng #{o.id}: {e_item}")
+        
         return result
+
     except Exception as e:
-        print(f"LOI ROI: {e}")
+        print(f">>> [LỖI TỔNG] API Admin thất bại: {str(e)}")
+        # In thêm chi tiết lỗi để biết thiếu bảng hay thiếu cột
+        import traceback
+        traceback.print_exc()
         return []
 
 @app.put("/admin/orders/{order_id}/status")
