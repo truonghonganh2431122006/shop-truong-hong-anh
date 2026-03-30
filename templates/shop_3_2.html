@@ -20666,15 +20666,31 @@
                 </button>
                 <div id="search-result"></div>
             </form>
-            <div class="profile">
-                <a href="/order-history" 
-                onclick="window.location.href='/order-history.html'; return true;" 
-                class="name-order active" 
-                style="display: flex; align-items: center; text-decoration: none; cursor: pointer;">
-                    <i class="iconnewglobal-user" style="margin-right: 5px; filter: brightness(0) invert(1);"></i> 
-                    <span id="order-count-badge" style="color: white; font-size: 12px;">Đơn hàng</span>
-                </a>
+            <div class="profile" style="display: flex; align-items: center;">
+                <button onclick="goToOrderHistory()" class="btn-order-nav" style="
+                    background: rgba(255, 255, 255, 0.2);
+                    border: 1px solid rgba(255, 255, 255, 0.4);
+                    color: white;
+                    padding: 6px 12px;
+                    border-radius: 20px;
+                    cursor: pointer;
+                    display: flex;
+                    align-items: center;
+                    gap: 6px;
+                    font-family: inherit;
+                    transition: all 0.3s ease;
+                ">
+                    <i class="iconnewglobal-user" style="filter: brightness(0) invert(1); font-size: 14px;"></i>
+                    <span id="order-count-badge" style="font-size: 12px; font-weight: 500;">Đơn hàng</span>
+                </button>
             </div>
+
+            <script>
+                // Hàm ép chuyển hướng khi nhấn nút
+                function goToOrderHistory() {
+                    window.location.href = '/order-history.html';
+                }
+            </script>
             <a href="/cart" class="header__cart menu-info" id="cart-box">
                 <div class="box-cart">
                     <i class="iconnewglobal-whitecart"></i>
@@ -28511,6 +28527,11 @@
                     };
                 }).catch(function (err) { console.error("Lỗi tải địa chỉ:", err); });
         };
+
+        function goToOrderHistory() {
+            window.location.href = '/order-history.html';
+        }
+        
         function updateOrderBadge() {
             let orders = JSON.parse(localStorage.getItem('myOrders') || '[]');
             let badge = document.getElementById('order-count-badge');
