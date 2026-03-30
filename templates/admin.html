@@ -790,8 +790,11 @@
         tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:20px">🔄 Đang tải sản phẩm...</td></tr>';
         
         try {
-            // Gọi API lấy toàn bộ sản phẩm (kể cả sản phẩm đã ẩn)
-            const res = await fetch('/products?include_inactive=true', { 
+            // 1. Thêm dòng lấy token để không bị lỗi
+            const token = localStorage.getItem("access_token");
+            
+            // 2. Gọi API
+            const res = await fetch('/products', { 
                 headers: { 'Authorization': 'Bearer ' + token } 
             });
             const products = await res.json();
@@ -803,21 +806,25 @@
             }
 
             products.forEach(p => {
-                const statusText = p.is_active ? "Đang bán" : "Đã ẩn";
-                const statusClass = p.is_active ? "status-xong" : "status-cho";
-                const toggleIcon = p.is_active ? "🚫 Ẩn" : "👁️ Hiện";
-                const toggleAction = p.is_active ? "hide" : "show";
+                const statusText = p.is_active !== false ? "Đang bán" : "Đã ẩn";
+                const statusClass = p.is_active !== false ? "status-xong" : "status-cho";
+                const toggleIcon = p.is_active !== false ? "🚫 Ẩn" : "👁️ Hiện";
+                const toggleAction = p.is_active !== false ? "hide" : "show";
+
+                // 3. KHIÊN CHỐNG LỖI GIÁ TIỀN: Lỡ giá bị null thì để mặc định là 0
+                const safePrice = (p.price || 0).toLocaleString('vi-VN');
+                const safeImg = p.image_url || 'https://via.placeholder.com/40';
 
                 tbody.innerHTML += `
                     <tr>
                         <td>#${p.id}</td>
                         <td>
                             <div style="display:flex; align-items:center; gap:10px">
-                                <img src="${p.image_url}" style="width:40px; height:40px; border-radius:6px; object-fit:cover; border:1px solid var(--border)">
-                                <span style="${p.is_active ? '' : 'color:gray; text-decoration:line-through'}">${p.name}</span>
+                                <img src="${safeImg}" style="width:40px; height:40px; border-radius:6px; object-fit:cover; border:1px solid var(--border)">
+                                <span style="${p.is_active !== false ? '' : 'color:gray; text-decoration:line-through'}">${p.name}</span>
                             </div>
                         </td>
-                        <td><b style="color:var(--primary)">${p.price.toLocaleString()}đ</b></td>
+                        <td><b style="color:var(--primary)">${safePrice}đ</b></td>
                         <td><span class="order-status ${statusClass}">${statusText}</span></td>
                         <td>
                             <button class="btn btn-ship" onclick="toggleProduct(${p.id}, '${toggleAction}')">${toggleIcon}</button>
@@ -826,7 +833,8 @@
                     </tr>`;
             });
         } catch (err) { 
-            tbody.innerHTML = '<tr><td colspan="5" style="color:red; text-align:center">Lỗi kết nối API Sản phẩm</td></tr>'; 
+            console.error("Lỗi thật sự là:", err); // In ra lỗi để dễ tìm
+            tbody.innerHTML = '<tr><td colspan="5" style="color:red; text-align:center">Lỗi tải dữ liệu bảng sản phẩm. Xem Console (F12) để biết chi tiết.</td></tr>'; 
         }
     }
 
