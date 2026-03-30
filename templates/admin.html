@@ -627,34 +627,65 @@
         if (typeof closeSidebar === 'function') closeSidebar();
     }
 
-    // 3. Quản lý Đơn hàng
+// 3. Quản lý Đơn hàng - Bản chuẩn đã fix lỗi hiển thị ngày tháng và token
     async function loadOrders() {
         const tbody = document.getElementById('orderTableBody');
+        if (!tbody) return;
+
+        // Lấy token từ localStorage (đảm bảo biến token luôn tồn tại)
+        const currentToken = localStorage.getItem("access_token");
+
         try {
             const res = await fetch('/admin/orders', { 
-                headers: { 'Authorization': 'Bearer ' + token } 
+                headers: { 
+                    'Authorization': 'Bearer ' + currentToken,
+                    'Accept': 'application/json'
+                } 
             });
+
+            // Nếu server trả về lỗi bảo mật (401, 403)
+            if (res.status === 401 || res.status === 403) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:orange;padding:20px">Phiên đăng nhập hết hạn hoặc bạn không có quyền Admin.</td></tr>';
+                return;
+            }
+
             const orders = await res.json();
+            console.log("Dữ liệu đơn hàng nhận được:", orders); // Bạn có thể nhấn F12 để xem
+            
             tbody.innerHTML = '';
 
             if (!orders || orders.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:40px;color:var(--text-muted)">Chưa có đơn hàng nào.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:40px;color:var(--text-muted)">Hệ thống hiện chưa có đơn hàng nào được đặt.</td></tr>';
                 return;
             }
 
             orders.forEach(ord => {
-                // Khớp với các trạng thái ORDER_SHIPPED, ORDER_DONE trong main.py
+                // Xử lý màu sắc cho trạng thái (Khớp cả Tiếng Anh và Tiếng Việt)
                 let sClass = "status-cho"; 
-                if (ord.status === "SHIPPED" || ord.status === "Đang giao") sClass = "status-giao";
-                if (ord.status === "DONE" || ord.status === "Đã giao") sClass = "status-xong";
+                let displayStatus = ord.status || 'Mới';
+
+                if (ord.status === "SHIPPED" || ord.status === "Đang giao") {
+                    sClass = "status-giao";
+                    displayStatus = "Đang giao";
+                } else if (ord.status === "DONE" || ord.status === "Đã giao") {
+                    sClass = "status-xong";
+                    displayStatus = "Đã giao";
+                }
+
+                // Xử lý ngày tháng (ISO string từ Python sang Local String VN)
+                let dateStr = "N/A";
+                if (ord.created_at) {
+                    const d = new Date(ord.created_at);
+                    dateStr = isNaN(d.getTime()) ? ord.created_at : d.toLocaleString('vi-VN');
+                }
 
                 tbody.innerHTML += `
                     <tr>
-                        <td><b>#${ord.id}</b></td>
-                        <td>${ord.email}</td>
-                        <td>${new Date(ord.created_at).toLocaleString('vi-VN')}</td>
+                        <td><b style="color:var(--primary)">#${ord.id}</b></td>
+                        <td>${ord.email || 'Ẩn danh'}</td>
+                        <td><small>${dateStr}</small></td>
                         <td><b style="color:var(--danger)">${(ord.total || 0).toLocaleString()}đ</b></td>
-                        <td><span class="order-status ${sClass}">${ord.status || 'Mới'}</span></td>
+                        <td><span class="order-status ${sClass}">${displayStatus}</span></td>
                         <td>
                             <button class="btn btn-ship" onclick="updateOrderStatus(${ord.id}, 'Đang giao')">Giao</button>
                             <button class="btn btn-done" onclick="updateOrderStatus(${ord.id}, 'Đã giao')">Xong</button>
@@ -662,7 +693,8 @@
                     </tr>`;
             });
         } catch (err) { 
-            tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:red">Lỗi kết nối server!</td></tr>';
+            console.error("Lỗi fetch đơn hàng:", err);
+            tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:red;padding:20px">Lỗi kết nối server: ${err.message}</td></tr>`; 
         }
     }
 

@@ -815,30 +815,39 @@ def create_order(data: OrderCreateSchema, user: User = Depends(get_current_user)
 @app.get("/admin/orders")
 async def get_all_orders_admin(db: Session = Depends(get_db), current_user: User = Depends(require_admin)):
     try:
-        # Lấy tất cả đơn hàng, sắp xếp mới nhất lên đầu
+        # 1. Lấy tất cả đơn hàng từ Database
         orders = db.query(Order).order_by(Order.created_at.desc()).all()
+        
+        # --- DÒNG KIỂM TRA QUAN TRỌNG: Nhìn vào màn hình uvicorn sẽ thấy dòng này ---
+        print(f"\n>>> [KIỂM TRA ADMIN] Đang có {len(orders)} đơn hàng trong Database")
         
         result = []
         for o in orders:
-            # Tính tổng tiền của đơn hàng
-            total = sum(i.quantity * i.unit_price for i in o.items) if o.items else 0
-            
-            result.append({
-                "id": o.id,
-                "email": o.user.email if o.user else "Khách vãng lai",
-                "status": o.status,
-                "total": total,
-                # SỬA Ở ĐÂY: Trả về string mặc định để JS đọc được (ISO format)
-                "created_at": o.created_at.isoformat() if o.created_at else None,
-                "items": [
-                    {"name": i.product_id, "qty": i.quantity, "price": i.unit_price} 
-                    for i in o.items
-                ]
-            })
-            
+            try:
+                # Tính tổng tiền: lấy số lượng * giá từng món
+                total = sum(i.quantity * i.unit_price for i in o.items) if o.items else 0
+                
+                # Lấy email khách, nếu không có thì ghi khách vãng lai
+                user_email = o.user.email if o.user else "Khách vãng lai"
+                
+                result.append({
+                    "id": o.id,
+                    "email": user_email,
+                    "status": o.status or "NEW",
+                    "total": total,
+                    # Trả về định dạng ISO để JavaScript đọc được ngày tháng
+                    "created_at": o.created_at.isoformat() if o.created_at else None,
+                    "items": [
+                        {"name": i.product_id, "qty": i.quantity, "price": i.unit_price} 
+                        for i in o.items
+                    ]
+                })
+            except Exception as e_item:
+                print(f">>> Lỗi khi xử lý đơn hàng #{o.id}: {e_item}")
+
         return result
     except Exception as e:
-        print(f">>> LOI ADMIN ORDERS: {e}")
+        print(f">>> LỖI HỆ THỐNG ADMIN: {str(e)}")
         return []
 
 @app.put("/admin/orders/{order_id}/status")
