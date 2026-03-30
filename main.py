@@ -130,9 +130,8 @@ async def shop_p():
 
 # --- Tìm và sửa đoạn này trong file main.py của bạn ---
 
-@app.get("/order-history.html", response_class=HTMLResponse)
+@app.get("/order-history", response_class=HTMLResponse) # Bỏ .html ở đây
 async def get_order_history():
-    # Dùng cách FileResponse đơn giản giống trang Shop của bạn
     file_path = os.path.join(os.getcwd(), "templates", "order-history.html")
     return FileResponse(file_path)
 
