@@ -22,7 +22,7 @@ from passlib.context import CryptContext
 from jose import jwt, JWTError
 
 # Sử dụng 3 dấu xuyệt (/) sau sqlite: và đường dẫn dùng dấu xuyệt xuôi (/)
-SQLALCHEMY_DATABASE_URL = "sqlite:///C:/Users/Lenovo/OneDrive/Desktop/shop-server/app.db"
+SQLALCHEMY_DATABASE_URL = "sqlite:///./app.db"
 
 # Thay thế cho dòng bị lỗi
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -783,33 +783,51 @@ def create_order(data: OrderCreateSchema, user: User = Depends(get_current_user)
     if not data.items:
         raise HTTPException(status_code=400, detail="Giỏ hàng trống")
 
-    # kiểm tra tồn kho trước
-    product_map: Dict[int, Product] = {}
+    # 1. Kiểm tra tồn kho trước
+    product_map = {}
     for it in data.items:
-        p = db.query(Product).filter(Product.id == it.product_id, Product.is_active == True).first()  # noqa: E712
+        # Tìm sản phẩm (dùng Product.is_active == True như code bạn muốn)
+        p = db.query(Product).filter(Product.id == it.product_id).first() 
         if not p:
-            raise HTTPException(status_code=400, detail=f"Sản phẩm {it.product_id} không tồn tại/đang ẩn")
+            raise HTTPException(status_code=400, detail=f"Sản phẩm ID {it.product_id} không tồn tại")
+        
         if it.quantity > p.stock:
-            raise HTTPException(status_code=400, detail=f"Sản phẩm '{p.name}' không đủ tồn kho")
+            raise HTTPException(status_code=400, detail=f"Sản phẩm '{p.name}' chỉ còn {p.stock} sản phẩm")
+        
         product_map[it.product_id] = p
 
-    order = Order(user_id=user.id, status=ORDER_NEW)
-    db.add(order)
-    db.flush()  # lấy order.id
-
-    for it in data.items:
-        p = product_map[it.product_id]
-        p.stock -= it.quantity
-        oi = OrderItem(
-            order_id=order.id,
-            product_id=p.id,
-            quantity=it.quantity,
-            unit_price=p.price,
+    try:
+        # 2. Tạo đơn hàng chính
+        # Lưu ý: Trong file main.py của bạn dùng chuỗi "NEW" trực tiếp sẽ an toàn hơn là dùng biến ORDER_NEW
+        order = Order(
+            user_id=user.id, 
+            status="NEW", 
+            created_at=datetime.utcnow()
         )
-        db.add(oi)
+        db.add(order)
+        db.flush() # Để lấy order.id
 
-    db.commit()
-    return {"message": "Tạo đơn hàng thành công", "order_id": order.id, "status": order.status}
+        # 3. Tạo chi tiết đơn hàng và trừ kho
+        for it in data.items:
+            p = product_map[it.product_id]
+            p.stock -= it.quantity # Trừ kho thật
+            
+            oi = OrderItem(
+                order_id=order.id,
+                product_id=p.id,
+                quantity=it.quantity,
+                unit_price=p.price
+            )
+            db.add(oi)
+
+        db.commit() # Lưu tất cả vào Database
+        print(f">>> [THANH TOAN] Đã lưu đơn hàng #{order.id} thành công!")
+        return {"message": "Tạo đơn hàng thành công", "order_id": order.id, "status": "NEW"}
+
+    except Exception as e:
+        db.rollback()
+        print(f">>> [LOI]: {str(e)}")
+        raise HTTPException(status_code=500, detail="Lỗi hệ thống khi lưu đơn hàng")
 
 # ===================== CHÈN ĐOẠN NÀY VÀO CUỐI FILE MAIN.PY =====================
 
