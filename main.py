@@ -34,7 +34,6 @@ from pathlib import Path
 from typing import Optional, List, Dict, Set
 import os
 
-DATABASE_URL = "postgresql://postgres:Honganh123%40123A@db.rfgccvepfkljtjkhhcdb.supabase.co:6543/postgres"
 
 # --- Lên đầu file, dưới các dòng import, thêm 2 dòng này ---
 BANNED_LOGIN_MESSAGE = "Tài khoản của bạn đã bị cấm. Vui lòng liên hệ Admin!"
@@ -126,10 +125,10 @@ async def shop_p():
     file_path = os.path.join(os.getcwd(), "templates", "shop_3_2.html")
     return FileResponse(file_path)
 
-@app.get("/order-history.html", response_class=HTMLResponse)
-async def get_order_history():
-    file_path = os.path.join(os.getcwd(), "templates", "order-history.html")
-    return FileResponse(file_path)
+@app.get("/order-history.html") # Hoặc bỏ .html đi cho đẹp: "/order-history"
+async def get_order_history(request: Request):
+    # Dùng cách này để đồng bộ với các trang Shop, Home của bạn
+    return templates.TemplateResponse("order-history.html", {"request": request})
 
 # (Tuỳ chọn) nếu bạn muốn có staff.html thì tạo trong static/
 @app.get("/staff")
