@@ -20676,12 +20676,19 @@
                     cursor: pointer;
                     display: flex;
                     align-items: center;
-                    gap: 6px;
+                    gap: 8px;
                     font-family: inherit;
-                    transition: all 0.3s ease;
                 ">
-                    <i class="iconnewglobal-user" style="filter: brightness(0) invert(1); font-size: 14px;"></i>
-                    <span id="order-count-badge" style="font-size: 12px; font-weight: 500;">Đơn hàng</span>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="8" y1="6" x2="21" y2="6"></line>
+                        <line x1="8" y1="12" x2="21" y2="12"></line>
+                        <line x1="8" y1="18" x2="21" y2="18"></line>
+                        <line x1="3" y1="6" x2="3.01" y2="6"></line>
+                        <line x1="3" y1="12" x2="3.01" y2="12"></line>
+                        <line x1="3" y1="18" x2="3.01" y2="18"></line>
+                    </svg>
+
+                    <span id="order-count-badge" style="font-size: 12px; font-weight: 600;">Đơn hàng</span>
                 </button>
             </div>
             <a href="/cart" class="header__cart menu-info" id="cart-box">
