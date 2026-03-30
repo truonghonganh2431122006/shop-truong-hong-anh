@@ -22,7 +22,6 @@ from passlib.context import CryptContext
 from jose import jwt, JWTError
 
 # Sử dụng 3 dấu xuyệt (/) sau sqlite: và đường dẫn dùng dấu xuyệt xuôi (/)
-SQLALCHEMY_DATABASE_URL = "sqlite:///./app.db"
 
 # Thay thế cho dòng bị lỗi
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -160,9 +159,25 @@ engine_kwargs = {}
 if DATABASE_URL.startswith("sqlite"):
     engine_kwargs["connect_args"] = {"check_same_thread": False}
 
-engine = create_engine(DATABASE_URL, **engine_kwargs)
-SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False)
+# --- 1. CHUỖI KẾT NỐI (Mật khẩu đã đổi @ thành %40) ---
+SQLALCHEMY_DATABASE_URL = "postgresql+psycopg2://postgres:Honganh123%40123A@rfgccvepfkljtjkhhcdb.supabase.co:5432/postgres"
+
+# --- 2. TẠO ENGINE KẾT NỐI ---
+engine = create_engine(
+    SQLALCHEMY_DATABASE_URL,
+    pool_pre_ping=True, # Tự động kiểm tra kết nối
+    connect_args={"sslmode": "require"} # Bắt buộc để vào Supabase
+)
+
+# --- 3. CẤU HÌNH PHIÊN LÀM VIỆC ---
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
+# --- 4. KHAI BÁO BASE ---
 Base = declarative_base()
+
+# --- 5. TỰ ĐỘNG TẠO BẢNG TRÊN SUPABASE ---
+# Khi bạn chạy code, dòng này sẽ tự tạo bảng Product, Order trên Supabase cho bạn
+Base.metadata.create_all(bind=engine)
 
 # ===================== PASSWORD =====================
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
