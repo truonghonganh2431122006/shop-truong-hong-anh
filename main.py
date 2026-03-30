@@ -22,7 +22,7 @@ from passlib.context import CryptContext
 from jose import jwt, JWTError
 
 # Sử dụng 3 dấu xuyệt (/) sau sqlite: và đường dẫn dùng dấu xuyệt xuôi (/)
-SQLALCHEMY_DATABASE_URL = "sqlite:///C:/Users/Lenovo/OneDrive/Desktop/shop-server/app.db"
+SQLALCHEMY_DATABASE_URL = "sqlite:///./app.db"
 
 # Thay thế cho dòng bị lỗi
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -260,6 +260,15 @@ class OrderItem(Base):
     unit_price = Column(Integer, nullable=False)
 
     order = relationship("Order", back_populates="items")
+
+# 1. Định nghĩa khuôn mẫu cho từng món hàng
+class OrderItemSchema(BaseModel):
+    product_id: int
+    quantity: int
+
+# 2. Định nghĩa khuôn mẫu cho đơn hàng (chứa danh sách các món hàng)
+class OrderCreateSchema(BaseModel):
+    items: List[OrderItemSchema]
 
 
 # ===================== SCHEMAS =====================
@@ -783,33 +792,36 @@ def create_order(data: OrderCreateSchema, user: User = Depends(get_current_user)
     if not data.items:
         raise HTTPException(status_code=400, detail="Giỏ hàng trống")
 
-    # kiểm tra tồn kho trước
-    product_map: Dict[int, Product] = {}
-    for it in data.items:
-        p = db.query(Product).filter(Product.id == it.product_id, Product.is_active == True).first()  # noqa: E712
-        if not p:
-            raise HTTPException(status_code=400, detail=f"Sản phẩm {it.product_id} không tồn tại/đang ẩn")
-        if it.quantity > p.stock:
-            raise HTTPException(status_code=400, detail=f"Sản phẩm '{p.name}' không đủ tồn kho")
-        product_map[it.product_id] = p
-
-    order = Order(user_id=user.id, status=ORDER_NEW)
-    db.add(order)
-    db.flush()  # lấy order.id
-
-    for it in data.items:
-        p = product_map[it.product_id]
-        p.stock -= it.quantity
-        oi = OrderItem(
-            order_id=order.id,
-            product_id=p.id,
-            quantity=it.quantity,
-            unit_price=p.price,
+    try:
+        # 1. Tạo đơn hàng tổng
+        order = Order(
+            user_id=user.id, 
+            status="NEW", 
+            created_at=datetime.utcnow()
         )
-        db.add(oi)
+        db.add(order)
+        db.flush() 
 
-    db.commit()
-    return {"message": "Tạo đơn hàng thành công", "order_id": order.id, "status": order.status}
+        # 2. Lưu chi tiết
+        for it in data.items:
+            p = db.query(Product).filter(Product.id == it.product_id).first()
+            if p:
+                # Trừ kho
+                p.stock -= it.quantity
+                # Lưu item
+                oi = OrderItem(
+                    order_id=order.id,
+                    product_id=p.id,
+                    quantity=it.quantity,
+                    unit_price=p.price
+                )
+                db.add(oi)
+
+        db.commit()
+        return {"message": "Thành công", "id": order.id}
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
 
 # ===================== CHÈN ĐOẠN NÀY VÀO CUỐI FILE MAIN.PY =====================
 

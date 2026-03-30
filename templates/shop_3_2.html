@@ -28011,9 +28011,9 @@
                     // Chuyển đổi dữ liệu giỏ hàng sang định dạng Server cần
                     const orderPayload = {
                         items: currentCart.map(item => ({
-                            product_id: item.id,
-                            quantity: item.qty || 1,
-                            unit_price: item.price
+                            product_id: parseInt(item.id), // Ép kiểu số nguyên cho chắc
+                            quantity: parseInt(item.qty || 1), 
+                            unit_price: parseFloat(item.price)
                         }))
                     };
 
