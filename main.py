@@ -727,6 +727,23 @@ def list_products(
         query = query.order_by(Product.id.desc())
     return query.all()
 
+@app.post("/admin/seed-products")
+def seed_products(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    # Phải có đoạn này để nạp lại hàng
+    db.query(Product).delete()
+    for i in range(1, 140):
+        new_p = Product(
+            name=f"Sản phẩm mẫu số {i}",
+            price=100000 + (i * 5000),
+            stock=100,
+            image_url=f"https://picsum.photos/id/{i}/300/300",
+            description=f"Mô tả sản phẩm {i}",
+            is_active=True
+        )
+        db.add(new_p)
+    db.commit()
+    return {"message": "Success"}
+
 @app.post("/admin/import-from-html")
 def import_from_html(data: List[ImportProductItem], admin: User = Depends(require_admin), db: Session = Depends(get_db)):
     count = 0
