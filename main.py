@@ -159,12 +159,12 @@ engine_kwargs = {}
 if DATABASE_URL.startswith("sqlite"):
     engine_kwargs["connect_args"] = {"check_same_thread": False}
 
-# --- 1. CHUỖI KẾT NỐI (Mật khẩu đã đổi @ thành %40) ---
-SQLALCHEMY_DATABASE_URL = "postgresql+psycopg2://postgres:Honganh123%40123A@rfgccvepfkljtjkhhcdb.supabase.co:5432/postgres"
+# Thay cổng 5432 thành 6543
+DATABASE_URL = "postgresql+psycopg2://postgres:Honganh123%40123A@rfgccvepfkljtjkhhcdb.supabase.co:6543/postgres"
 
 # --- 2. TẠO ENGINE KẾT NỐI ---
 engine = create_engine(
-    SQLALCHEMY_DATABASE_URL,
+    DATABASE_URL,
     pool_pre_ping=True, # Tự động kiểm tra kết nối
     connect_args={"sslmode": "require"} # Bắt buộc để vào Supabase
 )
