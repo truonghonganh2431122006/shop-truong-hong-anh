@@ -20668,9 +20668,9 @@
             </form>
             <div class="profile" style="display: flex; align-items: center; margin-right: 10px;">
                 <button type="button" onclick="goToOrderHistory()" class="btn-order-nav" style="
-                    background: rgba(255, 255, 255, 0.2);
-                    border: 1px solid rgba(255, 255, 255, 0.4);
-                    color: white;
+                    background: rgba(255, 255, 255, 0.5); /* Tăng độ đậm nền một chút để nổi bật chữ đen */
+                    border: 1px solid rgba(0, 0, 0, 0.2);
+                    color: #000000;
                     padding: 6px 12px;
                     border-radius: 20px;
                     cursor: pointer;
@@ -20678,8 +20678,9 @@
                     align-items: center;
                     gap: 8px;
                     font-family: inherit;
+                    transition: all 0.3s ease;
                 ">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                         <line x1="8" y1="6" x2="21" y2="6"></line>
                         <line x1="8" y1="12" x2="21" y2="12"></line>
                         <line x1="8" y1="18" x2="21" y2="18"></line>
@@ -20688,7 +20689,7 @@
                         <line x1="3" y1="18" x2="3.01" y2="18"></line>
                     </svg>
 
-                    <span id="order-count-badge" style="font-size: 12px; font-weight: 600;">Đơn hàng</span>
+                    <span id="order-count-badge" style="font-size: 12px; font-weight: 600; color: #000000;">Đơn hàng</span>
                 </button>
             </div>
             <a href="/cart" class="header__cart menu-info" id="cart-box">
