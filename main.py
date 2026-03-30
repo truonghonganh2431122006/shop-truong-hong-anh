@@ -583,16 +583,6 @@ async def delete_user(user_id: int, db: Session = Depends(get_db), current_user:
     db.commit()
     return {"message": "Đã xóa người dùng thành công"}
 
-# --- QUẢN LÝ ĐƠN HÀNG ---
-@app.put("/admin/orders/{order_id}/status")
-async def update_order_status(order_id: int, new_status: str, db: Session = Depends(get_db), current_user: User = Depends(require_admin)):
-    order = db.query(Order).filter(Order.id == order_id).first()
-    if not order:
-        raise HTTPException(status_code=404, detail="Đơn hàng không tồn tại")
-    order.status = new_status
-    db.commit()
-    return {"message": "Thành công"}
-
 
 @app.post("/admin/create-staff")
 def admin_create_staff(data: CreateStaffSchema, admin: User = Depends(require_admin), db: Session = Depends(get_db)):
@@ -825,32 +815,46 @@ def create_order(data: OrderCreateSchema, user: User = Depends(get_current_user)
 @app.get("/admin/orders")
 async def get_all_orders_admin(db: Session = Depends(get_db), current_user: User = Depends(require_admin)):
     try:
-        # Lấy tất cả đơn hàng từ bảng orders, sắp xếp cái mới nhất lên trên cùng
+        # Lấy tất cả đơn hàng, sắp xếp mới nhất lên đầu
         orders = db.query(Order).order_by(Order.created_at.desc()).all()
         
         result = []
         for o in orders:
-            # Tính tổng tiền của đơn hàng đó
-            total = sum(i.quantity * i.unit_price for i in o.items)
+            # Tính tổng tiền của đơn hàng
+            total = sum(i.quantity * i.unit_price for i in o.items) if o.items else 0
             
             result.append({
                 "id": o.id,
-                "email": o.user.email if o.user else "N/A",
+                "email": o.user.email if o.user else "Khách vãng lai",
                 "status": o.status,
                 "total": total,
-                "created_at": o.created_at.strftime("%H:%M %d/%m/%Y") if o.created_at else "N/A",
-                # Nếu bạn có lưu thông tin địa chỉ trong bảng Order thì thêm ở đây
+                # SỬA Ở ĐÂY: Trả về string mặc định để JS đọc được (ISO format)
+                "created_at": o.created_at.isoformat() if o.created_at else None,
                 "items": [
                     {"name": i.product_id, "qty": i.quantity, "price": i.unit_price} 
                     for i in o.items
                 ]
             })
             
-        print(f">>> ADMIN API: Tìm thấy {len(result)} đơn hàng")
         return result
     except Exception as e:
         print(f">>> LOI ADMIN ORDERS: {e}")
         return []
+
+@app.put("/admin/orders/{order_id}/status")
+async def update_order_status(
+    order_id: int, 
+    new_status: str, # FastAPI sẽ tự hiểu đây là Query Parameter (?new_status=...)
+    db: Session = Depends(get_db), 
+    current_user: User = Depends(require_admin)
+):
+    order = db.query(Order).filter(Order.id == order_id).first()
+    if not order:
+        raise HTTPException(status_code=404, detail="Đơn hàng không tồn tại")
+    
+    order.status = new_status
+    db.commit()
+    return {"message": "Cập nhật thành công"}
 
 
 @app.get("/orders/me")
@@ -927,7 +931,6 @@ def staff_update_order_status(
     o.updated_at = datetime.utcnow()
     db.commit()
     return {"message": "Cập nhật trạng thái thành công", "order_id": o.id, "status": o.status}
-
 
 # ===================== REPORTS (ADMIN) =====================
 @app.get("/admin/reports/revenue")
@@ -1019,6 +1022,85 @@ def report_top_products(
 
     return {"start": start, "end": end, "top": results}
 # Đảm bảo các dòng này nằm sát lề trái, không thụt đầu dòng
+# ==========================================
+# API QUẢN LÝ ĐƠN HÀNG (DÀNH CHO ADMIN & KHÁCH)
+# ==========================================
+
+# 1. Khách gửi đơn lên Server (Dùng trong shop_3_2.html)
+@app.post("/api/orders")
+async def create_new_order(data: dict, db: Session = Depends(get_db)):
+    try:
+        # Tìm user để gán đơn hàng (Ưu tiên user_id từ data hoặc user đầu tiên)
+        u_id = data.get('user_id')
+        if not u_id:
+            first_user = db.query(User).first()
+            u_id = first_user.id if first_user else 1
+
+        # Tạo đơn hàng mới
+        new_order = Order(
+            user_id=u_id,
+            status="Chờ xác nhận", # Trạng thái ban đầu
+            created_at=datetime.utcnow(),
+            updated_at=datetime.utcnow()
+        )
+        db.add(new_order)
+        db.commit()
+        db.refresh(new_order)
+        
+        # Lưu từng món hàng vào chi tiết đơn
+        for item in data.get('items', []):
+            order_item = OrderItem(
+                order_id=new_order.id,
+                product_id=int(item['product_id']),
+                quantity=int(item.get('quantity', 1)),
+                unit_price=int(item['price'])
+            )
+            db.add(order_item)
+        
+        db.commit()
+        return {"message": "Thành công", "order_id": new_order.id}
+    except Exception as e:
+        db.rollback()
+        return {"error": str(e)}, 500
+
+# 2. Admin lấy danh sách đơn để hiển thị (Dùng trong admin.html)
+@app.get("/api/admin/all-orders")
+async def admin_get_all_orders(db: Session = Depends(get_db)):
+    # Lấy đơn mới nhất lên đầu
+    orders = db.query(Order).order_by(Order.id.desc()).all()
+    results = []
+    for o in orders:
+        # Lấy chi tiết sản phẩm
+        item_details = []
+        for i in o.items:
+            p = db.query(Product).filter(Product.id == i.product_id).first()
+            item_details.append({
+                "name": p.name if p else "Sản phẩm không tồn tại",
+                "qty": i.quantity,
+                "price": i.unit_price
+            })
+            
+        results.append({
+            "id": o.id,
+            "email": o.user.email if o.user else "Khách vãng lai",
+            "status": o.status,
+            "date": o.created_at.strftime("%H:%M %d/%m/%Y"),
+            "items": item_details
+        })
+    return results
+
+# 3. Admin cập nhật trạng thái đơn (Duyệt/Giao/Hủy)
+@app.put("/api/admin/update-order/{order_id}")
+async def admin_update_status(order_id: int, data: dict, db: Session = Depends(get_db)):
+    order = db.query(Order).filter(Order.id == order_id).first()
+    if not order:
+        return {"error": "Không tìm thấy đơn hàng"}, 404
+    
+    order.status = data.get('status')
+    order.updated_at = datetime.utcnow()
+    db.commit()
+    return {"message": "Cập nhật thành công"}
+
 @app.on_event("startup")
 def startup_event():
     db = SessionLocal()
