@@ -130,10 +130,17 @@ async def shop_p():
 
 # --- Tìm và sửa đoạn này trong file main.py của bạn ---
 
-@app.get("/order-history", response_class=HTMLResponse) # Bỏ .html ở đây
-async def get_order_history():
-    file_path = os.path.join(os.getcwd(), "templates", "order-history.html")
-    return FileResponse(file_path)
+# Tìm và thay thế toàn bộ đoạn liên quan đến order-history bằng đoạn này:
+@app.get("/order-history.html", response_class=HTMLResponse)
+async def get_order_history_page():
+    # Sử dụng Path để tìm đường dẫn chính xác tuyệt đối
+    base_path = os.path.dirname(os.path.abspath(__file__))
+    file_path = os.path.join(base_path, "templates", "order-history.html")
+    
+    if os.path.exists(file_path):
+        return FileResponse(file_path)
+    else:
+        return HTMLResponse(content=f"Lỗi: Không tìm thấy file tại {file_path}", status_code=404)
 
 # ------------------------------------------------------
 
