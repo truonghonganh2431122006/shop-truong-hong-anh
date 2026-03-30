@@ -778,39 +778,48 @@ def delete_product(product_id: int, admin: User = Depends(require_admin), db: Se
 
 
 # ===================== ORDERS (USER) =====================
+# --- BẮT BUỘC CÓ 2 CLASS NÀY ĐỂ KHÔNG LỖI 422 ---
+class OrderItemSchema(BaseModel):
+    product_id: int
+    quantity: int
+
+class OrderCreateSchema(BaseModel):
+    items: List[OrderItemSchema]
+
+# ========================================================
+# 1. CỬA "XEM" ĐƠN HÀNG (API GET - ĐỂ SỬA TRÚNG CÁI LỖI 405 KIA)
+# ========================================================
+@app.get("/orders")
+def get_orders_list(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    # Trả về toàn bộ danh sách đơn hàng cho Admin xem
+    orders = db.query(Order).order_by(Order.id.desc()).all()
+    return orders
+
+# ========================================================
+# 2. CỬA "TẠO" ĐƠN HÀNG (API POST - GIỮ NGUYÊN BẢN BẠN VỪA UP THÀNH CÔNG)
+# ========================================================
 @app.post("/orders")
 def create_order(data: OrderCreateSchema, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     if not data.items:
         raise HTTPException(status_code=400, detail="Giỏ hàng trống")
 
-    # 1. Kiểm tra tồn kho trước
     product_map = {}
     for it in data.items:
-        # Tìm sản phẩm (dùng Product.is_active == True như code bạn muốn)
         p = db.query(Product).filter(Product.id == it.product_id).first() 
         if not p:
             raise HTTPException(status_code=400, detail=f"Sản phẩm ID {it.product_id} không tồn tại")
-        
         if it.quantity > p.stock:
             raise HTTPException(status_code=400, detail=f"Sản phẩm '{p.name}' chỉ còn {p.stock} sản phẩm")
-        
         product_map[it.product_id] = p
 
     try:
-        # 2. Tạo đơn hàng chính
-        # Lưu ý: Trong file main.py của bạn dùng chuỗi "NEW" trực tiếp sẽ an toàn hơn là dùng biến ORDER_NEW
-        order = Order(
-            user_id=user.id, 
-            status="NEW", 
-            created_at=datetime.utcnow()
-        )
+        order = Order(user_id=user.id, status="NEW", created_at=datetime.utcnow())
         db.add(order)
-        db.flush() # Để lấy order.id
+        db.flush() 
 
-        # 3. Tạo chi tiết đơn hàng và trừ kho
         for it in data.items:
             p = product_map[it.product_id]
-            p.stock -= it.quantity # Trừ kho thật
+            p.stock -= it.quantity 
             
             oi = OrderItem(
                 order_id=order.id,
@@ -820,13 +829,11 @@ def create_order(data: OrderCreateSchema, user: User = Depends(get_current_user)
             )
             db.add(oi)
 
-        db.commit() # Lưu tất cả vào Database
-        print(f">>> [THANH TOAN] Đã lưu đơn hàng #{order.id} thành công!")
+        db.commit() 
         return {"message": "Tạo đơn hàng thành công", "order_id": order.id, "status": "NEW"}
 
     except Exception as e:
         db.rollback()
-        print(f">>> [LOI]: {str(e)}")
         raise HTTPException(status_code=500, detail="Lỗi hệ thống khi lưu đơn hàng")
 
 # ===================== CHÈN ĐOẠN NÀY VÀO CUỐI FILE MAIN.PY =====================
