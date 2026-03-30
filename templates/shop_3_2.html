@@ -28083,8 +28083,9 @@
                     }
 
                 } catch (e) {
-                    console.error("Lỗi khi lưu đơn hàng:", e);
-                    alert("Lỗi: " + e.message);
+                    console.error("Lỗi chi tiết:", e);
+                    // Sửa dòng alert này để xem lỗi thật là gì
+                    alert("Lỗi đặt hàng: " + (e.message || JSON.stringify(e)));
                 }
             };
             window.closeCartModal = function () { var o = document.getElementById('cartOverlay'); if (o) o.classList.remove('active'); };
