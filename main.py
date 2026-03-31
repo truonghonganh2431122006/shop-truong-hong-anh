@@ -159,14 +159,14 @@ engine_kwargs = {}
 if DATABASE_URL.startswith("sqlite"):
     engine_kwargs["connect_args"] = {"check_same_thread": False}
 
-# Thay cổng 5432 thành 6543
+# --- 1. CHUỖI KẾT NỐI (Chỉ dùng 1 biến duy nhất, cổng 6543) ---
 DATABASE_URL = "postgresql+psycopg2://postgres:Honganh123%40123A@rfgccvepfkljtjkhhcdb.supabase.co:6543/postgres"
 
-# --- 2. TẠO ENGINE KẾT NỐI ---
+# --- 2. TẠO ENGINE KẾT NỐI (Chỉ truyền 1 biến DATABASE_URL) ---
 engine = create_engine(
     DATABASE_URL,
-    pool_pre_ping=True, # Tự động kiểm tra kết nối
-    connect_args={"sslmode": "require"} # Bắt buộc để vào Supabase
+    pool_pre_ping=True,
+    connect_args={"sslmode": "require"}
 )
 
 # --- 3. CẤU HÌNH PHIÊN LÀM VIỆC ---
