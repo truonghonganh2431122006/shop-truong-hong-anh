@@ -756,29 +756,36 @@ def create_product(product_data: ProductCreate, db: Session = Depends(get_db)):
 
 @app.post("/admin/seed-products")
 def seed_products(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
-    # Kiểm tra nếu không phải admin thì chặn luôn (cho chắc ăn)
-    if current_user.email != "honganh@gmail.com":
-        raise HTTPException(status_code=403, detail="Bạn không có quyền này")
-
-    # Xóa hết đồ cũ để nạp mới cho sạch
-    db.query(OrderItem).delete() # Xóa cái này trước để tránh lỗi liên kết
-    db.query(Order).delete()     # Xóa đơn hàng cũ
-    db.query(Product).delete()   # Xóa sản phẩm cũ
+    # 1. Xóa sạch rác cũ
+    db.query(OrderItem).delete()
+    db.query(Order).delete()
+    db.query(Product).delete()
     
-    for i in range(1, 141): # Tạo từ 1 đến 140
+    # 2. Danh sách máy xịn từ Thế Giới Di Động
+    phones = [
+        {"name": "iPhone 15 Pro Max 256GB", "price": 29490000, "img": "https://cdn.tgdd.vn/Products/Images/42/305658/iphone-15-pro-max-blue-thumbnew-600x600.jpg"},
+        {"name": "Samsung Galaxy S24 Ultra", "price": 27990000, "img": "https://cdn.tgdd.vn/Products/Images/42/307174/samsung-galaxy-s24-ultra-grey-600x600.jpg"},
+        {"name": "OPPO Reno11 5G", "price": 10990000, "img": "https://cdn.tgdd.vn/Products/Images/42/313505/oppo-reno11-blue-600x600.jpg"},
+        {"name": "Xiaomi 14 5G", "price": 22990000, "img": "https://cdn.tgdd.vn/Products/Images/42/313557/xiaomi-14-den-thumb-600x600.jpg"},
+        {"name": "iPhone 13 128GB", "price": 13590000, "img": "https://cdn.tgdd.vn/Products/Images/42/250258/iphone-13-blue-1-600x600.jpg"},
+        {"name": "Vivo V30 5G", "price": 13990000, "img": "https://cdn.tgdd.vn/Products/Images/42/322306/vivo-v30-xanh-thumb-600x600.jpg"},
+        {"name": "Realme 11 Pro 5G", "price": 11490000, "img": "https://cdn.tgdd.vn/Products/Images/42/306994/realme-11-pro-black-thumb-600x600.jpg"}
+    ]
+    
+    # 3. Nạp vào database
+    for p in phones:
         new_p = Product(
-            id=i,           # <--- Ép ID chạy từ 1 đến 140 cho dễ quản lý
-            name=f"Sản phẩm mẫu số {i}",
-            price=100000 + (i * 5000),
+            name=p["name"],
+            price=p["price"],
             stock=100,
-            image_url=f"https://picsum.photos/id/{i}/300/300",
-            description=f"Mô tả sản phẩm {i}",
+            image_url=p["img"],
+            description="Hàng chính hãng Thế Giới Di Động",
             is_active=True
         )
         db.add(new_p)
     
     db.commit()
-    return {"message": f"Đã nạp thành công {i} sản phẩm mẫu!"}
+    return {"message": "Đã biến Shop thành Thế Giới Di Động thành công!"}
 
 @app.post("/admin/import-from-html")
 def import_from_html(data: List[ImportProductItem], admin: User = Depends(require_admin), db: Session = Depends(get_db)):
