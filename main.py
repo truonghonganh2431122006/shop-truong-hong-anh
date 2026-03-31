@@ -154,15 +154,10 @@ def page_staff():
 
 
 # ===================== DB SETUP =====================
-# ✅ SQLite mới cần connect_args check_same_thread
-engine_kwargs = {}
-if DATABASE_URL.startswith("sqlite"):
-    engine_kwargs["connect_args"] = {"check_same_thread": False}
-
-# --- 1. CHUỖI KẾT NỐI (Chỉ dùng 1 biến duy nhất, cổng 6543) ---
+# --- 1. CHUỖI KẾT NỐI (Dùng cổng 6543 cho Supabase) ---
 DATABASE_URL = "postgresql+psycopg2://postgres:Honganh123%40123A@rfgccvepfkljtjkhhcdb.supabase.co:6543/postgres"
 
-# --- 2. TẠO ENGINE KẾT NỐI (Chỉ truyền 1 biến DATABASE_URL) ---
+# --- 2. TẠO ENGINE (Gọn gàng, không dùng engine_kwargs cũ) ---
 engine = create_engine(
     DATABASE_URL,
     pool_pre_ping=True,
@@ -171,12 +166,10 @@ engine = create_engine(
 
 # --- 3. CẤU HÌNH PHIÊN LÀM VIỆC ---
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-
-# --- 4. KHAI BÁO BASE ---
 Base = declarative_base()
 
-# --- 5. TỰ ĐỘNG TẠO BẢNG TRÊN SUPABASE ---
-# Khi bạn chạy code, dòng này sẽ tự tạo bảng Product, Order trên Supabase cho bạn
+# --- 4. TỰ ĐỘNG TẠO BẢNG ---
+# Dòng này sẽ giúp bạn tạo Product và Order trên Supabase ngay khi Web khởi động
 Base.metadata.create_all(bind=engine)
 
 # ===================== PASSWORD =====================
