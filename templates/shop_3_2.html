@@ -28546,6 +28546,67 @@
         // Chạy khi vừa mở trang
         document.addEventListener('DOMContentLoaded', updateOrderBadge);
     </script>
+    <script>
+    function autoBind140Products() {
+        // 1. Tìm tất cả các thẻ chứa sản phẩm (thường là class .item trong code TGDD)
+        const allProductCards = document.querySelectorAll('.item');
+        
+        console.log("Tìm thấy " + allProductCards.length + " sản phẩm trên giao diện.");
+
+        allProductCards.forEach((card, index) => {
+            // ID sẽ chạy từ 1, 2, 3... cho đến hết danh sách
+            const productId = index + 1; 
+
+            // 2. Tìm nút "MUA NGAY" hoặc nút "Mua" trong mỗi ô sản phẩm
+            const buyButton = card.querySelector('.btn-buy') || card.querySelector('a');
+
+            if (buyButton) {
+                // 3. Ghi đè lệnh đặt hàng vào nút đó
+                buyButton.setAttribute('onclick', `orderNow(${productId})`);
+                
+                // Thêm hiệu ứng để bạn biết nút nào đã được "thông mạch" với Backend
+                buyButton.title = "Sản phẩm ID: " + productId;
+            }
+        });
+    }
+
+    // Hàm gửi đơn hàng lên Backend
+    async function orderNow(id) {
+        const token = localStorage.getItem("access_token");
+        if (!token) {
+            alert("Bạn chưa đăng nhập! Hãy quay lại trang Login.");
+            window.location.href = "/login";
+            return;
+        }
+
+        try {
+            const response = await fetch('/orders', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    "items": [{ "product_id": id, "quantity": 1 }]
+                })
+            });
+
+            if (response.ok) {
+                alert("✅ Đặt hàng thành công sản phẩm ID: " + id);
+                // Sau khi đặt xong, tự động nhảy sang trang Admin để xem đơn luôn
+                window.location.href = "/static/admin_orders.html";
+            } else {
+                const err = await response.json();
+                alert("❌ Lỗi: " + (err.detail || "Không thể đặt hàng"));
+            }
+        } catch (e) {
+            alert("Lỗi kết nối Server!");
+        }
+    }
+
+    // Chạy lệnh quét ngay khi trang web mở ra
+    document.addEventListener('DOMContentLoaded', autoBind140Products);
+    </script>
     </body>
 
 </html>
