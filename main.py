@@ -147,27 +147,23 @@ async def get_order_history_page():
 # (Tuỳ chọn) nếu bạn muốn có staff.html thì tạo trong static/
 @app.get("/staff")
 def page_staff():
-    staff_file = STATIC_DIR / "staff.html"
+    staff_file = STATIC_DIR = Path(__file__).parent / "static"
     if staff_file.exists():
         return FileResponse(staff_file)
     return {"message": "Optional: create static/staff.html to use staff UI."}
 
 
-# --- 1. CHUỖI KẾT NỐI (Dùng cổng 6543 cho Supabase) ---
-DATABASE_URL = "postgresql+psycopg2://postgres:Honganh123%40123A@rfgccvepfkljtjkhhcdb.supabase.co:6543/postgres"
+# --- QUAY LẠI SQLITE CHO NHANH ---
+SQLALCHEMY_DATABASE_URL = "sqlite:///./app.db"
 
-# --- 2. TẠO ENGINE (Gọn gàng, chuẩn SQLAlchemy) ---
 engine = create_engine(
-    DATABASE_URL,
-    pool_pre_ping=True,
-    connect_args={"sslmode": "require"}
+    SQLALCHEMY_DATABASE_URL, 
+    connect_args={"check_same_thread": False}
 )
-
-# --- 3. CẤU HÌNH PHIÊN LÀM VIỆC ---
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
-# --- 4. TỰ ĐỘNG TẠO BẢNG ---
+# Tự động tạo bảng mỗi khi khởi động (Dữ liệu sẽ mới tinh)
 Base.metadata.create_all(bind=engine)
 
 # ===================== PASSWORD =====================
@@ -800,8 +796,9 @@ def delete_product(product_id: int, admin: User = Depends(require_admin), db: Se
     return {"message": "Xóa thành công"}
 
 
-# ===================== ORDERS (USER) =====================
-# --- BẮT BUỘC CÓ 2 CLASS NÀY ĐỂ KHÔNG LỖI 422 ---
+# ===================== ORDERS (USER & ADMIN) =====================
+
+# 1. SCHEMAS (Giữ để không lỗi 422)
 class OrderItemSchema(BaseModel):
     product_id: int
     quantity: int
@@ -809,18 +806,18 @@ class OrderItemSchema(BaseModel):
 class OrderCreateSchema(BaseModel):
     items: List[OrderItemSchema]
 
-# ========================================================
-# 1. CỬA "XEM" ĐƠN HÀNG (API GET - ĐỂ SỬA TRÚNG CÁI LỖI 405 KIA)
-# ========================================================
+# 2. API: USER XEM ĐƠN HÀNG CỦA CHÍNH MÌNH (Sửa lỗi 405 & Phân quyền)
 @app.get("/orders")
 def get_orders_list(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
-    # Trả về toàn bộ danh sách đơn hàng cho Admin xem
-    orders = db.query(Order).order_by(Order.id.desc()).all()
+    # Nếu là Admin -> Cho xem hết (tùy chọn)
+    if current_user.email == "honganh@gmail.com":
+        return db.query(Order).order_by(Order.id.desc()).all()
+    
+    # Nếu là User -> Chỉ trả về đơn hàng của chính User đó
+    orders = db.query(Order).filter(Order.user_id == current_user.id).order_by(Order.id.desc()).all()
     return orders
 
-# ========================================================
-# 2. CỬA "TẠO" ĐƠN HÀNG (API POST - GIỮ NGUYÊN BẢN BẠN VỪA UP THÀNH CÔNG)
-# ========================================================
+# 3. API: TẠO ĐƠN HÀNG (Đã tối ưu check kho)
 @app.post("/orders")
 def create_order(data: OrderCreateSchema, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     if not data.items:
@@ -832,17 +829,18 @@ def create_order(data: OrderCreateSchema, user: User = Depends(get_current_user)
         if not p:
             raise HTTPException(status_code=400, detail=f"Sản phẩm ID {it.product_id} không tồn tại")
         if it.quantity > p.stock:
-            raise HTTPException(status_code=400, detail=f"Sản phẩm '{p.name}' chỉ còn {p.stock} sản phẩm")
+            raise HTTPException(status_code=400, detail=f"Sản phẩm '{p.name}' chỉ còn {p.stock}")
         product_map[it.product_id] = p
 
     try:
+        # Tạo đơn hàng mới (Trạng thái mặc định là NEW)
         order = Order(user_id=user.id, status="NEW", created_at=datetime.utcnow())
         db.add(order)
         db.flush() 
 
         for it in data.items:
             p = product_map[it.product_id]
-            p.stock -= it.quantity 
+            p.stock -= it.quantity # Trừ kho
             
             oi = OrderItem(
                 order_id=order.id,
@@ -857,41 +855,36 @@ def create_order(data: OrderCreateSchema, user: User = Depends(get_current_user)
 
     except Exception as e:
         db.rollback()
+        print(f">>> [LỖI TẠO ĐƠN]: {str(e)}")
         raise HTTPException(status_code=500, detail="Lỗi hệ thống khi lưu đơn hàng")
 
-# ===================== CHÈN ĐOẠN NÀY VÀO CUỐI FILE MAIN.PY =====================
-
+# 4. API: ADMIN XEM TOÀN BỘ ĐƠN HÀNG (Chi tiết)
 @app.get("/admin/orders")
 async def get_all_orders_admin(db: Session = Depends(get_db), current_user: User = Depends(require_admin)):
     try:
-        # 1. Ép buộc lấy dữ liệu mới nhất từ DB
         db.expire_all() 
         orders = db.query(Order).order_by(Order.created_at.desc()).all()
         
-        # --- KIỂM TRA LỖI Ở TERMINAL ---
-        print("-" * 30)
-        print(f">>> [DEBUG ADMIN] Số đơn hàng lấy được: {len(orders)}")
-        
-        if len(orders) > 0:
-            print(f">>> [DEBUG ADMIN] ID đơn hàng đầu tiên: {orders[0].id}")
-        else:
-            print(f">>> [DEBUG ADMIN] CẢNH BÁO: Database trả về danh sách rỗng!")
-        print("-" * 30)
+        print(f">>> [DEBUG ADMIN] Tìm thấy {len(orders)} đơn hàng.")
 
         result = []
         for o in orders:
             try:
-                # Tính tổng tiền
+                # Tính tổng tiền từ danh sách OrderItems
                 total = sum(i.quantity * i.unit_price for i in o.items) if o.items else 0
                 
                 result.append({
                     "id": o.id,
-                    "email": o.user.email if o.user else "N/A",
+                    "email": o.user.email if o.user else "Khách vãng lai",
                     "status": o.status or "NEW",
                     "total": total,
-                    "created_at": o.created_at.isoformat() if o.created_at else None,
+                    "created_at": o.created_at.strftime("%Y-%m-%d %H:%M") if o.created_at else "N/A",
                     "items": [
-                        {"name": i.product_id, "qty": i.quantity, "price": i.unit_price} 
+                        {
+                            "name": i.product.name if hasattr(i, 'product') and i.product else f"SP #{i.product_id}",
+                            "qty": i.quantity, 
+                            "price": i.unit_price
+                        } 
                         for i in o.items
                     ]
                 })
@@ -902,15 +895,13 @@ async def get_all_orders_admin(db: Session = Depends(get_db), current_user: User
 
     except Exception as e:
         print(f">>> [LỖI TỔNG] API Admin thất bại: {str(e)}")
-        # In thêm chi tiết lỗi để biết thiếu bảng hay thiếu cột
-        import traceback
-        traceback.print_exc()
         return []
 
+# 5. API: ADMIN CẬP NHẬT TRẠNG THÁI ĐƠN HÀNG
 @app.put("/admin/orders/{order_id}/status")
 async def update_order_status(
     order_id: int, 
-    new_status: str, # FastAPI sẽ tự hiểu đây là Query Parameter (?new_status=...)
+    new_status: str, 
     db: Session = Depends(get_db), 
     current_user: User = Depends(require_admin)
 ):
@@ -918,9 +909,11 @@ async def update_order_status(
     if not order:
         raise HTTPException(status_code=404, detail="Đơn hàng không tồn tại")
     
+    # Cập nhật trạng thái (Ví dụ: PROCESSING, SHIPPING, COMPLETED, CANCELLED)
     order.status = new_status
     db.commit()
-    return {"message": "Cập nhật thành công"}
+    print(f">>> [ADMIN] Đã đổi trạng thái đơn #{order_id} sang {new_status}")
+    return {"message": "Cập nhật trạng thái thành công", "new_status": new_status}
 
 
 @app.get("/orders/me")
