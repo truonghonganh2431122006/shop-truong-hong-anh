@@ -729,6 +729,31 @@ def list_products(
         query = query.order_by(Product.id.desc())
     return query.all()
 
+# Thêm Schema để FastAPI hiểu cấu trúc dữ liệu gửi lên
+from pydantic import BaseModel
+
+class ProductCreate(BaseModel):
+    name: str
+    price: int
+    image_url: str
+    description: str = "Sản phẩm từ TGDD"
+
+# ĐÂY LÀ HÀM CẬU ĐANG THIẾU:
+@app.post("/products")
+def create_product(product_data: ProductCreate, db: Session = Depends(get_db)):
+    # Tạo đối tượng Product mới để lưu vào Database
+    new_product = Product(
+        name=product_data.name,
+        price=product_data.price,
+        image_url=product_data.image_url,
+        description=product_data.description,
+        is_active=True  # Đảm bảo nó hiện lên ngay
+    )
+    db.add(new_product)
+    db.commit()
+    db.refresh(new_product)
+    return new_product
+
 @app.post("/admin/seed-products")
 def seed_products(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     # Kiểm tra nếu không phải admin thì chặn luôn (cho chắc ăn)
