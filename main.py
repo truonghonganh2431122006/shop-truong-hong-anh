@@ -731,10 +731,18 @@ def list_products(
 
 @app.post("/admin/seed-products")
 def seed_products(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
-    # Phải có đoạn này để nạp lại hàng
-    db.query(Product).delete()
-    for i in range(1, 140):
+    # Kiểm tra nếu không phải admin thì chặn luôn (cho chắc ăn)
+    if current_user.email != "honganh@gmail.com":
+        raise HTTPException(status_code=403, detail="Bạn không có quyền này")
+
+    # Xóa hết đồ cũ để nạp mới cho sạch
+    db.query(OrderItem).delete() # Xóa cái này trước để tránh lỗi liên kết
+    db.query(Order).delete()     # Xóa đơn hàng cũ
+    db.query(Product).delete()   # Xóa sản phẩm cũ
+    
+    for i in range(1, 141): # Tạo từ 1 đến 140
         new_p = Product(
+            id=i,           # <--- Ép ID chạy từ 1 đến 140 cho dễ quản lý
             name=f"Sản phẩm mẫu số {i}",
             price=100000 + (i * 5000),
             stock=100,
@@ -743,8 +751,9 @@ def seed_products(db: Session = Depends(get_db), current_user: User = Depends(ge
             is_active=True
         )
         db.add(new_p)
+    
     db.commit()
-    return {"message": "Success"}
+    return {"message": f"Đã nạp thành công {i} sản phẩm mẫu!"}
 
 @app.post("/admin/import-from-html")
 def import_from_html(data: List[ImportProductItem], admin: User = Depends(require_admin), db: Session = Depends(get_db)):
