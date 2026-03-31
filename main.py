@@ -153,11 +153,10 @@ def page_staff():
     return {"message": "Optional: create static/staff.html to use staff UI."}
 
 
-# ===================== DB SETUP =====================
 # --- 1. CHUỖI KẾT NỐI (Dùng cổng 6543 cho Supabase) ---
 DATABASE_URL = "postgresql+psycopg2://postgres:Honganh123%40123A@rfgccvepfkljtjkhhcdb.supabase.co:6543/postgres"
 
-# --- 2. TẠO ENGINE (Gọn gàng, không dùng engine_kwargs cũ) ---
+# --- 2. TẠO ENGINE (Gọn gàng, chuẩn SQLAlchemy) ---
 engine = create_engine(
     DATABASE_URL,
     pool_pre_ping=True,
@@ -169,7 +168,6 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
 # --- 4. TỰ ĐỘNG TẠO BẢNG ---
-# Dòng này sẽ giúp bạn tạo Product và Order trên Supabase ngay khi Web khởi động
 Base.metadata.create_all(bind=engine)
 
 # ===================== PASSWORD =====================
