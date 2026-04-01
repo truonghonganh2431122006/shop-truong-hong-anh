@@ -763,53 +763,119 @@ def seed_products(db: Session = Depends(get_db), current_user: User = Depends(ge
     
     # 2. Danh sản phẩm 
     phones = [
-        {"name": "Xiaomi Redmi Note 13", "price": 4590000, "img": "https://cdn.tgdd.vn/Products/Images/42/309831/xiaomi-redmi-note-13-den-thumb-600x600.jpg"},
-        {"name": "iPhone 14 Pro 128GB", "price": 22990000, "img": "https://cdn.tgdd.vn/Products/Images/42/289691/iphone-14-pro-den-thumb-600x600.jpg"},
-        {"name": "iPhone 15 Pro Max 512GB", "price": 34990000, "img": "https://cdn.tgdd.vn/Products/Images/42/305658/iphone-15-pro-max-blue-thumb-600x600.jpg"},
-        {"name": "Samsung Galaxy A55 5G", "price": 10490000, "img": "https://cdn.tgdd.vn/Products/Images/42/322096/samsung-galaxy-a55-5g-xanh-thumb-1-600x600.jpg"},
-        {"name": "Samsung Galaxy S24 Ultra", "price": 27990000, "img": "https://cdn.tgdd.vn/Products/Images/42/307174/samsung-galaxy-s24-ultra-grey-thumb-600x600.jpg"},
-        # --- DANH MỤC: ĐIỆN THOẠI ---
-        {"name": "iPhone 16 Pro Max Titan", "price": 34490000, "category": "điện thoại", "img": "https://images.unsplash.com/photo-1696446701796-da61225697cc?q=80&w=600&auto=format&fit=crop"},
-        {"name": "Samsung Galaxy S24 Ultra", "price": 27990000, "category": "điện thoại", "img": "https://images.unsplash.com/photo-1610945265064-0e34e5519bbf?q=80&w=600&auto=format&fit=crop"},
-        {"name": "Google Pixel 9 Pro", "price": 21000000, "category": "điện thoại", "img": "https://images.unsplash.com/photo-1598327105666-5b89351aff97?q=80&w=600&auto=format&fit=crop"},
-        {"name": "OPPO Reno12 Pro 5G", "price": 16990000, "category": "điện thoại", "img": "https://images.pexels.com/photos/404280/pexels-photo-404280.jpeg?auto=compress&cs=tinysrgb&w=600"},
-        {"name": "Xiaomi 14T Pro", "price": 15990000, "category": "điện thoại", "img": "https://images.pexels.com/photos/1092644/pexels-photo-1092644.jpeg?auto=compress&cs=tinysrgb&w=600"},
+# --- ĐIỆN THOẠI (20 sản phẩm) ---
+        {"name": "iPhone 16 Pro Max", "price": 34490000, "category": "điện thoại", "img": "https://picsum.photos/id/160/600/600"},
+        {"name": "Samsung Galaxy S24 Ultra", "price": 27990000, "category": "điện thoại", "img": "https://picsum.photos/id/1/600/600"},
+        {"name": "iPhone 15 Pro", "price": 24900000, "category": "điện thoại", "img": "https://picsum.photos/id/2/600/600"},
+        {"name": "OPPO Reno12 Pro", "price": 16990000, "category": "điện thoại", "img": "https://picsum.photos/id/3/600/600"},
+        {"name": "Xiaomi 14 Ultra", "price": 22000000, "category": "điện thoại", "img": "https://picsum.photos/id/4/600/600"},
+        {"name": "Google Pixel 9 Pro", "price": 21500000, "category": "điện thoại", "img": "https://picsum.photos/id/5/600/600"},
+        {"name": "iPhone 14 Plus", "price": 18900000, "category": "điện thoại", "img": "https://picsum.photos/id/6/600/600"},
+        {"name": "Samsung Z Fold 6", "price": 41000000, "category": "điện thoại", "img": "https://picsum.photos/id/7/600/600"},
+        {"name": "Samsung Z Flip 6", "price": 26000000, "category": "điện thoại", "img": "https://picsum.photos/id/8/600/600"},
+        {"name": "Sony Xperia 1 V", "price": 23000000, "category": "điện thoại", "img": "https://picsum.photos/id/9/600/600"},
+        {"name": "Asus ROG Phone 8", "price": 25000000, "category": "điện thoại", "img": "https://picsum.photos/id/10/600/600"},
+        {"name": "Realme GT 5", "price": 12000000, "category": "điện thoại", "img": "https://picsum.photos/id/11/600/600"},
+        {"name": "Vivo X100 Pro", "price": 19000000, "category": "điện thoại", "img": "https://picsum.photos/id/12/600/600"},
+        {"name": "Nokia G42 5G", "price": 5500000, "category": "điện thoại", "img": "https://picsum.photos/id/13/600/600"},
+        {"name": "iPhone 13 128GB", "price": 13500000, "category": "điện thoại", "img": "https://picsum.photos/id/14/600/600"},
+        {"name": "Samsung A55", "price": 10500000, "category": "điện thoại", "img": "https://picsum.photos/id/15/600/600"},
+        {"name": "Redmi Note 13 Pro", "price": 8500000, "category": "điện thoại", "img": "https://picsum.photos/id/16/600/600"},
+        {"name": "Oppo A78", "price": 6000000, "category": "điện thoại", "img": "https://picsum.photos/id/17/600/600"},
+        {"name": "iPhone SE 2022", "price": 9000000, "category": "điện thoại", "img": "https://picsum.photos/id/18/600/600"},
+        {"name": "Samsung M54", "price": 8800000, "category": "điện thoại", "img": "https://picsum.photos/id/19/600/600"},
 
-        # --- DANH MỤC: LAPTOP ---
-        {"name": "MacBook Air M3 2024", "price": 27490000, "category": "laptop", "img": "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?q=80&w=600&auto=format&fit=crop"},
-        {"name": "Dell XPS 13 Plus", "price": 35000000, "category": "laptop", "img": "https://images.unsplash.com/photo-1593642632823-8f785ba67e45?q=80&w=600&auto=format&fit=crop"},
-        {"name": "ASUS ROG Strix G16", "price": 32990000, "category": "laptop", "img": "https://images.unsplash.com/photo-1603302576837-37561b2e2302?q=80&w=600&auto=format&fit=crop"},
-        {"name": "HP Spectre x360", "price": 29000000, "category": "laptop", "img": "https://images.pexels.com/photos/1229861/pexels-photo-1229861.jpeg?auto=compress&cs=tinysrgb&w=600"},
+        # --- LAPTOP (15 sản phẩm) ---
+        {"name": "MacBook Air M3", "price": 27990000, "category": "laptop", "img": "https://picsum.photos/id/20/600/600"},
+        {"name": "MacBook Pro M3 Max", "price": 89000000, "category": "laptop", "img": "https://picsum.photos/id/21/600/600"},
+        {"name": "Dell XPS 15", "price": 45000000, "category": "laptop", "img": "https://picsum.photos/id/22/600/600"},
+        {"name": "HP Spectre x360", "price": 32000000, "category": "laptop", "img": "https://picsum.photos/id/23/600/600"},
+        {"name": "Asus Zenbook Duo", "price": 38000000, "category": "laptop", "img": "https://picsum.photos/id/24/600/600"},
+        {"name": "Lenovo Legion 5", "price": 28000000, "category": "laptop", "img": "https://picsum.photos/id/25/600/600"},
+        {"name": "Acer Predator Helios", "price": 35000000, "category": "laptop", "img": "https://picsum.photos/id/26/600/600"},
+        {"name": "MSI Katana GF66", "price": 22000000, "category": "laptop", "img": "https://picsum.photos/id/27/600/600"},
+        {"name": "Surface Laptop 5", "price": 25000000, "category": "laptop", "img": "https://picsum.photos/id/28/600/600"},
+        {"name": "LG Gram 17", "price": 31000000, "category": "laptop", "img": "https://picsum.photos/id/29/600/600"},
+        {"name": "Gigabyte Aero 16", "price": 42000000, "category": "laptop", "img": "https://picsum.photos/id/30/600/600"},
+        {"name": "Huawei MateBook X", "price": 29000000, "category": "laptop", "img": "https://picsum.photos/id/31/600/600"},
+        {"name": "Laptop Dell Vostro", "price": 15000000, "category": "laptop", "img": "https://picsum.photos/id/32/600/600"},
+        {"name": "Laptop HP Pavilion", "price": 17000000, "category": "laptop", "img": "https://picsum.photos/id/33/600/600"},
+        {"name": "MacBook Air M1 cũ", "price": 14000000, "category": "laptop", "img": "https://picsum.photos/id/34/600/600"},
 
-        # --- DANH MỤC: PHỤ KIỆN ---
-        {"name": "Tai nghe AirPods Pro 2", "price": 5990000, "category": "phụ kiện", "img": "https://images.unsplash.com/photo-1588423771073-b8903fbb85b5?q=80&w=600&auto=format&fit=crop"},
-        {"name": "Loa Marshall Emberton II", "price": 4490000, "category": "phụ kiện", "img": "https://images.unsplash.com/photo-1545454675-3531b543be5d?q=80&w=600&auto=format&fit=crop"},
-        {"name": "Sạc dự phòng MagSafe", "price": 2690000, "category": "phụ kiện", "img": "https://images.pexels.com/photos/6023348/pexels-photo-6023348.jpeg?auto=compress&cs=tinysrgb&w=600"},
-        {"name": "Chuột Logitech MX Master 3S", "price": 2490000, "category": "phụ kiện", "img": "https://images.unsplash.com/photo-1527864550417-7fd91fc51a46?q=80&w=600&auto=format&fit=crop"},
+        # --- PHỤ KIỆN (20 sản phẩm) ---
+        {"name": "AirPods Pro 2", "price": 5990000, "category": "phụ kiện", "img": "https://picsum.photos/id/35/600/600"},
+        {"name": "Sạc dự phòng Anker 20k", "price": 1200000, "category": "phụ kiện", "img": "https://picsum.photos/id/36/600/600"},
+        {"name": "Chuột Logitech MX Master 3S", "price": 2500000, "category": "phụ kiện", "img": "https://picsum.photos/id/37/600/600"},
+        {"name": "Bàn phím cơ AKKO", "price": 1800000, "category": "phụ kiện", "img": "https://picsum.photos/id/38/600/600"},
+        {"name": "Loa Bluetooth JBL Flip 6", "price": 2900000, "category": "phụ kiện", "img": "https://picsum.photos/id/39/600/600"},
+        {"name": "Cáp sạc iPhone 2m", "price": 450000, "category": "phụ kiện", "img": "https://picsum.photos/id/40/600/600"},
+        {"name": "Củ sạc nhanh 65W", "price": 750000, "category": "phụ kiện", "img": "https://picsum.photos/id/41/600/600"},
+        {"name": "Ốp lưng MagSafe iPhone", "price": 1200000, "category": "phụ kiện", "img": "https://picsum.photos/id/42/600/600"},
+        {"name": "Tai nghe Sony WH-1000XM5", "price": 7500000, "category": "phụ kiện", "img": "https://picsum.photos/id/43/600/600"},
+        {"name": "Túi chống sốc Laptop", "price": 350000, "category": "phụ kiện", "img": "https://picsum.photos/id/44/600/600"},
+        {"name": "Hub chuyển đổi Type-C", "price": 950000, "category": "phụ kiện", "img": "https://picsum.photos/id/45/600/600"},
+        {"name": "Tay cầm chơi game PS5", "price": 1600000, "category": "phụ kiện", "img": "https://picsum.photos/id/46/600/600"},
+        {"name": "Microphone Shure", "price": 5000000, "category": "phụ kiện", "img": "https://picsum.photos/id/47/600/600"},
+        {"name": "Webcam Logitech C922", "price": 2200000, "category": "phụ kiện", "img": "https://picsum.photos/id/48/600/600"},
+        {"name": "Bút cảm ứng Apple Pencil 2", "price": 3200000, "category": "phụ kiện", "img": "https://picsum.photos/id/49/600/600"},
+        {"name": "Lót chuột Razer", "price": 500000, "category": "phụ kiện", "img": "https://picsum.photos/id/50/600/600"},
+        {"name": "Gậy chụp ảnh", "price": 250000, "category": "phụ kiện", "img": "https://picsum.photos/id/51/600/600"},
+        {"name": "Thẻ nhớ 128GB", "price": 400000, "category": "phụ kiện", "img": "https://picsum.photos/id/52/600/600"},
+        {"name": "USB 3.0 64GB", "price": 200000, "category": "phụ kiện", "img": "https://picsum.photos/id/53/600/600"},
+        {"name": "Quạt tản nhiệt điện thoại", "price": 300000, "category": "phụ kiện", "img": "https://picsum.photos/id/54/600/600"},
 
-        # --- DANH MỤC: ĐỒNG HỒ SMARTWATCH ---
-        {"name": "Apple Watch Ultra 2", "price": 21490000, "category": "đồng hồ smartwatch", "img": "https://images.unsplash.com/photo-1508685096489-77a5ad2ba674?q=80&w=600&auto=format&fit=crop"},
-        {"name": "Samsung Galaxy Watch Ultra", "price": 16990000, "category": "đồng hồ smartwatch", "img": "https://images.unsplash.com/photo-1523275335684-37898b6baf30?q=80&w=600&auto=format&fit=crop"},
-        {"name": "Garmin Fenix 7 Pro", "price": 18500000, "category": "đồng hồ smartwatch", "img": "https://images.pexels.com/photos/437037/pexels-photo-437037.jpeg?auto=compress&cs=tinysrgb&w=600"},
+        # --- ĐỒNG HỒ SMARTWATCH (10 sản phẩm) ---
+        {"name": "Apple Watch Ultra 2", "price": 21000000, "category": "đồng hồ smartwatch", "img": "https://picsum.photos/id/55/600/600"},
+        {"name": "Samsung Watch 7 Ultra", "price": 16000000, "category": "đồng hồ smartwatch", "img": "https://picsum.photos/id/56/600/600"},
+        {"name": "Garmin Fenix 7 Pro", "price": 18500000, "category": "đồng hồ smartwatch", "img": "https://picsum.photos/id/57/600/600"},
+        {"name": "Huawei Watch GT 4", "price": 5500000, "category": "đồng hồ smartwatch", "img": "https://picsum.photos/id/58/600/600"},
+        {"name": "Xiaomi Watch S3", "price": 3500000, "category": "đồng hồ smartwatch", "img": "https://picsum.photos/id/59/600/600"},
+        {"name": "Amazfit GTR 4", "price": 4200000, "category": "đồng hồ smartwatch", "img": "https://picsum.photos/id/60/600/600"},
+        {"name": "Apple Watch SE 2023", "price": 6500000, "category": "đồng hồ smartwatch", "img": "https://picsum.photos/id/61/600/600"},
+        {"name": "Suunto Race", "price": 12000000, "category": "đồng hồ smartwatch", "img": "https://picsum.photos/id/62/600/600"},
+        {"name": "Casio G-Shock Smart", "price": 4000000, "category": "đồng hồ smartwatch", "img": "https://picsum.photos/id/63/600/600"},
+        {"name": "Oppo Watch X", "price": 8500000, "category": "đồng hồ smartwatch", "img": "https://picsum.photos/id/64/600/600"},
 
-        # --- DANH MỤC: TABLET ---
-        {"name": "iPad Pro M4 11 inch", "price": 28490000, "category": "tablet", "img": "https://images.unsplash.com/photo-1544244015-0df4b3ffc6b0?q=80&w=600&auto=format&fit=crop"},
-        {"name": "Samsung Galaxy Tab S9 Ultra", "price": 22990000, "category": "tablet", "img": "https://images.pexels.com/photos/1334597/pexels-photo-1334597.jpeg?auto=compress&cs=tinysrgb&w=600"},
+        # --- TABLET (10 sản phẩm) ---
+        {"name": "iPad Pro M4", "price": 28900000, "category": "tablet", "img": "https://picsum.photos/id/65/600/600"},
+        {"name": "iPad Air M2", "price": 16500000, "category": "tablet", "img": "https://picsum.photos/id/66/600/600"},
+        {"name": "Samsung Tab S9 Ultra", "price": 23000000, "category": "tablet", "img": "https://picsum.photos/id/67/600/600"},
+        {"name": "Xiaomi Pad 6", "price": 8500000, "category": "tablet", "img": "https://picsum.photos/id/68/600/600"},
+        {"name": "iPad Gen 10", "price": 9500000, "category": "tablet", "img": "https://picsum.photos/id/69/600/600"},
+        {"name": "Surface Pro 9", "price": 26000000, "category": "tablet", "img": "https://picsum.photos/id/70/600/600"},
+        {"name": "Lenovo Tab P11", "price": 7000000, "category": "tablet", "img": "https://picsum.photos/id/71/600/600"},
+        {"name": "Huawei MatePad", "price": 6500000, "category": "tablet", "img": "https://picsum.photos/id/72/600/600"},
+        {"name": "iPad Mini 6", "price": 12000000, "category": "tablet", "img": "https://picsum.photos/id/73/600/600"},
+        {"name": "Nokia T21", "price": 5000000, "category": "tablet", "img": "https://picsum.photos/id/74/600/600"},
 
-        # --- DANH MỤC: MÁY CŨ ---
-        {"name": "iPhone 12 Pro (Máy cũ)", "price": 9990000, "category": "máy cũ", "img": "https://images.unsplash.com/photo-1510557880182-3d4d3cba3f21?q=80&w=600&auto=format&fit=crop"},
-        {"name": "MacBook Air M1 (Máy cũ)", "price": 14500000, "category": "máy cũ", "img": "https://images.unsplash.com/photo-1611186871348-b1ec696e52c9?q=80&w=600&auto=format&fit=crop"},
+        # --- MÁY CŨ & THU CŨ (10 sản phẩm) ---
+        {"name": "iPhone 12 cũ 99%", "price": 8500000, "category": "máy cũ", "img": "https://picsum.photos/id/75/600/600"},
+        {"name": "iPhone 11 cũ", "price": 6500000, "category": "máy cũ", "img": "https://picsum.photos/id/76/600/600"},
+        {"name": "Samsung S21 cũ", "price": 7000000, "category": "máy cũ", "img": "https://picsum.photos/id/77/600/600"},
+        {"name": "Laptop Dell cũ", "price": 9000000, "category": "máy cũ", "img": "https://picsum.photos/id/78/600/600"},
+        {"name": "iPad Pro cũ", "price": 11000000, "category": "máy cũ", "img": "https://picsum.photos/id/79/600/600"},
+        {"name": "Apple Watch cũ", "price": 3500000, "category": "máy cũ", "img": "https://picsum.photos/id/80/600/600"},
+        {"name": "Thu cũ iPhone 15", "price": 15000000, "category": "thu cũ", "img": "https://picsum.photos/id/81/600/600"},
+        {"name": "Thu cũ Samsung S23", "price": 12000000, "category": "thu cũ", "img": "https://picsum.photos/id/82/600/600"},
+        {"name": "Trợ giá thu cũ 2 triệu", "price": 2000000, "category": "thu cũ", "img": "https://picsum.photos/id/83/600/600"},
+        {"name": "Đổi mới Android", "price": 5000000, "category": "thu cũ", "img": "https://picsum.photos/id/84/600/600"},
 
-        # --- DANH MỤC: THU CŨ ---
-        {"name": "Gói Thu Cũ Đổi Mới iPhone", "price": 0, "category": "thu cũ", "img": "https://images.unsplash.com/photo-1556742049-02e45fca9288?q=80&w=600&auto=format&fit=crop"},
-
-        # --- DANH MỤC: MÀN HÌNH MÁY IN ---
-        {"name": "Màn hình Dell UltraSharp 27", "price": 12500000, "category": "màn hình máy in", "img": "https://images.unsplash.com/photo-1527443224154-c4a3942d3acf?q=80&w=600&auto=format&fit=crop"},
-        {"name": "Máy in HP LaserJet Pro", "price": 4500000, "category": "màn hình máy in", "img": "https://images.unsplash.com/photo-1612815154858-60aa4c59eaa6?q=80&w=600&auto=format&fit=crop"},
-
-        # --- DANH MỤC: DỊCH VỤ TIỆN ÍCH ---
-        {"name": "Thẻ Cào Viettel 500k", "price": 500000, "category": "sim thẻ cào", "img": "https://images.unsplash.com/photo-1589758438368-21367f139553?q=80&w=600&auto=format&fit=crop"},
-        {"name": "Gói Data 4G Siêu Tốc", "price": 120000, "category": "dịch vụ tiện ích", "img": "https://images.unsplash.com/photo-1562157873-818bc0726f68?q=80&w=600&auto=format&fit=crop"},
+        # --- SIM THẺ & DỊCH VỤ (15 sản phẩm) ---
+        {"name": "Sim Viettel 4G 120GB", "price": 150000, "category": "sim thẻ cào", "img": "https://picsum.photos/id/85/600/600"},
+        {"name": "Thẻ Viettel 100k", "price": 100000, "category": "sim thẻ cào", "img": "https://picsum.photos/id/86/600/600"},
+        {"name": "Thẻ Vinaphone 200k", "price": 200000, "category": "sim thẻ cào", "img": "https://picsum.photos/id/87/600/600"},
+        {"name": "Sim Vinaphone bùm", "price": 350000, "category": "sim thẻ cào", "img": "https://picsum.photos/id/88/600/600"},
+        {"name": "Thẻ Game Garena 500k", "price": 500000, "category": "sim thẻ cào", "img": "https://picsum.photos/id/89/600/600"},
+        {"name": "Thẻ Zing 100k", "price": 100000, "category": "sim thẻ cào", "img": "https://picsum.photos/id/90/600/600"},
+        {"name": "Đóng tiền điện", "price": 0, "category": "dịch vụ tiện ích", "img": "https://picsum.photos/id/91/600/600"},
+        {"name": "Đóng tiền nước", "price": 0, "category": "dịch vụ tiện ích", "img": "https://picsum.photos/id/92/600/600"},
+        {"name": "Mua bảo hiểm xe máy", "price": 66000, "category": "dịch vụ tiện ích", "img": "https://picsum.photos/id/93/600/600"},
+        {"name": "Voucher Grab 50k", "price": 50000, "category": "dịch vụ tiện ích", "img": "https://picsum.photos/id/94/600/600"},
+        {"name": "Màn hình Dell 24 inch", "price": 3500000, "category": "màn hình máy in", "img": "https://picsum.photos/id/95/600/600"},
+        {"name": "Màn hình LG 27 inch 4K", "price": 8500000, "category": "màn hình máy in", "img": "https://picsum.photos/id/96/600/600"},
+        {"name": "Máy in Canon LBP2900", "price": 4200000, "category": "màn hình máy in", "img": "https://picsum.photos/id/97/600/600"},
+        {"name": "Máy in Brother HL", "price": 3800000, "category": "màn hình máy in", "img": "https://picsum.photos/id/98/600/600"},
+        {"name": "Màn hình Gaming Samsung", "price": 6500000, "category": "màn hình máy in", "img": "https://picsum.photos/id/99/600/600"}
     ]
 
     
