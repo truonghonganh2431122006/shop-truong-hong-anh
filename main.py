@@ -761,15 +761,58 @@ def seed_products(db: Session = Depends(get_db), current_user: User = Depends(ge
     db.query(Order).delete()
     db.query(Product).delete()
     
-    # 2. Danh sách máy xịn từ Thế Giới Di Động
+    # 2. Danh sản phẩm 
     phones = [
-        {"name": "iPhone 15 Pro Max 256GB", "price": 29490000, "img": "https://cdn.tgdd.vn/Products/Images/42/305658/iphone-15-pro-max-blue-thumbnew-600x600.jpg"},
-        {"name": "Samsung Galaxy S24 Ultra", "price": 27990000, "img": "https://cdn.tgdd.vn/Products/Images/42/307174/samsung-galaxy-s24-ultra-grey-600x600.jpg"},
-        {"name": "OPPO Reno11 5G", "price": 10990000, "img": "https://cdn.tgdd.vn/Products/Images/42/313505/oppo-reno11-blue-600x600.jpg"},
-        {"name": "Xiaomi 14 5G", "price": 22990000, "img": "https://cdn.tgdd.vn/Products/Images/42/313557/xiaomi-14-den-thumb-600x600.jpg"},
-        {"name": "iPhone 13 128GB", "price": 13590000, "img": "https://cdn.tgdd.vn/Products/Images/42/250258/iphone-13-blue-1-600x600.jpg"},
-        {"name": "Vivo V30 5G", "price": 13990000, "img": "https://cdn.tgdd.vn/Products/Images/42/322306/vivo-v30-xanh-thumb-600x600.jpg"},
-        {"name": "Realme 11 Pro 5G", "price": 11490000, "img": "https://cdn.tgdd.vn/Products/Images/42/306994/realme-11-pro-black-thumb-600x600.jpg"}
+{"name": "Samsung Galaxy S25 Edge 5G 512GB", "price": 22490000, "img": "https://cdn.tgdd.vn/2026/02/timerseo/335955-600x600.jpg"},
+        {"name": "iPhone 16 Pro Max 256GB", "price": 34490000, "img": "https://cdn.tgdd.vn/Products/Images/42/329149/iphone-16-pro-max-titan-sa-mac-thumb-600x600.jpg"},
+        {"name": "iPhone 16 128GB", "price": 22290000, "img": "https://cdn.tgdd.vn/Products/Images/42/329142/iphone-16-hong-thumb-600x600.jpg"},
+        {"name": "Samsung Galaxy S24 Ultra 256GB", "price": 27990000, "img": "https://cdn.tgdd.vn/Products/Images/42/307174/samsung-galaxy-s24-ultra-grey-thumb-600x600.jpg"},
+        {"name": "OPPO Reno12 F 5G", "price": 9490000, "img": "https://cdn.tgdd.vn/Products/Images/42/327310/oppo-reno12-f-xanh-thumb-600x600.jpg"},
+        {"name": "Xiaomi Redmi Note 13 Pro", "price": 8690000, "img": "https://cdn.tgdd.vn/Products/Images/42/320037/xiaomi-redmi-note-13-pro-4g-xanh-thumb-600x600.jpg"},
+        {"name": "iPhone 15 128GB", "price": 19490000, "img": "https://cdn.tgdd.vn/Products/Images/42/281570/iphone-15-xanh-duong-thumb-600x600.jpg"},
+        {"name": "Samsung Galaxy A55 5G 128GB", "price": 10490000, "img": "https://cdn.tgdd.vn/Products/Images/42/322096/samsung-galaxy-a55-5g-xanh-thumb-1-600x600.jpg"},
+        {"name": "iPhone 13 128GB", "price": 13490000, "img": "https://cdn.tgdd.vn/Products/Images/42/250258/iphone-13-pink-thumb-600x600.jpg"},
+        {"name": "Xiaomi 14T 12GB/256GB", "price": 12990000, "img": "https://cdn.tgdd.vn/Products/Images/42/329562/xiaomi-14t-den-thumb-600x600.jpg"},
+        {"name": "Apple Watch Series 10 42mm", "price": 10990000, "img": "https://cdn.tgdd.vn/Products/Images/7077/329241/apple-watch-s10-42mm-nhom-den-day-cao-su-den-thumb-600x600.jpg"},
+        {"name": "Samsung Galaxy Z Fold6 5G", "price": 41990000, "img": "https://cdn.tgdd.vn/Products/Images/42/320145/samsung-galaxy-z-fold6-xam-thumb-600x600.jpg"},
+        {"name": "iPad Pro M4 11 inch WiFi", "price": 28490000, "img": "https://cdn.tgdd.vn/Products/Images/522/325251/ipad-pro-m4-11-inch-wifi-den-thumb-600x600.jpg"},
+        {"name": "Tai nghe AirPods 3 MagSafe", "price": 4290000, "img": "https://cdn.tgdd.vn/Products/Images/54/251505/airpods-3-magsafe-check-thumb-600x600.jpg"},
+        {"name": "Samsung Galaxy Watch Ultra", "price": 16990000, "img": "https://cdn.tgdd.vn/Products/Images/7077/322303/samsung-galaxy-watch-ultra-47mm-trang-thumb-600x600.jpg"},
+        {"name": "Xiaomi Redmi 14C 4GB", "price": 2990000, "img": "https://cdn.tgdd.vn/Products/Images/42/329251/xiaomi-redmi-14c-den-thumb-600x600.jpg"},
+        {"name": "OPPO Reno12 Pro 5G", "price": 16990000, "img": "https://cdn.tgdd.vn/Products/Images/42/325413/oppo-reno12-pro-bac-thumb-600x600.jpg"},
+        {"name": "Vivo V40 Lite", "price": 7990000, "img": "https://cdn.tgdd.vn/Products/Images/42/330364/vivo-v40-lite-bac-thumb-600x600.jpg"},
+        {"name": "iPhone 14 Pro 128GB", "price": 22990000, "img": "https://cdn.tgdd.vn/Products/Images/42/289691/iphone-14-pro-den-thumb-600x600.jpg"},
+        {"name": "Laptop MacBook Air M3 13 inch", "price": 27490000, "img": "https://cdn.tgdd.vn/Products/Images/44/322627/apple-macbook-air-m3-2024-8gb-256gb-thumb-600x600.jpg"},
+        {"name": "Cáp Type C - Type C 1m Apple", "price": 590000, "img": "https://cdn.tgdd.vn/Products/Images/58/315181/cap-type-c-type-c-1m-apple-mqw73-trang-thumb-600x600.jpg"},
+        {"name": "Samsung Galaxy Buds3", "price": 3990000, "img": "https://cdn.tgdd.vn/Products/Images/54/324151/samsung-galaxy-buds3-bac-thumb-600x600.jpg"},
+        {"name": "iPad Air M2 11 inch WiFi", "price": 16490000, "img": "https://cdn.tgdd.vn/Products/Images/522/325243/ipad-air-m2-11-inch-wifi-xanh-thumb-600x600.jpg"},
+        {"name": "OPPO Watch X", "price": 8490000, "img": "https://cdn.tgdd.vn/Products/Images/7077/322301/oppo-watch-x-den-thumb-600x600.jpg"},
+        {"name": "Sạc dự phòng MagSafe Apple", "price": 2690000, "img": "https://cdn.tgdd.vn/Products/Images/57/245842/sac-du-phong-magsafe-battery-pack-apple-mjwy3-trang-thumb-600x600.jpg"},
+        {"name": "iPhone 15 Pro Max 512GB", "price": 34990000, "img": "https://cdn.tgdd.vn/Products/Images/42/305658/iphone-15-pro-max-blue-thumb-600x600.jpg"},
+        {"name": "Tai nghe Marshall Minor III", "price": 2990000, "img": "https://cdn.tgdd.vn/Products/Images/54/273391/tai-nghe-bluetooth-true-wireless-marshall-minor-3-den-thumb-600x600.jpg"},
+        {"name": "Xiaomi Redmi Buds 5 Pro", "price": 1790000, "img": "https://cdn.tgdd.vn/Products/Images/54/319696/xiaomi-redmi-buds-5-pro-den-thumb-600x600.jpg"},
+        {"name": "Apple Watch Ultra 2", "price": 21490000, "img": "https://cdn.tgdd.vn/Products/Images/7077/315183/apple-watch-ultra-2-49mm-vien-titan-day-alpine-size-m-xanh-duong-thumb-600x600.jpg"},
+        {"name": "Loa Bluetooth Marshall Emberton II", "price": 4490000, "img": "https://cdn.tgdd.vn/Products/Images/2162/285523/marshall-emberton-ii-den-thumb-600x600.jpg"},
+        {"name": "iPhone 16 Pro 128GB", "price": 28490000, "img": "https://cdn.tgdd.vn/Products/Images/42/329148/iphone-16-pro-trang-thumb-600x600.jpg"},
+        {"name": "Samsung Galaxy Z Flip6 256GB", "price": 26990000, "img": "https://cdn.tgdd.vn/Products/Images/42/320146/samsung-galaxy-z-flip6-xanh-duong-thumb-600x600.jpg"},
+        {"name": "Xiaomi Pad 6 8GB/256GB", "price": 9490000, "img": "https://cdn.tgdd.vn/Products/Images/522/305886/xiaomi-pad-6-xam-thumb-600x600.jpg"},
+        {"name": "OPPO Pad Neo WiFi", "price": 7490000, "img": "https://cdn.tgdd.vn/Products/Images/522/321151/oppo-pad-neo-wifi-thumb-600x600.jpg"},
+        {"name": "Realme Note 50 4GB/128GB", "price": 2890000, "img": "https://cdn.tgdd.vn/Products/Images/42/320035/realme-note-50-4gb-128gb-xanh-thumb-600x600.jpg"},
+        {"name": "iPhone 12 64GB", "price": 11990000, "img": "https://cdn.tgdd.vn/Products/Images/42/213031/iphone-12-trang-thumb-600x600.jpg"},
+        {"name": "Samsung Galaxy Tab S9 FE WiFi", "price": 8990000, "img": "https://cdn.tgdd.vn/Products/Images/522/315182/samsung-galaxy-tab-s9-fe-wifi-xam-thumb-600x600.jpg"},
+        {"name": "Vivo V30 5G 12GB/512GB", "price": 13490000, "img": "https://cdn.tgdd.vn/Products/Images/42/322306/vivo-v30-xanh-thumb-600x600.jpg"},
+        {"name": "Nokia G42 5G", "price": 5490000, "img": "https://cdn.tgdd.vn/Products/Images/42/313506/nokia-g42-5g-tim-thumb-600x600.jpg"},
+        {"name": "Apple Pencil Pro", "price": 3490000, "img": "https://cdn.tgdd.vn/Products/Images/42/325255/apple-pencil-pro-mx2d3-trang-thumb-600x600.jpg"},
+        {"name": "Ốp lưng iPhone 16 Pro Max Silicone", "price": 1490000, "img": "https://cdn.tgdd.vn/Products/Images/60/329243/op-lung-iphone-16-pro-max-silicone-magsafe-den-thumb-600x600.jpg"},
+        {"name": "Samsung Galaxy A35 5G", "price": 8290000, "img": "https://cdn.tgdd.vn/Products/Images/42/320036/samsung-galaxy-a35-5g-xanh-thumb-600x600.jpg"},
+        {"name": "Xiaomi Redmi Note 13", "price": 4590000, "img": "https://cdn.tgdd.vn/Products/Images/42/309831/xiaomi-redmi-note-13-den-thumb-600x600.jpg"},
+        {"name": "Tai nghe Sony WH-1000XM5", "price": 7990000, "img": "https://cdn.tgdd.vn/Products/Images/54/281313/sony-wh-1000xm5-den-thumb-600x600.jpg"},
+        {"name": "iPad Mini 6 WiFi 64GB", "price": 12490000, "img": "https://cdn.tgdd.vn/Products/Images/522/249117/ipad-mini-6-wifi-tim-thumb-600x600.jpg"},
+        {"name": "Apple Watch SE 2023 40mm", "price": 5990000, "img": "https://cdn.tgdd.vn/Products/Images/7077/315184/apple-watch-se-2023-40mm-vien-nhom-day-the-thao-thumb-600x600.jpg"},
+        {"name": "Bàn phím Magic Keyboard cho iPad Pro", "price": 8990000, "img": "https://cdn.tgdd.vn/Products/Images/4547/325253/ban-phim-magic-keyboard-cho-ipad-pro-11-inch-m4-den-thumb-600x600.jpg"},
+        {"name": "Samsung Galaxy M54 5G", "price": 8990000, "img": "https://cdn.tgdd.vn/Products/Images/42/275367/samsung-galaxy-m54-bac-thumb-600x600.jpg"},
+        {"name": "Tai nghe JBL Live Pro 2", "price": 2990000, "img": "https://cdn.tgdd.vn/Products/Images/54/282772/tai-nghe-bluetooth-true-wireless-jbl-live-pro-2-xanh-thumb-600x600.jpg"},
+        {"name": "Loa Bluetooth Sony SRS-XE200", "price": 1990000, "img": "https://cdn.tgdd.vn/Products/Images/2162/285517/sony-srs-xe200-den-thumb-600x600.jpg"}
     ]
     
     # 3. Nạp vào database
@@ -779,7 +822,7 @@ def seed_products(db: Session = Depends(get_db), current_user: User = Depends(ge
             price=p["price"],
             stock=100,
             image_url=p["img"],
-            description="Hàng chính hãng Thế Giới Di Động",
+            description="Sản phẩm đã được update lên shop rồi Hồng Anh nhé !",
             is_active=True
         )
         db.add(new_p)
