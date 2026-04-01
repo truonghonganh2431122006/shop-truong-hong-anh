@@ -618,16 +618,19 @@ loginForm.addEventListener('submit', async (e) => {
         const data = await res.json();
 
         if (res.ok && data.success === true) {
-            // LƯU TOKEN - Tấm vé để vào trang Shop/Admin
-            localStorage.setItem("access_token", data.access_token);
-            localStorage.setItem("user_email", email);
-            
-            showToast('✅ Đăng nhập thành công! Đang chuyển hướng...');
-            
-            // Chuyển hướng sau 1.2 giây
-            setTimeout(() => {
-                window.location.href = data.redirect; 
-            }, 1200);
+      // LƯU TOKEN - Tấm vé để vào trang Shop/Admin
+          localStorage.setItem("access_token", data.access_token);
+          localStorage.setItem("user_email", email);
+          
+          // CHÈN DÒNG NÀY VÀO ĐÂY: Lấy phần chữ trước chữ @ của email làm tên hiển thị
+          localStorage.setItem("username", email.split('@')[0]); 
+
+          showToast('✅ Đăng nhập thành công! Đang chuyển hướng...');
+          
+          // Chuyển hướng sau 1.2 giây
+          setTimeout(() => {
+              window.location.href = data.redirect; 
+          }, 1200);
         } else {
             // Báo lỗi nếu sai pass hoặc mail
             showToast('❌ ' + (data.message || 'Thông tin không chính xác'), true);

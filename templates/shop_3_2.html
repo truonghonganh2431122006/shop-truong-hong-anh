@@ -20699,47 +20699,89 @@
             </a>
             <div id="auth-header-dynamic" style="display: flex; align-items: center; gap: 10px; margin: 0 15px;">
                 
-                <div id="group-guest" style="display: flex; gap: 8px;">
-                    <a href="/login" style="text-decoration: none; color: #fff; font-size: 13px; background: rgba(255,255,255,0.1); padding: 7px 14px; border-radius: 4px; border: 1px solid #fff;">Đăng nhập</a>
-                    <a href="/register" style="text-decoration: none; color: #000; font-size: 13px; background: #ffd400; padding: 7px 14px; border-radius: 4px; font-weight: bold;">Đăng ký</a>
+                <div id="group-guest" style="display: flex; gap: 10px;">
+                    <button onclick="window.location.href='/login'" style="
+                        background: rgba(255, 255, 255, 0.1); 
+                        color: white; 
+                        border: 1px solid white; 
+                        padding: 7px 15px; 
+                        border-radius: 5px; 
+                        font-size: 13px; 
+                        font-weight: 500; 
+                        cursor: pointer;
+                        transition: 0.3s;
+                    ">Đăng nhập</button>
+
+                    <button onclick="window.location.href='/register'" style="
+                        background: #ffd400; 
+                        color: #000; 
+                        border: none; 
+                        padding: 7px 15px; 
+                        border-radius: 5px; 
+                        font-size: 13px; 
+                        font-weight: bold; 
+                        cursor: pointer;
+                        transition: 0.3s;
+                    ">Đăng ký</button>
                 </div>
 
-                <div id="group-user" style="display: none;">
-                    <button onclick="handleLogout()" style="background: #ff4d4d; color: white; border: none; padding: 7px 14px; border-radius: 4px; font-size: 13px; font-weight: bold; cursor: pointer;">Đăng xuất</button>
+                <div id="group-user" style="display: none; align-items: center; gap: 12px;">
+                    <div style="display: flex; flex-direction: column; align-items: flex-end;">
+                        <span style="color: #fff; font-size: 10px; opacity: 0.8;">Tài khoản:</span>
+                        <b id="user-account-name" style="color: #ffd400; font-size: 14px; text-transform: capitalize;">Đang tải...</b>
+                    </div>
+                    <button onclick="handleLogout()" style="
+                        background: #ff4d4d; 
+                        color: white; 
+                        border: none; 
+                        padding: 7px 15px; 
+                        border-radius: 5px; 
+                        font-size: 13px; 
+                        font-weight: bold; 
+                        cursor: pointer;
+                    ">Đăng xuất</button>
                 </div>
             </div>
 
             <script>
-                function checkLoginStatus() {
-                    // Kiểm tra xem trình duyệt có đang giữ "vé" đăng nhập không
+                function updateHeaderAuth() {
                     const token = localStorage.getItem("access_token");
+                    const username = localStorage.getItem("username") || "Thành viên";
                     
-                    const guestBox = document.getElementById("group-guest");
-                    const userBox = document.getElementById("group-user");
+                    const guestZone = document.getElementById("group-guest");
+                    const userZone = document.getElementById("group-user");
+                    const nameLabel = document.getElementById("user-account-name"); 
 
                     if (token && token !== "null") {
-                        // Nếu đã đăng nhập: Giấu 2 nút Đăng nhập/Ký, Hiện nút Đăng xuất
-                        guestBox.style.display = "none";
-                        userBox.style.display = "block";
+                        if(guestZone) guestZone.style.display = "none";
+                        if(userZone) {
+                            userZone.style.display = "flex";
+                            if(nameLabel) nameLabel.innerText = username;
+                        }
                     } else {
-                        // Nếu chưa đăng nhập: Hiện 2 nút Đăng nhập/Ký, Giấu nút Đăng xuất
-                        guestBox.style.display = "flex";
-                        userBox.style.display = "none";
+                        if(guestZone) guestZone.style.display = "flex";
+                        if(userZone) userZone.style.display = "none";
                     }
                 }
 
-                // Hàm xử lý khi nhấn nút Đăng xuất
                 function handleLogout() {
-                    // Xóa "vé" đăng nhập khỏi trình duyệt (không ảnh hưởng đến tài khoản đã đăng ký)
-                    localStorage.removeItem("access_token");
-                    localStorage.removeItem("username");
-                    
-                    // Bay thẳng ra trang login
-                    window.location.href = "/login";
+                    if(confirm("Bạn muốn đăng xuất chứ?")) {
+                        localStorage.clear(); 
+                        window.location.href = "/login"; 
+                    }
                 }
 
-                // Chạy lệnh kiểm tra ngay khi mở trang Shop
-                document.addEventListener("DOMContentLoaded", checkLoginStatus);
+                document.addEventListener('click', function(e) {
+                    if(e.target && e.target.classList.contains('buy-now')) {
+                        if(!localStorage.getItem("access_token")) {
+                            e.preventDefault();
+                            alert("Vui lòng đăng nhập để mua hàng!");
+                            window.location.href = "/login";
+                        }
+                    }
+                });
+
+                document.addEventListener("DOMContentLoaded", updateHeaderAuth);
             </script>
         </div>
     </div>
