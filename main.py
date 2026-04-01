@@ -7,6 +7,11 @@ from fastapi import Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from typing import Optional, List, Dict, Any
+import uvicorn
+from datetime import datetime, timedelta, date
+from pathlib import Path
+from typing import Optional, List, Dict, Set
+import os
 
 from pathlib import Path
 from fastapi.staticfiles import StaticFiles
@@ -31,11 +36,6 @@ def get_password_hash(password: str):
 
 def verify_password(plain_password: str, hashed_password: str):
     return pwd_context.verify(plain_password, hashed_password)
-
-from datetime import datetime, timedelta, date
-from pathlib import Path
-from typing import Optional, List, Dict, Set
-import os
 
 
 # --- Lên đầu file, dưới các dòng import, thêm 2 dòng này ---
@@ -1329,3 +1329,9 @@ def startup_event():
         print(f">>> LOI STARTUP: {e}")
     finally:
         db.close()
+# --- PHẢI NẰM Ở CUỐI FILE main.py ---
+if __name__ == "__main__":
+    # Render cấp cổng nào mình chạy cổng đó
+    port = int(os.environ.get("PORT", 10000))
+    # Host 0.0.0.0 là bắt buộc để Render "nhìn" thấy app
+    uvicorn.run(app, host="0.0.0.0", port=port)

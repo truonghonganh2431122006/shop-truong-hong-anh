@@ -20750,9 +20750,10 @@
             </div>
         </div>
         <script>
-            // --- HÀM CÔNG CỤ: HIỂN THỊ THÔNG BÁO TÙY CHỈNH ---
+            // Hàm hiện hộp thông báo
             function showCustomModal(title, message, onConfirm) {
                 const modal = document.getElementById('customModal');
+                if(!modal) return;
                 document.getElementById('modalTitle').innerText = title;
                 document.getElementById('modalMessage').innerText = message;
                 modal.style.display = 'flex';
@@ -20766,11 +20767,10 @@
                 };
             }
 
-            // --- CÁC HÀM CŨ CỦA BẠN (ĐÃ ĐƯỢC CẬP NHẬT THÔNG BÁO XỊN) ---
+            // Hiện tên user
             function updateHeaderAuth() {
                 const token = localStorage.getItem("access_token");
                 const username = localStorage.getItem("username") || "Thành viên";
-                
                 const guestZone = document.getElementById("group-guest");
                 const userZone = document.getElementById("group-user");
                 const nameLabel = document.getElementById("user-account-name"); 
@@ -20787,43 +20787,27 @@
                 }
             }
 
+            // Đăng xuất xịn
             function handleLogout() {
-                // Thay confirm bằng Modal
-                showCustomModal("Đăng xuất", "Bạn có chắc chắn muốn thoát tài khoản không?", function() {
+                showCustomModal("Đăng xuất", "Bạn có chắc chắn muốn thoát không?", function() {
                     localStorage.clear(); 
                     window.location.href = "/login"; 
                 });
             }
 
+            // Chốt đơn xịn
             window.handleFinalCheckout = function() {
                 const token = localStorage.getItem("access_token");
-
-                if (!token || token === "null") {
-                    // Thay alert bằng Modal
-                    showCustomModal("Yêu cầu đăng nhập", "Vui lòng đăng nhập để hệ thống ghi nhận đơn hàng này nhé!", function() {
+                if (!token) {
+                    showCustomModal("Yêu cầu đăng nhập", "Vui lòng đăng nhập để đặt hàng nhé!", function() {
                         window.location.href = "/login";
                     });
                 } else {
-                    if (typeof window._confirmOrder === 'function') {
-                        window._confirmOrder();
-                    } else {
-                        console.error("Lỗi: Không tìm thấy hàm xử lý đặt hàng _confirmOrder!");
-                    }
+                    if (typeof window._confirmOrder === 'function') window._confirmOrder();
                 }
             };
 
-            document.addEventListener('click', function(e) {
-                if(e.target && e.target.classList.contains('buy-now')) {
-                    if(!localStorage.getItem("access_token")) {
-                        e.preventDefault();
-                        // Thay alert bằng Modal
-                        showCustomModal("Thông báo", "Vui lòng đăng nhập để mua hàng!", function() {
-                            window.location.href = "/login";
-                        });
-                    }
-                }
-            });
-
+            // Chạy khi web tải xong
             document.addEventListener("DOMContentLoaded", updateHeaderAuth);
         </script>
         </div>
