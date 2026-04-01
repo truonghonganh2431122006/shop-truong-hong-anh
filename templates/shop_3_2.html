@@ -20783,6 +20783,27 @@
 
                 document.addEventListener("DOMContentLoaded", updateHeaderAuth);
             </script>
+            <script>
+            // Hàm kiểm tra và xử lý thanh toán cuối cùng
+            window.handleFinalCheckout = function() {
+                const token = localStorage.getItem("access_token");
+
+                if (!token || token === "null") {
+                    // Nếu chưa đăng nhập: Hiện cảnh báo và đá ra Login
+                    alert("⚠️ Bạn cần đăng nhập tài khoản để hệ thống ghi nhận đơn hàng này nhé!");
+                    window.location.href = "/login";
+                } else {
+                    // Nếu đã đăng nhập: Chạy hàm chốt đơn gốc
+                    if (typeof window._confirmOrder === 'function') {
+                        window._confirmOrder();
+                    } else {
+                        console.error("Lỗi: Không tìm thấy hàm xử lý đặt hàng _confirmOrder!");
+                    }
+                }
+            };
+
+            // ... các hàm khác như updateHeaderAuth, handleLogout giữ nguyên ...
+        </script>
         </div>
     </div>
         <div class="header__main">
@@ -23114,7 +23135,8 @@
                 html += '<img src="https://img.vietqr.io/image/MB-0356551694-compact.png?amount=' + (typeof total !== 'undefined' ? total : 0) + '&addInfo=Thanh toan don hang" style="max-width:150px;border-radius:8px;">';
                 html += '</div></div>';
 
-                html += '<button class="btn-checkout" onclick="window._confirmOrder()">✓ Xác nhận đặt hàng</button>';
+                // Giữ nguyên class "btn-checkout" để không bị đổi giao diện
+                html += '<button class="btn-checkout" onclick="if(!localStorage.getItem(\'access_token\')){ alert(\'⚠️ Vui lòng đăng nhập để hoàn tất đặt hàng!\'); window.location.href=\'/login\'; } else { window._confirmOrder(); }">✓ Xác nhận đặt hàng</button>';
 
                 el.innerHTML = html;
 
