@@ -40,7 +40,9 @@
         /* Giao diện Thông báo hình chữ nhật */
         .custom-modal-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.6); display: none; align-items: center; justify-content: center;
+            background: rgba(0,0,0,0.6); 
+            display: none; /* Quan trọng: Mặc định phải ẩn */
+            align-items: center; justify-content: center;
             z-index: 99999; font-family: sans-serif;
         }
         .custom-modal-box {
@@ -20750,24 +20752,32 @@
             </div>
         </div>
         <script>
-            // Hàm hiện hộp thông báo
+            // 1. Hàm điều khiển hiện hộp thông báo hình chữ nhật
             function showCustomModal(title, message, onConfirm) {
                 const modal = document.getElementById('customModal');
-                if(!modal) return;
+                if (!modal) {
+                    // Nếu quên chưa dán HTML modal thì nó mới dùng cái này (để web không hỏng)
+                    if (confirm(message)) { if (onConfirm) onConfirm(); }
+                    return;
+                }
+                
                 document.getElementById('modalTitle').innerText = title;
                 document.getElementById('modalMessage').innerText = message;
-                modal.style.display = 'flex';
+                modal.style.display = 'flex'; // Hiện hộp
 
+                // Xử lý nút Đồng ý
                 document.getElementById('modalBtnOk').onclick = function() {
                     modal.style.display = 'none';
                     if (onConfirm) onConfirm();
                 };
+
+                // Xử lý nút Bỏ qua
                 document.getElementById('modalBtnCancel').onclick = function() {
                     modal.style.display = 'none';
                 };
             }
 
-            // Hiện tên user
+            // 2. Cập nhật giao diện khi đã đăng nhập
             function updateHeaderAuth() {
                 const token = localStorage.getItem("access_token");
                 const username = localStorage.getItem("username") || "Thành viên";
@@ -20787,30 +20797,47 @@
                 }
             }
 
-            // Đăng xuất xịn
+            // 3. Hàm đăng xuất dùng Modal
             function handleLogout() {
-                showCustomModal("Đăng xuất", "Bạn có chắc chắn muốn thoát không?", function() {
+                showCustomModal("Xác nhận", "Bạn có chắc chắn muốn đăng xuất không?", function() {
                     localStorage.clear(); 
                     window.location.href = "/login"; 
                 });
             }
 
-            // Chốt đơn xịn
+            // 4. Hàm chốt đơn dùng Modal
             window.handleFinalCheckout = function() {
                 const token = localStorage.getItem("access_token");
-                if (!token) {
-                    showCustomModal("Yêu cầu đăng nhập", "Vui lòng đăng nhập để đặt hàng nhé!", function() {
+                if (!token || token === "null") {
+                    showCustomModal("Yêu cầu", "Vui lòng đăng nhập để hệ thống ghi nhận đơn hàng nhé!", function() {
                         window.location.href = "/login";
                     });
                 } else {
-                    if (typeof window._confirmOrder === 'function') window._confirmOrder();
+                    if (typeof window._confirmOrder === 'function') {
+                        window._confirmOrder();
+                    } else {
+                        console.error("Không tìm thấy hàm _confirmOrder");
+                    }
                 }
             };
 
-            // Chạy khi web tải xong
+            // 5. TỰ ĐỘNG THAY THẾ CÁC NÚT MUA NGAY (Tránh bị hiện alert cũ)
+            document.addEventListener('click', function(e) {
+                // Tìm xem cái đang bấm có phải nút mua ngay không
+                if(e.target && (e.target.classList.contains('buy-now') || e.target.innerText.includes('MUA NGAY'))) {
+                    if(!localStorage.getItem("access_token")) {
+                        e.preventDefault(); // Chặn hành động cũ
+                        e.stopPropagation();
+                        showCustomModal("Thông báo", "Vui lòng đăng nhập để mua hàng bạn nhé!", function() {
+                            window.location.href = "/login";
+                        });
+                    }
+                }
+            }, true); // Dùng true để nó ưu tiên chạy trước các hàm cũ
+
+            // Chạy khi trang load xong
             document.addEventListener("DOMContentLoaded", updateHeaderAuth);
         </script>
-        </div>
     </div>
         <div class="header__main">
         <div>
