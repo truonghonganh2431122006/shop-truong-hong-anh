@@ -37,6 +37,29 @@
             overflow: visible !important;
         }
 
+        /* Giao diện Thông báo hình chữ nhật */
+        .custom-modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6); display: none; align-items: center; justify-content: center;
+            z-index: 99999; font-family: sans-serif;
+        }
+        .custom-modal-box {
+            background: white; padding: 25px; border-radius: 12px; width: 320px;
+            text-align: center; box-shadow: 0 15px 35px rgba(0,0,0,0.3);
+            animation: zoomIn 0.2s ease;
+        }
+        .custom-modal-box h3 { margin: 0 0 10px 0; color: #333; }
+        .custom-modal-box p { color: #555; margin-bottom: 20px; font-size: 14px; }
+        .modal-btn-confirm {
+            background: #ffd400; color: black; border: none; padding: 10px 20px;
+            border-radius: 6px; font-weight: bold; cursor: pointer; flex: 1;
+        }
+        .modal-btn-cancel {
+            background: #f0f0f0; color: #333; border: none; padding: 10px 20px;
+            border-radius: 6px; cursor: pointer; flex: 1;
+        }
+        @keyframes zoomIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
         /* Định dạng từng ô sản phẩm */
         .listproduct .item {
             display: none;
@@ -20622,31 +20645,18 @@
     }
     )();
 </script>
-<!-- Google Tag Manager (noscript) -->
-<noscript>
-    <iframe src="https://www.googletagmanager.com/ns.html?id=GTM-WKQZL8" height="0" width="0"
-        style="display:none;visibility:hidden"></iframe>
-</noscript>
-<!-- End Google Tag Manager (noscript) -->
-<div class="header-top-bar">
-    <div class="banner-media">
-        <div class="media-slider" data-size="1">
-            <div class="item" data-background-color="#FFAA0A" data-order="1">
-                <a aria-label="slide" data-cate="0" data-place="7994" href="#"
-                    onclick="jQuery.ajax({ url: '/bannertracking?bid=110207&r='+ (new Date).getTime(), async: true, cache: false });">
-                    <img width='1200' height='44' loading="lazy" class="lazyload owl-lazy"
-                        data-src="/static///cdnv2.tgdd.vn/mwg-static/tgdd/Banner/35/6c/356cd66f0fcf555ac335bdbf9e2eb664.png"
-                        alt="Banner top bar">
-                </a>
-            </div>
+
+<div id="customModal" class="custom-modal-overlay">
+    <div class="custom-modal-box">
+        <h3 id="modalTitle">Thông báo</h3>
+        <p id="modalMessage">Nội dung...</p>
+        <div style="display: flex; gap: 10px;">
+            <button id="modalBtnCancel" class="modal-btn-cancel">Bỏ qua</button>
+            <button id="modalBtnOk" class="modal-btn-confirm">Đồng ý</button>
         </div>
-        <style>
-            .banner-media {
-                background-color: #FFAA0A;
-            }
-        </style>
     </div>
 </div>
+
 <header class="header v2024        hasbanner" data-sub="0">
     <div class="header__top">
         <div>
@@ -20726,10 +20736,6 @@
                 </div>
 
                 <div id="group-user" style="display: none; align-items: center; gap: 12px;">
-                    <div style="display: flex; flex-direction: column; align-items: flex-end;">
-                        <span style="color: #fff; font-size: 10px; opacity: 0.8;">Tài khoản:</span>
-                        <b id="user-account-name" style="color: #ffd400; font-size: 14px; text-transform: capitalize;">Đang tải...</b>
-                    </div>
                     <button onclick="handleLogout()" style="
                         background: #ff4d4d; 
                         color: white; 
@@ -20742,58 +20748,62 @@
                     ">Đăng xuất</button>
                 </div>
             </div>
+        </div>
+        <script>
+            // --- HÀM CÔNG CỤ: HIỂN THỊ THÔNG BÁO TÙY CHỈNH ---
+            function showCustomModal(title, message, onConfirm) {
+                const modal = document.getElementById('customModal');
+                document.getElementById('modalTitle').innerText = title;
+                document.getElementById('modalMessage').innerText = message;
+                modal.style.display = 'flex';
 
-            <script>
-                function updateHeaderAuth() {
-                    const token = localStorage.getItem("access_token");
-                    const username = localStorage.getItem("username") || "Thành viên";
-                    
-                    const guestZone = document.getElementById("group-guest");
-                    const userZone = document.getElementById("group-user");
-                    const nameLabel = document.getElementById("user-account-name"); 
+                document.getElementById('modalBtnOk').onclick = function() {
+                    modal.style.display = 'none';
+                    if (onConfirm) onConfirm();
+                };
+                document.getElementById('modalBtnCancel').onclick = function() {
+                    modal.style.display = 'none';
+                };
+            }
 
-                    if (token && token !== "null") {
-                        if(guestZone) guestZone.style.display = "none";
-                        if(userZone) {
-                            userZone.style.display = "flex";
-                            if(nameLabel) nameLabel.innerText = username;
-                        }
-                    } else {
-                        if(guestZone) guestZone.style.display = "flex";
-                        if(userZone) userZone.style.display = "none";
+            // --- CÁC HÀM CŨ CỦA BẠN (ĐÃ ĐƯỢC CẬP NHẬT THÔNG BÁO XỊN) ---
+            function updateHeaderAuth() {
+                const token = localStorage.getItem("access_token");
+                const username = localStorage.getItem("username") || "Thành viên";
+                
+                const guestZone = document.getElementById("group-guest");
+                const userZone = document.getElementById("group-user");
+                const nameLabel = document.getElementById("user-account-name"); 
+
+                if (token && token !== "null") {
+                    if(guestZone) guestZone.style.display = "none";
+                    if(userZone) {
+                        userZone.style.display = "flex";
+                        if(nameLabel) nameLabel.innerText = username;
                     }
+                } else {
+                    if(guestZone) guestZone.style.display = "flex";
+                    if(userZone) userZone.style.display = "none";
                 }
+            }
 
-                function handleLogout() {
-                    if(confirm("Bạn muốn đăng xuất chứ?")) {
-                        localStorage.clear(); 
-                        window.location.href = "/login"; 
-                    }
-                }
-
-                document.addEventListener('click', function(e) {
-                    if(e.target && e.target.classList.contains('buy-now')) {
-                        if(!localStorage.getItem("access_token")) {
-                            e.preventDefault();
-                            alert("Vui lòng đăng nhập để mua hàng!");
-                            window.location.href = "/login";
-                        }
-                    }
+            function handleLogout() {
+                // Thay confirm bằng Modal
+                showCustomModal("Đăng xuất", "Bạn có chắc chắn muốn thoát tài khoản không?", function() {
+                    localStorage.clear(); 
+                    window.location.href = "/login"; 
                 });
+            }
 
-                document.addEventListener("DOMContentLoaded", updateHeaderAuth);
-            </script>
-            <script>
-            // Hàm kiểm tra và xử lý thanh toán cuối cùng
             window.handleFinalCheckout = function() {
                 const token = localStorage.getItem("access_token");
 
                 if (!token || token === "null") {
-                    // Nếu chưa đăng nhập: Hiện cảnh báo và đá ra Login
-                    alert("⚠️ Bạn cần đăng nhập tài khoản để hệ thống ghi nhận đơn hàng này nhé!");
-                    window.location.href = "/login";
+                    // Thay alert bằng Modal
+                    showCustomModal("Yêu cầu đăng nhập", "Vui lòng đăng nhập để hệ thống ghi nhận đơn hàng này nhé!", function() {
+                        window.location.href = "/login";
+                    });
                 } else {
-                    // Nếu đã đăng nhập: Chạy hàm chốt đơn gốc
                     if (typeof window._confirmOrder === 'function') {
                         window._confirmOrder();
                     } else {
@@ -20802,7 +20812,19 @@
                 }
             };
 
-            // ... các hàm khác như updateHeaderAuth, handleLogout giữ nguyên ...
+            document.addEventListener('click', function(e) {
+                if(e.target && e.target.classList.contains('buy-now')) {
+                    if(!localStorage.getItem("access_token")) {
+                        e.preventDefault();
+                        // Thay alert bằng Modal
+                        showCustomModal("Thông báo", "Vui lòng đăng nhập để mua hàng!", function() {
+                            window.location.href = "/login";
+                        });
+                    }
+                }
+            });
+
+            document.addEventListener("DOMContentLoaded", updateHeaderAuth);
         </script>
         </div>
     </div>
