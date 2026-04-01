@@ -763,57 +763,55 @@ def seed_products(db: Session = Depends(get_db), current_user: User = Depends(ge
     
     # 2. Danh sản phẩm 
     phones = [
-        {"name": "Samsung Galaxy S25 Edge 5G 512GB", "price": 22490000, "img": "https://cdn.tgdd.vn/Products/Images/42/335955/samsung-galaxy-s25-edge-bac-thumb-600x600.jpg"},
-        {"name": "iPhone 16 Pro Max 256GB", "price": 34490000, "img": "https://cdn.tgdd.vn/Products/Images/42/329149/iphone-16-pro-max-titan-sa-mac-thumb-600x600.jpg"},
-        {"name": "iPhone 16 128GB", "price": 22290000, "img": "https://cdn.tgdd.vn/Products/Images/42/329142/iphone-16-hong-thumb-600x600.jpg"},
-        {"name": "Samsung Galaxy S24 Ultra", "price": 27990000, "img": "https://cdn.tgdd.vn/Products/Images/42/307174/samsung-galaxy-s24-ultra-grey-thumb-600x600.jpg"},
-        {"name": "OPPO Reno12 F 5G", "price": 9490000, "img": "https://cdn.tgdd.vn/Products/Images/42/327310/oppo-reno12-f-xanh-thumb-600x600.jpg"},
-        {"name": "Xiaomi Redmi Note 13 Pro", "price": 8690000, "img": "https://cdn.tgdd.vn/Products/Images/42/320037/xiaomi-redmi-note-13-pro-4g-xanh-thumb-600x600.jpg"},
-        {"name": "iPhone 15 128GB", "price": 19490000, "img": "https://cdn.tgdd.vn/Products/Images/42/281570/iphone-15-xanh-duong-thumb-600x600.jpg"},
-        {"name": "Samsung Galaxy A55 5G", "price": 10490000, "img": "https://cdn.tgdd.vn/Products/Images/42/322096/samsung-galaxy-a55-5g-xanh-thumb-1-600x600.jpg"},
-        {"name": "iPhone 13 128GB", "price": 13490000, "img": "https://cdn.tgdd.vn/Products/Images/42/250258/iphone-13-pink-thumb-600x600.jpg"},
-        {"name": "Xiaomi 14T 12GB/256GB", "price": 12990000, "img": "https://cdn.tgdd.vn/Products/Images/42/329562/xiaomi-14t-den-thumb-600x600.jpg"},
-        {"name": "Apple Watch Series 10 42mm", "price": 10990000, "img": "https://cdn.tgdd.vn/Products/Images/7077/329241/apple-watch-s10-42mm-nhom-den-day-cao-su-den-thumb-600x600.jpg"},
-        {"name": "Samsung Galaxy Z Fold6 5G", "price": 41990000, "img": "https://cdn.tgdd.vn/Products/Images/42/320145/samsung-galaxy-z-fold6-xam-thumb-600x600.jpg"},
-        {"name": "iPad Pro M4 11 inch WiFi", "price": 28490000, "img": "https://cdn.tgdd.vn/Products/Images/522/325251/ipad-pro-m4-11-inch-wifi-den-thumb-600x600.jpg"},
-        {"name": "Tai nghe AirPods 3 MagSafe", "price": 4290000, "img": "https://cdn.tgdd.vn/Products/Images/54/251505/airpods-3-magsafe-check-thumb-600x600.jpg"},
-        {"name": "Samsung Galaxy Watch Ultra", "price": 16990000, "img": "https://cdn.tgdd.vn/Products/Images/7077/322303/samsung-galaxy-watch-ultra-47mm-trang-thumb-600x600.jpg"},
-        {"name": "Xiaomi Redmi 14C 4GB", "price": 2990000, "img": "https://cdn.tgdd.vn/Products/Images/42/329251/xiaomi-redmi-14c-den-thumb-600x600.jpg"},
-        {"name": "OPPO Reno12 Pro 5G", "price": 16990000, "img": "https://cdn.tgdd.vn/Products/Images/42/325413/oppo-reno12-pro-bac-thumb-600x600.jpg"},
-        {"name": "Vivo V40 Lite", "price": 7990000, "img": "https://cdn.tgdd.vn/Products/Images/42/330364/vivo-v40-lite-bac-thumb-600x600.jpg"},
-        {"name": "iPhone 14 Pro 128GB", "price": 22990000, "img": "https://cdn.tgdd.vn/Products/Images/42/289691/iphone-14-pro-den-thumb-600x600.jpg"},
-        {"name": "Laptop MacBook Air M3 13 inch", "price": 27490000, "img": "https://cdn.tgdd.vn/Products/Images/44/322627/apple-macbook-air-m3-2024-8gb-256gb-thumb-600x600.jpg"},
-        {"name": "Cáp Type C - Type C 1m Apple", "price": 590000, "img": "https://cdn.tgdd.vn/Products/Images/58/315181/cap-type-c-type-c-1m-apple-mqw73-trang-thumb-600x600.jpg"},
-        {"name": "Samsung Galaxy Buds3", "price": 3990000, "img": "https://cdn.tgdd.vn/Products/Images/54/324151/samsung-galaxy-buds3-bac-thumb-600x600.jpg"},
-        {"name": "iPad Air M2 11 inch WiFi", "price": 16490000, "img": "https://cdn.tgdd.vn/Products/Images/522/325243/ipad-air-m2-11-inch-wifi-xanh-thumb-600x600.jpg"},
-        {"name": "OPPO Watch X", "price": 8490000, "img": "https://cdn.tgdd.vn/Products/Images/7077/322301/oppo-watch-x-den-thumb-600x600.jpg"},
-        {"name": "Sạc dự phòng MagSafe Apple", "price": 2690000, "img": "https://cdn.tgdd.vn/Products/Images/57/245842/sac-du-phong-magsafe-battery-pack-apple-mjwy3-trang-thumb-600x600.jpg"},
-        {"name": "iPhone 15 Pro Max 512GB", "price": 34990000, "img": "https://cdn.tgdd.vn/Products/Images/42/305658/iphone-15-pro-max-blue-thumb-600x600.jpg"},
-        {"name": "Tai nghe Marshall Minor III", "price": 2990000, "img": "https://cdn.tgdd.vn/Products/Images/54/273391/tai-nghe-bluetooth-true-wireless-marshall-minor-3-den-thumb-600x600.jpg"},
-        {"name": "Xiaomi Redmi Buds 5 Pro", "price": 1790000, "img": "https://cdn.tgdd.vn/Products/Images/54/319696/xiaomi-redmi-buds-5-pro-den-thumb-600x600.jpg"},
-        {"name": "Apple Watch Ultra 2", "price": 21490000, "img": "https://cdn.tgdd.vn/Products/Images/7077/315183/apple-watch-ultra-2-49mm-vien-titan-day-alpine-size-m-xanh-duong-thumb-600x600.jpg"},
-        {"name": "Loa Bluetooth Marshall Emberton II", "price": 4490000, "img": "https://cdn.tgdd.vn/Products/Images/2162/285523/marshall-emberton-ii-den-thumb-600x600.jpg"},
-        {"name": "iPhone 16 Pro 128GB", "price": 28490000, "img": "https://cdn.tgdd.vn/Products/Images/42/329148/iphone-16-pro-trang-thumb-600x600.jpg"},
-        {"name": "Samsung Galaxy Z Flip6 256GB", "price": 26990000, "img": "https://cdn.tgdd.vn/Products/Images/42/320146/samsung-galaxy-z-flip6-xanh-duong-thumb-600x600.jpg"},
-        {"name": "Xiaomi Pad 6 8GB/256GB", "price": 9490000, "img": "https://cdn.tgdd.vn/Products/Images/522/305886/xiaomi-pad-6-xam-thumb-600x600.jpg"},
-        {"name": "OPPO Pad Neo WiFi", "price": 7490000, "img": "https://cdn.tgdd.vn/Products/Images/522/321151/oppo-pad-neo-wifi-thumb-600x600.jpg"},
-        {"name": "Realme Note 50 128GB", "price": 2890000, "img": "https://cdn.tgdd.vn/Products/Images/42/320035/realme-note-50-4gb-128gb-xanh-thumb-600x600.jpg"},
-        {"name": "iPhone 12 64GB", "price": 11990000, "img": "https://cdn.tgdd.vn/Products/Images/42/213031/iphone-12-trang-thumb-600x600.jpg"},
-        {"name": "Samsung Galaxy Tab S9 FE", "price": 8990000, "img": "https://cdn.tgdd.vn/Products/Images/522/315182/samsung-galaxy-tab-s9-fe-wifi-xam-thumb-600x600.jpg"},
-        {"name": "Vivo V30 5G 512GB", "price": 13490000, "img": "https://cdn.tgdd.vn/Products/Images/42/322306/vivo-v30-xanh-thumb-600x600.jpg"},
-        {"name": "Nokia G42 5G", "price": 5490000, "img": "https://cdn.tgdd.vn/Products/Images/42/313506/nokia-g42-5g-tim-thumb-600x600.jpg"},
-        {"name": "Apple Pencil Pro", "price": 3490000, "img": "https://cdn.tgdd.vn/Products/Images/42/325255/apple-pencil-pro-mx2d3-trang-thumb-600x600.jpg"},
-        {"name": "Ốp lưng iPhone 16 Pro Max", "price": 1490000, "img": "https://cdn.tgdd.vn/Products/Images/60/329243/op-lung-iphone-16-pro-max-silicone-magsafe-den-thumb-600x600.jpg"},
-        {"name": "Samsung Galaxy A35 5G", "price": 8290000, "img": "https://cdn.tgdd.vn/Products/Images/42/320036/samsung-galaxy-a35-5g-xanh-thumb-600x600.jpg"},
         {"name": "Xiaomi Redmi Note 13", "price": 4590000, "img": "https://cdn.tgdd.vn/Products/Images/42/309831/xiaomi-redmi-note-13-den-thumb-600x600.jpg"},
-        {"name": "Tai nghe Sony WH-1000XM5", "price": 7990000, "img": "https://cdn.tgdd.vn/Products/Images/54/281313/sony-wh-1000xm5-den-thumb-600x600.jpg"},
-        {"name": "iPad Mini 6 WiFi 64GB", "price": 12490000, "img": "https://cdn.tgdd.vn/Products/Images/522/249117/ipad-mini-6-wifi-tim-thumb-600x600.jpg"},
-        {"name": "Apple Watch SE 2023", "price": 5990000, "img": "https://cdn.tgdd.vn/Products/Images/7077/315184/apple-watch-se-2023-40mm-vien-nhom-day-the-thao-thumb-600x600.jpg"},
-        {"name": "Bàn phím iPad Pro M4", "price": 8990000, "img": "https://cdn.tgdd.vn/Products/Images/4547/325253/ban-phim-magic-keyboard-cho-ipad-pro-11-inch-m4-den-thumb-600x600.jpg"},
-        {"name": "Samsung Galaxy M54 5G", "price": 8990000, "img": "https://cdn.tgdd.vn/Products/Images/42/275367/samsung-galaxy-m54-bac-thumb-600x600.jpg"},
-        {"name": "Tai nghe JBL Live Pro 2", "price": 2990000, "img": "https://cdn.tgdd.vn/Products/Images/54/282772/tai-nghe-bluetooth-true-wireless-jbl-live-pro-2-xanh-thumb-600x600.jpg"},
-        {"name": "Loa Bluetooth Sony SRS-XE200", "price": 1990000, "img": "https://cdn.tgdd.vn/Products/Images/2162/285517/sony-srs-xe200-den-thumb-600x600.jpg"}
+        {"name": "iPhone 14 Pro 128GB", "price": 22990000, "img": "https://cdn.tgdd.vn/Products/Images/42/289691/iphone-14-pro-den-thumb-600x600.jpg"},
+        {"name": "iPhone 15 Pro Max 512GB", "price": 34990000, "img": "https://cdn.tgdd.vn/Products/Images/42/305658/iphone-15-pro-max-blue-thumb-600x600.jpg"},
+        {"name": "Samsung Galaxy A55 5G", "price": 10490000, "img": "https://cdn.tgdd.vn/Products/Images/42/322096/samsung-galaxy-a55-5g-xanh-thumb-1-600x600.jpg"},
+        {"name": "Samsung Galaxy S24 Ultra", "price": 27990000, "img": "https://cdn.tgdd.vn/Products/Images/42/307174/samsung-galaxy-s24-ultra-grey-thumb-600x600.jpg"},
+        # --- DANH MỤC: ĐIỆN THOẠI ---
+        {"name": "iPhone 16 Pro Max Titan", "price": 34490000, "category": "điện thoại", "img": "https://images.unsplash.com/photo-1696446701796-da61225697cc?q=80&w=600&auto=format&fit=crop"},
+        {"name": "Samsung Galaxy S24 Ultra", "price": 27990000, "category": "điện thoại", "img": "https://images.unsplash.com/photo-1610945265064-0e34e5519bbf?q=80&w=600&auto=format&fit=crop"},
+        {"name": "Google Pixel 9 Pro", "price": 21000000, "category": "điện thoại", "img": "https://images.unsplash.com/photo-1598327105666-5b89351aff97?q=80&w=600&auto=format&fit=crop"},
+        {"name": "OPPO Reno12 Pro 5G", "price": 16990000, "category": "điện thoại", "img": "https://images.pexels.com/photos/404280/pexels-photo-404280.jpeg?auto=compress&cs=tinysrgb&w=600"},
+        {"name": "Xiaomi 14T Pro", "price": 15990000, "category": "điện thoại", "img": "https://images.pexels.com/photos/1092644/pexels-photo-1092644.jpeg?auto=compress&cs=tinysrgb&w=600"},
+
+        # --- DANH MỤC: LAPTOP ---
+        {"name": "MacBook Air M3 2024", "price": 27490000, "category": "laptop", "img": "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?q=80&w=600&auto=format&fit=crop"},
+        {"name": "Dell XPS 13 Plus", "price": 35000000, "category": "laptop", "img": "https://images.unsplash.com/photo-1593642632823-8f785ba67e45?q=80&w=600&auto=format&fit=crop"},
+        {"name": "ASUS ROG Strix G16", "price": 32990000, "category": "laptop", "img": "https://images.unsplash.com/photo-1603302576837-37561b2e2302?q=80&w=600&auto=format&fit=crop"},
+        {"name": "HP Spectre x360", "price": 29000000, "category": "laptop", "img": "https://images.pexels.com/photos/1229861/pexels-photo-1229861.jpeg?auto=compress&cs=tinysrgb&w=600"},
+
+        # --- DANH MỤC: PHỤ KIỆN ---
+        {"name": "Tai nghe AirPods Pro 2", "price": 5990000, "category": "phụ kiện", "img": "https://images.unsplash.com/photo-1588423771073-b8903fbb85b5?q=80&w=600&auto=format&fit=crop"},
+        {"name": "Loa Marshall Emberton II", "price": 4490000, "category": "phụ kiện", "img": "https://images.unsplash.com/photo-1545454675-3531b543be5d?q=80&w=600&auto=format&fit=crop"},
+        {"name": "Sạc dự phòng MagSafe", "price": 2690000, "category": "phụ kiện", "img": "https://images.pexels.com/photos/6023348/pexels-photo-6023348.jpeg?auto=compress&cs=tinysrgb&w=600"},
+        {"name": "Chuột Logitech MX Master 3S", "price": 2490000, "category": "phụ kiện", "img": "https://images.unsplash.com/photo-1527864550417-7fd91fc51a46?q=80&w=600&auto=format&fit=crop"},
+
+        # --- DANH MỤC: ĐỒNG HỒ SMARTWATCH ---
+        {"name": "Apple Watch Ultra 2", "price": 21490000, "category": "đồng hồ smartwatch", "img": "https://images.unsplash.com/photo-1508685096489-77a5ad2ba674?q=80&w=600&auto=format&fit=crop"},
+        {"name": "Samsung Galaxy Watch Ultra", "price": 16990000, "category": "đồng hồ smartwatch", "img": "https://images.unsplash.com/photo-1523275335684-37898b6baf30?q=80&w=600&auto=format&fit=crop"},
+        {"name": "Garmin Fenix 7 Pro", "price": 18500000, "category": "đồng hồ smartwatch", "img": "https://images.pexels.com/photos/437037/pexels-photo-437037.jpeg?auto=compress&cs=tinysrgb&w=600"},
+
+        # --- DANH MỤC: TABLET ---
+        {"name": "iPad Pro M4 11 inch", "price": 28490000, "category": "tablet", "img": "https://images.unsplash.com/photo-1544244015-0df4b3ffc6b0?q=80&w=600&auto=format&fit=crop"},
+        {"name": "Samsung Galaxy Tab S9 Ultra", "price": 22990000, "category": "tablet", "img": "https://images.pexels.com/photos/1334597/pexels-photo-1334597.jpeg?auto=compress&cs=tinysrgb&w=600"},
+
+        # --- DANH MỤC: MÁY CŨ ---
+        {"name": "iPhone 12 Pro (Máy cũ)", "price": 9990000, "category": "máy cũ", "img": "https://images.unsplash.com/photo-1510557880182-3d4d3cba3f21?q=80&w=600&auto=format&fit=crop"},
+        {"name": "MacBook Air M1 (Máy cũ)", "price": 14500000, "category": "máy cũ", "img": "https://images.unsplash.com/photo-1611186871348-b1ec696e52c9?q=80&w=600&auto=format&fit=crop"},
+
+        # --- DANH MỤC: THU CŨ ---
+        {"name": "Gói Thu Cũ Đổi Mới iPhone", "price": 0, "category": "thu cũ", "img": "https://images.unsplash.com/photo-1556742049-02e45fca9288?q=80&w=600&auto=format&fit=crop"},
+
+        # --- DANH MỤC: MÀN HÌNH MÁY IN ---
+        {"name": "Màn hình Dell UltraSharp 27", "price": 12500000, "category": "màn hình máy in", "img": "https://images.unsplash.com/photo-1527443224154-c4a3942d3acf?q=80&w=600&auto=format&fit=crop"},
+        {"name": "Máy in HP LaserJet Pro", "price": 4500000, "category": "màn hình máy in", "img": "https://images.unsplash.com/photo-1612815154858-60aa4c59eaa6?q=80&w=600&auto=format&fit=crop"},
+
+        # --- DANH MỤC: DỊCH VỤ TIỆN ÍCH ---
+        {"name": "Thẻ Cào Viettel 500k", "price": 500000, "category": "sim thẻ cào", "img": "https://images.unsplash.com/photo-1589758438368-21367f139553?q=80&w=600&auto=format&fit=crop"},
+        {"name": "Gói Data 4G Siêu Tốc", "price": 120000, "category": "dịch vụ tiện ích", "img": "https://images.unsplash.com/photo-1562157873-818bc0726f68?q=80&w=600&auto=format&fit=crop"},
     ]
+
     
     # 3. Nạp vào database
     for p in phones:
