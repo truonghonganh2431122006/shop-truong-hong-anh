@@ -108,7 +108,8 @@ app.mount("/static", StaticFiles(directory=str(BASE_DIR / "static")), name="stat
 # 2. Định nghĩa các đường dẫn (Route)
 @app.get("/")
 def read_root():
-    return RedirectResponse(url="/login")
+    file_path = os.path.join(os.getcwd(), "templates", "shop_3_2.html")
+    return FileResponse(file_path)
 
 @app.get("/login")
 def login_p():
