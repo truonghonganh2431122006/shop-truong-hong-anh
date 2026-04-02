@@ -23163,8 +23163,8 @@
             window._removeFromCart = removeFromCart;
             window._changeQty = changeQty;
             window._clearCart = clearCart;
-            window._confirmOrder = async function () {
-                // --- GIỮ NGUYÊN PHẦN LẤY DỮ LIỆU CỦA BẠN ---
+           window._confirmOrder = async function () {
+                // 1. Lấy dữ liệu từ Form
                 var name = (document.getElementById('coName') || {}).value || '';
                 var phone = (document.getElementById('coPhone') || {}).value || '';
                 var city = (document.getElementById('coCity') || {}).value || ''; 
@@ -23173,9 +23173,15 @@
                 var address = (document.getElementById('coAddress') || {}).value || ''; 
                 var token = localStorage.getItem('access_token');
 
-                if (!token) { alert('Vui lòng đăng nhập để đặt hàng!'); return; }
-                if (!name.trim() || !phone.trim() || !city || !district.trim() || !ward.trim() || !address.trim()) { 
-                    alert('Vui lòng điền đầy đủ thông tin giao hàng!'); return; 
+                // 2. Kiểm tra đầu vào
+                if (!token) { 
+                    alert('Vui lòng đăng nhập để đặt hàng!'); 
+                    return; 
+                }
+                
+                if (!name.trim() || !phone.trim() || !address.trim()) { 
+                    alert('Vui lòng điền đầy đủ Tên, SĐT và Địa chỉ giao hàng!'); 
+                    return; 
                 }
 
                 var fullAddr = address.trim() + ", " + ward.trim() + ", " + district.trim() + ", " + city;
@@ -23183,35 +23189,42 @@
                 var methodText = (payMethod && payMethod.value === 'BANK') ? "Chuyển khoản (QR)" : "Tiền mặt (COD)";
 
                 var currentCart = JSON.parse(localStorage.getItem('cart') || '[]');
-                    
-                    // ÉP KIỂU DỮ LIỆU CẨN THẬN TRƯỚC KHI GỬI
-                    const orderData = {
-                        items: currentCart.map(item => ({
-                            product_id: parseInt(item.id),      // Phải là số nguyên (Integer)
-                            quantity: parseInt(item.qty) || 1,  // Phải là số nguyên
-                            unit_price: parseFloat(item.price)  // Phải là số thực (Float)
-                        })),
-                        shipping_address: fullAddr,
-                        phone_number: phone.trim()
-                    };
+                
+                // Kiểm tra giỏ hàng có hàng không
+                if (currentCart.length === 0) {
+                    alert("Giỏ hàng của bạn đang trống!");
+                    return;
+                }
 
-                    console.log("Dữ liệu gửi đi:", orderData); // Kiểm tra ở F12 xem có chuẩn không
+                // 3. Chuẩn bị dữ liệu gửi đi (Ép kiểu chuẩn 100% cho Server)
+                const orderData = {
+                    items: currentCart.map(item => ({
+                        product_id: Number(item.id),       // Đảm bảo là số
+                        quantity: Number(item.qty) || 1,   // Đảm bảo là số
+                        unit_price: Number(item.price)     // Đảm bảo là số
+                    })),
+                    shipping_address: fullAddr,
+                    phone_number: phone.trim()
+                };
 
-                    try {
-                        const res = await fetch('/orders', {
-                            method: 'POST',
-                            headers: { 
-                                'Content-Type': 'application/json', 
-                                'Authorization': 'Bearer ' + token 
-                            },
-                            body: JSON.stringify(orderData)
-                        });
+                try {
+                    // Hiện thông báo đang xử lý (tránh khách bấm 2 lần)
+                    console.log("Đang gửi đơn hàng...", orderData);
+
+                    const res = await fetch('/orders', {
+                        method: 'POST',
+                        headers: { 
+                            'Content-Type': 'application/json', 
+                            'Authorization': 'Bearer ' + token 
+                        },
+                        body: JSON.stringify(orderData)
+                    });
 
                     if (res.ok) {
                         const serverOrder = await res.json();
-                        localStorage.removeItem('cart'); // Xóa giỏ hàng
+                        localStorage.removeItem('cart'); // Xóa giỏ hàng local
 
-                        // --- GIỮ NGUYÊN GIAO DIỆN THÔNG BÁO CỦA BẠN ---
+                        // Hiển thị giao diện thành công
                         var el = document.getElementById('cartContent');
                         if (el) {
                             el.innerHTML = `
@@ -23230,8 +23243,16 @@
                                     </div>
                                 </div>`;
                         }
-                    } else { alert("Lỗi từ server, vui lòng thử lại!"); }
-                } catch (e) { alert("Lỗi kết nối mạng!"); }
+                    } else { 
+                        // Nếu lỗi, đọc thông báo lỗi từ Server để biết lỗi gì
+                        const errorInfo = await res.json();
+                        console.error("Lỗi Server:", errorInfo);
+                        alert("Lỗi: " + (errorInfo.detail || "Server không chấp nhận đơn hàng.")); 
+                    }
+                } catch (e) { 
+                    console.error("Lỗi kết nối:", e);
+                    alert("Không thể kết nối tới máy chủ, vui lòng kiểm tra mạng!"); 
+                }
             };
             window.closeCartModal = function () { var o = document.getElementById('cartOverlay'); if (o) o.classList.remove('active'); };
             function openCartModal() { renderCart(); var o = document.getElementById('cartOverlay'); if (o) o.classList.add('active'); }

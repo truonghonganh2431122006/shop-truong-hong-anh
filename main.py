@@ -234,6 +234,16 @@ class Product(Base):
 
     created_at = Column(DateTime, default=datetime.utcnow)
 
+class OrderItemCreate(BaseModel):
+    product_id: int
+    quantity: int
+    unit_price: float
+
+class OrderCreate(BaseModel):
+    items: List[OrderItemCreate]
+    shipping_address: str
+    phone_number: str
+
 
 # 1. Định nghĩa sẵn các trạng thái để dùng cho đồng bộ
 ORDER_NEW = "Chờ xác nhận"
