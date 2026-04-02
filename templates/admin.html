@@ -632,10 +632,10 @@
         const tbody = document.getElementById('orderTableBody');
         if (!tbody) return;
 
-        // Lấy token từ localStorage (đảm bảo biến token luôn tồn tại)
         const currentToken = localStorage.getItem("access_token");
 
         try {
+            // Gọi API lấy danh sách đơn hàng (phải có trong main.py)
             const res = await fetch('/admin/orders', { 
                 headers: { 
                     'Authorization': 'Bearer ' + currentToken,
@@ -643,90 +643,85 @@
                 } 
             });
 
-            // Nếu server trả về lỗi bảo mật (401, 403)
             if (res.status === 401 || res.status === 403) {
                 tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:orange;padding:20px">Phiên đăng nhập hết hạn hoặc bạn không có quyền Admin.</td></tr>';
                 return;
             }
 
             const orders = await res.json();
-            console.log("Dữ liệu đơn hàng nhận được:", orders); // Bạn có thể nhấn F12 để xem
-            
             tbody.innerHTML = '';
 
             if (!orders || orders.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:40px;color:var(--text-muted)">Hệ thống hiện chưa có đơn hàng nào được đặt.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:40px;color:var(--text-muted)">Hiện chưa có đơn hàng nào.</td></tr>';
                 return;
             }
 
             orders.forEach(ord => {
-                // Xử lý màu sắc cho trạng thái (Khớp cả Tiếng Anh và Tiếng Việt)
-                let sClass = "status-cho"; 
-                let displayStatus = ord.status || 'Mới';
+                // Xác định class màu sắc dựa trên trạng thái
+                let sClass = "status-cho"; // Mặc định là màu vàng (Chờ xác nhận)
+                if (ord.status === "Đang giao") sClass = "status-giao"; // Màu xanh dương
+                if (ord.status === "Đã giao") sClass = "status-xong";  // Màu xanh lá
+                if (ord.status === "Đã hủy") sClass = "status-huy";   // Màu đỏ (nếu bạn có)
 
-                if (ord.status === "SHIPPED" || ord.status === "Đang giao") {
-                    sClass = "status-giao";
-                    displayStatus = "Đang giao";
-                } else if (ord.status === "DONE" || ord.status === "Đã giao") {
-                    sClass = "status-xong";
-                    displayStatus = "Đã giao";
-                }
-
-                // Xử lý ngày tháng (ISO string từ Python sang Local String VN)
-                let dateStr = "N/A";
-                if (ord.created_at) {
-                    const d = new Date(ord.created_at);
-                    dateStr = isNaN(d.getTime()) ? ord.created_at : d.toLocaleString('vi-VN');
-                }
+                // Định dạng ngày tháng VN
+                let dateStr = ord.created_at ? new Date(ord.created_at).toLocaleString('vi-VN') : "N/A";
+                
+                // Định dạng tiền tệ
+                let totalStr = new Intl.NumberFormat('vi-VN').format(ord.total_price || 0) + "đ";
 
                 tbody.innerHTML += `
                     <tr>
                         <td><b style="color:var(--primary)">#${ord.id}</b></td>
-                        <td>${ord.email || 'Ẩn danh'}</td>
+                        <td>${ord.username || ord.email || 'Khách hàng'}</td>
                         <td><small>${dateStr}</small></td>
-                        <td><b style="color:var(--danger)">${(ord.total || 0).toLocaleString()}đ</b></td>
-                        <td><span class="order-status ${sClass}">${displayStatus}</span></td>
+                        <td><b style="color:var(--danger)">${totalStr}</b></td>
+                        <td><span class="order-status ${sClass}">${ord.status || 'Chờ xác nhận'}</span></td>
                         <td>
-                            <button class="btn btn-ship" onclick="updateOrderStatus(${ord.id}, 'Đang giao')">Giao</button>
-                            <button class="btn btn-done" onclick="updateOrderStatus(${ord.id}, 'Đã giao')">Xong</button>
+                            <div style="display:flex; gap:5px;">
+                                <button class="btn btn-ship" onclick="updateOrderStatus(${ord.id}, 'Đang giao')">Giao</button>
+                                <button class="btn btn-done" onclick="updateOrderStatus(${ord.id}, 'Đã giao')">Xong</button>
+                                <button class="btn btn-cancel" style="background:#ff4d4d; color:white; border:none; padding:4px 8px; border-radius:4px; cursor:pointer;" onclick="updateOrderStatus(${ord.id}, 'Đã hủy')">Hủy</button>
+                            </div>
                         </td>
                     </tr>`;
             });
         } catch (err) { 
-            console.error("Lỗi fetch đơn hàng:", err);
-            tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:red;padding:20px">Lỗi kết nối server: ${err.message}</td></tr>`; 
+            console.error("Lỗi:", err);
+            tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:red;padding:20px">Lỗi kết nối: ${err.message}</td></tr>`; 
         }
     }
 
-    // Hàm cập nhật trạng thái khớp 100% với file main.py (@app.put("/admin/orders/{order_id}/status"))
+    // 2. Hàm CẬP NHẬT trạng thái (Update Order Status)
     async function updateOrderStatus(orderId, newStatus) {
+        const currentToken = localStorage.getItem("access_token");
+        if (!confirm(`Chuyển đơn hàng #${orderId} sang trạng thái "${newStatus}"?`)) return;
+
         try {
-            // PHẢI dùng tham số ?new_status= trên URL vì main.py dùng Query(...)
+            // URL khớp 100% với backend: /admin/orders/{id}/status?new_status=...
             const url = `/admin/orders/${orderId}/status?new_status=${encodeURIComponent(newStatus)}`;
             
             const res = await fetch(url, {
-                method: 'PUT', // Đúng phương thức PUT trong main.py
+                method: 'PUT',
                 headers: { 
-                    'Authorization': 'Bearer ' + localStorage.getItem("access_token"),
+                    'Authorization': 'Bearer ' + currentToken,
                     'Accept': 'application/json'
                 }
             });
 
             if (res.ok) {
-                // Nếu bạn có hàm showToast thì dùng, không thì alert
+                // Nếu trang web của bạn có hàm showToast thì dùng, không thì alert
                 if (typeof showToast === "function") {
-                    showToast("Đã cập nhật đơn #" + orderId + " thành: " + newStatus);
+                    showToast(`Cập nhật đơn #${orderId} thành công!`, "success");
                 } else {
-                    alert("Thành công!");
+                    alert("Cập nhật thành công!");
                 }
-                loadOrders(); // Tải lại danh sách để thấy thay đổi ngay
+                loadOrders(); // Gọi lại hàm lấy đơn để cập nhật bảng ngay lập tức
             } else {
                 const error = await res.json();
-                alert("Lỗi server: " + (error.detail || "Không thể cập nhật"));
+                alert("Lỗi: " + (error.detail || "Không thể cập nhật"));
             }
         } catch (err) {
-            console.error("Lỗi kết nối:", err);
-            alert("Không thể kết nối tới máy chủ!");
+            alert("Lỗi kết nối server!");
         }
     }
 

@@ -3,23 +3,20 @@ from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from fastapi.responses import FileResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi import Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from typing import Optional, List, Dict, Any
 import uvicorn
 from datetime import datetime, timedelta, date
-from pathlib import Path
 from typing import Optional, List, Dict, Set
 import os
 
 from pathlib import Path
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse
 
 from pydantic import BaseModel, EmailStr, Field
 from sqlalchemy import (
-    create_engine, Column, Integer, String, DateTime, Boolean, ForeignKey
+    create_engine, Column, Integer, String, DateTime, Boolean, ForeignKey, Text, Float
 )
 from sqlalchemy.orm import sessionmaker, declarative_base, Session, relationship
 
@@ -238,31 +235,50 @@ class Product(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
 
 
+# 1. Định nghĩa sẵn các trạng thái để dùng cho đồng bộ
+ORDER_NEW = "Chờ xác nhận"
+ORDER_CONFIRMED = "Đã xác nhận"
+ORDER_SHIPPING = "Đang giao"
+ORDER_COMPLETED = "Đã giao"
+ORDER_CANCELLED = "Đã hủy"
+
 class Order(Base):
     __tablename__ = "orders"
-    id = Column(Integer, primary_key=True)
+    id = Column(Integer, primary_key=True, index=True)
 
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    
+    # --- THÔNG TIN THÊM CHO ADMIN ---
+    shipping_address = Column(Text, nullable=False) # Địa chỉ nhận hàng
+    phone_number = Column(String(15), nullable=False) # Số điện thoại khách
+    note = Column(String(255), nullable=True) # Ghi chú của khách (nếu có)
+    
+    # --- TRẠNG THÁI ---
     status = Column(String, default=ORDER_NEW)
 
-    created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow)
+    # --- THỜI GIAN (Dùng datetime.now thay vì utcnow cho dễ theo dõi giờ VN) ---
+    created_at = Column(DateTime, default=datetime.now)
+    updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now)
 
+    # Quan hệ
     user = relationship("User", back_populates="orders")
     items = relationship("OrderItem", back_populates="order", cascade="all, delete-orphan")
 
 
 class OrderItem(Base):
     __tablename__ = "order_items"
-    id = Column(Integer, primary_key=True)
+    id = Column(Integer, primary_key=True, index=True)
 
     order_id = Column(Integer, ForeignKey("orders.id"), nullable=False)
     product_id = Column(Integer, ForeignKey("products.id"), nullable=False)
 
     quantity = Column(Integer, nullable=False)
-    unit_price = Column(Integer, nullable=False)
+    unit_price = Column(Integer, nullable=False) # Giá lúc mua (để sau này sản phẩm đổi giá đơn cũ không bị đổi)
 
+    # Quan hệ
     order = relationship("Order", back_populates="items")
+    # Thêm dòng này để Admin xem được tên sản phẩm dễ dàng
+    product = relationship("Product")
 
 
 # ===================== SCHEMAS =====================
