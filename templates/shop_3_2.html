@@ -23164,41 +23164,30 @@
             window._changeQty = changeQty;
             window._clearCart = clearCart;
             window._confirmOrder = async function () {
-                // 1. Lấy dữ liệu từ Form
-                var name = (document.getElementById('coName') || {}).value || '';
-                var phone = (document.getElementById('coPhone') || {}).value || '';
-                var city = (document.getElementById('coCity') || {}).value || ''; 
-                var district = (document.getElementById('coDistrict') || {}).value || ''; 
-                var ward = (document.getElementById('coWard') || {}).value || ''; 
-                var address = (document.getElementById('coAddress') || {}).value || ''; 
-                var token = localStorage.getItem('access_token');
+                const token = localStorage.getItem('access_token');
+                if (!token) { alert('Vui lòng đăng nhập!'); return; }
 
-                // 2. Kiểm tra đầu vào
-                if (!token) { 
-                    alert('Vui lòng đăng nhập để đặt hàng!'); 
-                    return; 
-                }
-                
+                // Lấy thông tin từ form
+                const name = (document.getElementById('coName') || {}).value || '';
+                const phone = (document.getElementById('coPhone') || {}).value || '';
+                const city = (document.getElementById('coCity') || {}).value || ''; 
+                const district = (document.getElementById('coDistrict') || {}).value || ''; 
+                const ward = (document.getElementById('coWard') || {}).value || ''; 
+                const address = (document.getElementById('coAddress') || {}).value || ''; 
+
                 if (!name.trim() || !phone.trim() || !address.trim()) { 
-                    alert('Vui lòng điền đầy đủ Tên, SĐT và Địa chỉ giao hàng!'); 
-                    return; 
+                    alert('Vui lòng điền đủ thông tin giao hàng!'); return; 
                 }
 
-                var currentCart = JSON.parse(localStorage.getItem('cart') || '[]');
-                if (currentCart.length === 0) {
-                    alert("Giỏ hàng của bạn đang trống!");
-                    return;
-                }
+                const fullAddr = `${address.trim()}, ${ward.trim()}, ${district.trim()}, ${city}`;
+                const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+                if (cart.length === 0) { alert("Giỏ hàng trống!"); return; }
 
-                var fullAddr = address.trim() + ", " + ward.trim() + ", " + district.trim() + ", " + city;
-                var payMethod = document.querySelector('input[name="payMethod"]:checked');
-                var methodText = (payMethod && payMethod.value === 'BANK') ? "Chuyển khoản (QR)" : "Tiền mặt (COD)";
-
-                // 3. Ép kiểu dữ liệu chuẩn xác cho Server
+                // --- ĐOẠN QUAN TRỌNG: KHỚP TÊN TRƯỜNG VỚI PYTHON ---
                 const orderData = {
-                    items: currentCart.map(item => ({
+                    items: cart.map(item => ({
                         product_id: Number(item.id),
-                        quantity: Number(item.qty) || 1,
+                        quantity: Number(item.qty) || 1, // Chuyển từ 'qty' sang 'quantity'
                         unit_price: Number(item.price)
                     })),
                     shipping_address: fullAddr,
@@ -23215,34 +23204,23 @@
                         body: JSON.stringify(orderData)
                     });
 
-                    if (res.ok) {
-                        const serverOrder = await res.json();
-                        localStorage.removeItem('cart'); // Xóa giỏ hàng
+                    const result = await res.json();
 
-                        var el = document.getElementById('cartContent');
-                        if (el) {
-                            el.innerHTML = `
-                                <div class="cart-success" style="text-align:center; padding:10px;">
-                                    <h3 style="color:green; font-size:20px; margin-bottom:15px;">✓ Đặt hàng thành công!</h3>
-                                    <p style="margin-bottom:10px;">Cảm ơn bạn: <b>${name.trim()}</b></p>
-                                    <div style="text-align:left; background:#f9f9f9; padding:15px; border-radius:8px; border:1px solid #eee; font-size:14px; line-height:1.6;">
-                                        <p style="margin:0;">📍 <b>Địa chỉ:</b> ${fullAddr}</p>
-                                        <p style="margin:5px 0 0;">📞 <b>SĐT:</b> ${phone.trim()}</p>
-                                        <p style="margin:5px 0 0;">💳 <b>Thanh toán:</b> ${methodText}</p>
-                                    </div>
-                                    <div style="margin-top:20px;">
-                                        <button onclick="window.location.href='/order-history.html'" style="background:#288ad6; color:#fff; border:none; padding:12px 20px; border-radius:4px; cursor:pointer; font-weight:bold; width:100%;">
-                                            🚚 THEO DÕI ĐƠN HÀNG NGAY
-                                        </button>
-                                    </div>
-                                </div>`;
-                        }
-                    } else { 
-                        const errorInfo = await res.json();
-                        alert("Lỗi: " + (errorInfo.detail || "Server từ chối đơn hàng")); 
+                    if (res.ok) {
+                        localStorage.removeItem('cart');
+                        document.getElementById('cartContent').innerHTML = `
+                            <div style="text-align:center; padding:20px;">
+                                <h3 style="color:green;">✓ ĐẶT HÀNG THÀNH CÔNG!</h3>
+                                <p>Mã đơn: #${result.id}</p>
+                                <button onclick="window.location.href='/order-history.html'" style="margin-top:15px; padding:10px; background:#288ad6; color:#fff; border:none; border-radius:4px; cursor:pointer;">XEM LỊCH SỬ</button>
+                            </div>`;
+                    } else {
+                        // Hiển thị lỗi chi tiết để biết trường nào sai
+                        console.error("Lỗi 422 chi tiết:", result);
+                        alert("Lỗi dữ liệu: " + JSON.stringify(result.detail));
                     }
-                } catch (e) { 
-                    alert("Lỗi kết nối mạng!"); 
+                } catch (e) {
+                    alert("Lỗi kết nối server!");
                 }
             };
             window.closeCartModal = function () { var o = document.getElementById('cartOverlay'); if (o) o.classList.remove('active'); };
