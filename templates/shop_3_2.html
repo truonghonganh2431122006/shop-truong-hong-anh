@@ -23163,107 +23163,69 @@
             window._removeFromCart = removeFromCart;
             window._changeQty = changeQty;
             window._clearCart = clearCart;
-            window._confirmOrder = function () {
-                // 1. Lấy dữ liệu từ Form (Giữ nguyên phần cũ của bạn)
+            window._confirmOrder = async function () {
+                // --- GIỮ NGUYÊN PHẦN LẤY DỮ LIỆU CỦA BẠN ---
                 var name = (document.getElementById('coName') || {}).value || '';
                 var phone = (document.getElementById('coPhone') || {}).value || '';
                 var city = (document.getElementById('coCity') || {}).value || ''; 
                 var district = (document.getElementById('coDistrict') || {}).value || ''; 
                 var ward = (document.getElementById('coWard') || {}).value || ''; 
                 var address = (document.getElementById('coAddress') || {}).value || ''; 
+                var token = localStorage.getItem('access_token');
 
-                // 2. Kiểm tra nhập liệu
+                if (!token) { alert('Vui lòng đăng nhập để đặt hàng!'); return; }
                 if (!name.trim() || !phone.trim() || !city || !district.trim() || !ward.trim() || !address.trim()) { 
-                    alert('Vui lòng điền đầy đủ thông tin giao hàng!'); 
-                    return; 
+                    alert('Vui lòng điền đầy đủ thông tin giao hàng!'); return; 
                 }
 
                 var fullAddr = address.trim() + ", " + ward.trim() + ", " + district.trim() + ", " + city;
                 var payMethod = document.querySelector('input[name="payMethod"]:checked');
                 var methodText = (payMethod && payMethod.value === 'BANK') ? "Chuyển khoản (QR)" : "Tiền mặt (COD)";
 
-                // ==========================================
-                // 3. BẮT ĐẦU ĐOẠN LƯU ĐƠN HÀNG (CÓ TRY...CATCH)
+                // --- CHỈ SỬA PHẦN GỬI DỮ LIỆU LÊN SERVER ---
+                var currentCart = JSON.parse(localStorage.getItem('cart') || '[]');
+                const orderData = {
+                    items: currentCart.map(item => ({
+                        product_id: item.id,
+                        quantity: item.qty || 1,
+                        unit_price: item.price
+                    })),
+                    shipping_address: fullAddr,
+                    phone_number: phone.trim()
+                };
+
                 try {
-                    // Lấy giỏ hàng và danh sách đơn cũ (Dùng chung tên túi 'myOrders')
-                    var currentCart = JSON.parse(localStorage.getItem('cart') || '[]');
-                    var orders = JSON.parse(localStorage.getItem('myOrders') || '[]');
+                    const res = await fetch('/orders', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+                        body: JSON.stringify(orderData)
+                    });
 
-                    if (currentCart.length === 0) {
-                        alert("Giỏ hàng trống, không thể đặt hàng!");
-                        return;
-                    }
+                    if (res.ok) {
+                        const serverOrder = await res.json();
+                        localStorage.removeItem('cart'); // Xóa giỏ hàng
 
-                    // Tính tổng tiền an toàn
-                    var finalTotal = 0;
-                    if (typeof total !== 'undefined' && total > 0) {
-                        finalTotal = total;
-                    } else {
-                        currentCart.forEach(item => { finalTotal += (item.price * item.qty); });
-                    }
-
-                    // Tạo đơn hàng mới
-                    var newOrder = {
-                        id: 'DH' + Math.floor(Math.random() * 90000 + 10000),
-                        date: new Date().toLocaleString('vi-VN'),
-                        customerName: name.trim(),
-                        phone: phone.trim(),
-                        address: fullAddr,
-                        items: currentCart,
-                        total: finalTotal,
-                        method: methodText,
-                        status: 'Chờ xác nhận'
-                    };
-
-                    // Lưu vào kho localStorage với tên 'myOrders'
-                    orders.push(newOrder);
-                    localStorage.setItem('myOrders', JSON.stringify(orders)); 
-                    
-                    // Xóa giỏ hàng sau khi đặt thành công
-                    localStorage.removeItem('cart');
-                    if (typeof cart !== 'undefined') cart = []; 
-                    
-                    // CẬP NHẬT SỐ LƯỢNG LÊN MENU (Hiện số 1, 2, 3...)
-                    if (typeof updateOrderBadge === 'function') {
-                        updateOrderBadge();
-                    } else if (typeof updateCartCount === 'function') {
-                        updateCartCount();
-                    }
-                    
-                    console.log("Đã lưu đơn hàng vào myOrders thành công!", newOrder);
-
-                    // 4. Hiển thị thông báo thành công (Phần HTML của bạn giữ nguyên bên dưới)
-
-                    // 4. Hiển thị thông báo thành công (Giao diện mới)
-                    var el = document.getElementById('cartContent');
-                    if (el) {
-                        el.innerHTML = `
-                            <div class="cart-success" style="text-align:center; padding:10px;">
-                                <h3 style="color:green; font-size:20px; margin-bottom:15px;">✓ Đặt hàng thành công!</h3>
-                                <p style="margin-bottom:10px;">Cảm ơn bạn: <b>${name.trim()}</b></p>
-                                
-                                <div style="text-align:left; background:#f9f9f9; padding:15px; border-radius:8px; border:1px solid #eee; font-size:14px; line-height:1.6;">
-                                    <p style="margin:0;">📍 <b>Địa chỉ:</b> ${fullAddr}</p>
-                                    <p style="margin:5px 0 0;">📞 <b>SĐT:</b> ${phone.trim()}</p>
-                                    <p style="margin:5px 0 0;">💳 <b>Thanh toán:</b> ${methodText}</p>
-                                </div>
-
-                                <div style="margin-top:20px;">
-                                    <button onclick="window.location.href='/order-history.html'" style="background:#288ad6; color:#fff; border:none; padding:12px 20px; border-radius:4px; cursor:pointer; font-weight:bold; width:100%;">
-                                        🚚 THEO DÕI ĐƠN HÀNG NGAY
-                                    </button>
-                                    <button onclick="window.location.href='/shop'" style="margin-top:10px; background:none; border:none; color:#666; cursor:pointer; text-decoration:underline;">
-                                        Tiếp tục mua sắm
-                                    </button>
-                                </div>
-                            </div>`;
-                    }
-
-                } catch (e) {
-                    console.error("Lỗi khi lưu đơn hàng:", e);
-                    alert("Có lỗi xảy ra khi lưu đơn hàng, vui lòng thử lại!");
-                }
-                // ==========================================
+                        // --- GIỮ NGUYÊN GIAO DIỆN THÔNG BÁO CỦA BẠN ---
+                        var el = document.getElementById('cartContent');
+                        if (el) {
+                            el.innerHTML = `
+                                <div class="cart-success" style="text-align:center; padding:10px;">
+                                    <h3 style="color:green; font-size:20px; margin-bottom:15px;">✓ Đặt hàng thành công!</h3>
+                                    <p style="margin-bottom:10px;">Cảm ơn bạn: <b>${name.trim()}</b></p>
+                                    <div style="text-align:left; background:#f9f9f9; padding:15px; border-radius:8px; border:1px solid #eee; font-size:14px; line-height:1.6;">
+                                        <p style="margin:0;">📍 <b>Địa chỉ:</b> ${fullAddr}</p>
+                                        <p style="margin:5px 0 0;">📞 <b>SĐT:</b> ${phone.trim()}</p>
+                                        <p style="margin:5px 0 0;">💳 <b>Thanh toán:</b> ${methodText}</p>
+                                    </div>
+                                    <div style="margin-top:20px;">
+                                        <button onclick="window.location.href='/order-history.html'" style="background:#288ad6; color:#fff; border:none; padding:12px 20px; border-radius:4px; cursor:pointer; font-weight:bold; width:100%;">
+                                            🚚 THEO DÕI ĐƠN HÀNG NGAY
+                                        </button>
+                                    </div>
+                                </div>`;
+                        }
+                    } else { alert("Lỗi từ server, vui lòng thử lại!"); }
+                } catch (e) { alert("Lỗi kết nối mạng!"); }
             };
             window.closeCartModal = function () { var o = document.getElementById('cartOverlay'); if (o) o.classList.remove('active'); };
             function openCartModal() { renderCart(); var o = document.getElementById('cartOverlay'); if (o) o.classList.add('active'); }

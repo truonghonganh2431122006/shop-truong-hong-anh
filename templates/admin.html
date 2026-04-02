@@ -628,6 +628,7 @@
     }
 
 // 3. Quản lý Đơn hàng - Bản chuẩn đã fix lỗi hiển thị ngày tháng và token
+// 1. Hàm LẤY danh sách đơn hàng
     async function loadOrders() {
         const tbody = document.getElementById('orderTableBody');
         if (!tbody) return;
@@ -635,8 +636,8 @@
         const currentToken = localStorage.getItem("access_token");
 
         try {
-            // Gọi API lấy danh sách đơn hàng (phải có trong main.py)
-            const res = await fetch('/admin/orders', { 
+            // URL PHẢI LÀ: /admin/api/orders (để khớp với Python mới thêm)
+            const res = await fetch('/admin/api/orders', { 
                 headers: { 
                     'Authorization': 'Bearer ' + currentToken,
                     'Accept': 'application/json'
@@ -644,7 +645,7 @@
             });
 
             if (res.status === 401 || res.status === 403) {
-                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:orange;padding:20px">Phiên đăng nhập hết hạn hoặc bạn không có quyền Admin.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:orange;padding:20px">Phiên đăng nhập hết hạn hoặc không có quyền Admin.</td></tr>';
                 return;
             }
 
@@ -657,22 +658,20 @@
             }
 
             orders.forEach(ord => {
-                // Xác định class màu sắc dựa trên trạng thái
-                let sClass = "status-cho"; // Mặc định là màu vàng (Chờ xác nhận)
-                if (ord.status === "Đang giao") sClass = "status-giao"; // Màu xanh dương
-                if (ord.status === "Đã giao") sClass = "status-xong";  // Màu xanh lá
-                if (ord.status === "Đã hủy") sClass = "status-huy";   // Màu đỏ (nếu bạn có)
+                let sClass = "status-cho"; 
+                if (ord.status === "Đang giao") sClass = "status-giao";
+                if (ord.status === "Đã giao") sClass = "status-xong";
+                if (ord.status === "Đã hủy") sClass = "status-huy";
 
-                // Định dạng ngày tháng VN
                 let dateStr = ord.created_at ? new Date(ord.created_at).toLocaleString('vi-VN') : "N/A";
                 
-                // Định dạng tiền tệ
-                let totalStr = new Intl.NumberFormat('vi-VN').format(ord.total_price || 0) + "đ";
+                // Lưu ý: Backend trả về trường "total", nên ta dùng ord.total
+                let totalStr = new Intl.NumberFormat('vi-VN').format(ord.total || 0) + "đ";
 
                 tbody.innerHTML += `
                     <tr>
                         <td><b style="color:var(--primary)">#${ord.id}</b></td>
-                        <td>${ord.username || ord.email || 'Khách hàng'}</td>
+                        <td>${ord.email || 'Khách hàng'}</td>
                         <td><small>${dateStr}</small></td>
                         <td><b style="color:var(--danger)">${totalStr}</b></td>
                         <td><span class="order-status ${sClass}">${ord.status || 'Chờ xác nhận'}</span></td>
@@ -691,14 +690,14 @@
         }
     }
 
-    // 2. Hàm CẬP NHẬT trạng thái (Update Order Status)
+    // 2. Hàm CẬP NHẬT trạng thái
     async function updateOrderStatus(orderId, newStatus) {
         const currentToken = localStorage.getItem("access_token");
         if (!confirm(`Chuyển đơn hàng #${orderId} sang trạng thái "${newStatus}"?`)) return;
 
         try {
-            // URL khớp 100% với backend: /admin/orders/{id}/status?new_status=...
-            const url = `/admin/orders/${orderId}/status?new_status=${encodeURIComponent(newStatus)}`;
+            // URL PHẢI LÀ: /admin/api/orders/...
+            const url = `/admin/api/orders/${orderId}/status?new_status=${encodeURIComponent(newStatus)}`;
             
             const res = await fetch(url, {
                 method: 'PUT',
@@ -709,13 +708,8 @@
             });
 
             if (res.ok) {
-                // Nếu trang web của bạn có hàm showToast thì dùng, không thì alert
-                if (typeof showToast === "function") {
-                    showToast(`Cập nhật đơn #${orderId} thành công!`, "success");
-                } else {
-                    alert("Cập nhật thành công!");
-                }
-                loadOrders(); // Gọi lại hàm lấy đơn để cập nhật bảng ngay lập tức
+                alert("Cập nhật thành công!");
+                loadOrders(); // Tải lại bảng để thấy thay đổi ngay
             } else {
                 const error = await res.json();
                 alert("Lỗi: " + (error.detail || "Không thể cập nhật"));

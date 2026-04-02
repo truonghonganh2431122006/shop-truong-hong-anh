@@ -1102,6 +1102,31 @@ def staff_update_order_status(
     db.commit()
     return {"message": "Cập nhật trạng thái thành công", "order_id": o.id, "status": o.status}
 
+# API dành riêng cho Admin lấy đơn hàng
+@app.get("/admin/api/orders")
+async def get_admin_orders(db: Session = Depends(get_db)):
+    orders = db.query(Order).order_by(Order.created_at.desc()).all()
+    result = []
+    for o in orders:
+        total = sum(item.unit_price * item.quantity for item in o.items)
+        result.append({
+            "id": o.id,
+            "email": o.user.email if o.user else "Khách",
+            "total": total,
+            "status": o.status,
+            "created_at": o.created_at.isoformat()
+        })
+    return result
+
+# API cập nhật trạng thái đơn
+@app.put("/admin/api/orders/{order_id}/status")
+async def update_order_status(order_id: int, new_status: str, db: Session = Depends(get_db)):
+    db_order = db.query(Order).filter(Order.id == order_id).first()
+    if not db_order: raise HTTPException(status_code=404)
+    db_order.status = new_status
+    db.commit()
+    return {"status": "success"}
+
 # ===================== REPORTS (ADMIN) =====================
 @app.get("/admin/reports/revenue")
 def report_revenue(
