@@ -22542,7 +22542,7 @@
     </div>
     <div class="toast-msg" id="toastMsg"></div>
 
-    <div id="productModal" class="modal-overlay" onclick="closeModal(event)">
+    <div id="productModal" class="modal-overlay" onclick="if(event.target===this) closeModal()">
         <div class="modal-content" onclick="event.stopPropagation()">
             <span class="close-modal" onclick="closeModal()">&times;</span>
             <div class="modal-body">
@@ -23436,11 +23436,6 @@
                     // Tạo thẻ div sản phẩm
                     const itemDiv = document.createElement('div');
                     itemDiv.className = "item";
-                    
-                    // LỆNH QUAN TRỌNG: Nhấn vào khung này để mở bảng to
-                    itemDiv.onclick = () => {
-                        showProductModal(p.name, p.price, imgUrl, p.description, p.id);
-                    };
 
                     // Vẽ nội dung bên trong
                     itemDiv.innerHTML = `
@@ -23469,6 +23464,13 @@
                         </div>
                     `;
                     container.appendChild(itemDiv);
+
+                    // Gắn click SAU KHI đã set innerHTML để chắc chắn hoạt động
+                    itemDiv.addEventListener('click', function(e) {
+                        // Nếu click vào nút "Mua ngay" thì bỏ qua, không mở modal
+                        if (e.target.closest('.btn-buy')) return;
+                        showProductModal(p.name, p.price, imgUrl, p.description, p.id);
+                    });
                 });
                 console.log("Đã nạp thành công " + products.length + " sản phẩm!");
             } catch (error) {
