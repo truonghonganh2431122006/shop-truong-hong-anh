@@ -58,73 +58,110 @@
         <div id="orderList"></div>
     </div>
 
-    <script>
-function displayOrders() {
-            // 1. PHẢI LẤY TỪ 'myOrders' (Cho khớp với trang Shop)
-            const data = localStorage.getItem('myOrders'); 
-            const orders = JSON.parse(data || '[]');
-            
-            // 2. PHẢI KHỚP ID VỚI THẺ DIV TRONG HTML (Kiểm tra id="orders-container")
-            const container = document.getElementById('orders-container') || document.getElementById('orderList');
-            
-            if (!container) return; // Tránh lỗi nếu không tìm thấy thẻ div
+<script>
+        async function displayOrders() {
+            const container = document.getElementById('orderList');
+            if (!container) return;
 
-            // 3. Nếu không có đơn hàng nào
-            if (orders.length === 0) {
+            // Kiểm tra đăng nhập
+            const token = localStorage.getItem('access_token');
+            if (!token) {
                 container.innerHTML = `
-                    <div style="text-align:center; padding:50px; background:white; border-radius:12px; margin-top:20px;">
-                        <p style="color:#666; font-size:18px;">Bạn chưa có đơn hàng nào 📦</p>
-                        <a href="/" style="color:#288ad6; text-decoration:none; font-weight:bold;">Mua sắm ngay thôi!</a>
+                    <div style="text-align:center; padding:50px; background:white; border-radius:12px;">
+                        <p style="color:#666; font-size:18px; margin-bottom:15px;">⚠️ Bạn chưa đăng nhập</p>
+                        <a href="/login" style="background:#ffed00; color:#333; padding:10px 25px; border-radius:8px; text-decoration:none; font-weight:bold;">Đăng nhập ngay</a>
                     </div>`;
                 return;
             }
-    
-            // 4. Vẽ đơn hàng (Đơn mới nhất lên đầu)
-            let html = '';
-            orders.slice().reverse().forEach(order => {
-                // Logic màu sắc trạng thái
-                let statusColor = '#f59e0b'; // Vàng (Chờ xác nhận)
-                if (order.status === 'Đang giao') statusColor = '#3b82f6'; // Xanh
-                if (order.status === 'Đã giao') statusColor = '#10b981'; // Xanh lá
-    
-                html += `
-                    <div class="order-card" style="background:white; margin-bottom:20px; padding:20px; border-radius:12px; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
-                        <div style="display:flex; justify-content:space-between; align-items:flex-start;">
-                            <div>
-                                <h3 style="margin:0; color:#111827; font-size:16px;">Mã đơn: ${order.id}</h3>
-                                <p style="font-size:13px; color:#6b7280; margin:5px 0;">Ngày đặt: ${order.date}</p>
-                            </div>
-                            <span style="background:${statusColor}; color:white; padding:4px 10px; border-radius:20px; font-size:11px; font-weight:bold;">
-                                ${order.status || 'Chờ xác nhận'}
-                            </span>
-                        </div>
-                        
-                        <div style="margin:15px 0; border-top:1px solid #f3f4f6; border-bottom:1px solid #f3f4f6; padding:10px 0;">
-                            ${order.items.map(item => `
-                                <div style="display:flex; justify-content:space-between; margin-bottom:8px; font-size:14px;">
-                                    <span style="color:#374151;">${item.name} <small style="color:#9ca3af;">x${item.qty || 1}</small></span>
-                                    <span style="font-weight:500;">${(item.price || 0).toLocaleString()}đ</span>
+
+            container.innerHTML = `<div style="text-align:center;padding:40px;color:#999;">⏳ Đang tải đơn hàng...</div>`;
+
+            try {
+                // Gọi API lấy đơn hàng của user hiện tại
+                const res = await fetch('/orders/me', {
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+
+                if (res.status === 401) {
+                    container.innerHTML = `
+                        <div style="text-align:center; padding:50px; background:white; border-radius:12px;">
+                            <p style="color:#666; font-size:18px; margin-bottom:15px;">⚠️ Phiên đăng nhập hết hạn</p>
+                            <a href="/login" style="background:#ffed00; color:#333; padding:10px 25px; border-radius:8px; text-decoration:none; font-weight:bold;">Đăng nhập lại</a>
+                        </div>`;
+                    return;
+                }
+
+                const orders = await res.json();
+
+                if (!orders || orders.length === 0) {
+                    container.innerHTML = `
+                        <div style="text-align:center; padding:60px 20px; background:white; border-radius:12px; box-shadow:0 4px 15px rgba(0,0,0,0.05);">
+                            <span style="font-size:60px; display:block; margin-bottom:20px;">📦</span>
+                            <p style="color:#999; font-size:16px; margin-bottom:20px;">Bạn chưa có đơn hàng nào</p>
+                            <a href="/shop" style="background:#ffed00; color:#333; padding:10px 25px; border-radius:8px; text-decoration:none; font-weight:bold;">Mua sắm ngay!</a>
+                        </div>`;
+                    return;
+                }
+
+                let html = '';
+                orders.forEach(order => {
+                    // Màu sắc trạng thái
+                    let statusClass = 'status-wait';
+                    if (order.status === 'Đang giao') statusClass = 'status-ship';
+                    if (order.status === 'Đã giao') statusClass = 'status-done';
+
+                    // Danh sách sản phẩm
+                    const itemsHtml = (order.items || []).map(item => `
+                        <li class="product-item">
+                            <span class="product-name">${item.name}</span>
+                            <span class="product-qty">x${item.qty || 1}</span>
+                            <span class="product-price">${(item.price || 0).toLocaleString()}đ</span>
+                        </li>
+                    `).join('');
+
+                    // Địa chỉ giao hàng
+                    const addrHtml = order.shipping_address ? `
+                        <div style="margin-top:12px; padding:10px 14px; background:#f9fafb; border-radius:8px; font-size:13px; color:#555;">
+                            📍 <b>${order.customer_name || ''}</b>${order.customer_name ? ' · ' : ''}${order.phone_number || ''}
+                            ${order.shipping_address ? `<div style="margin-top:4px; color:#777;">${order.shipping_address}</div>` : ''}
+                        </div>` : '';
+
+                    html += `
+                        <div class="order-card">
+                            <div class="order-header">
+                                <div>
+                                    <div class="order-id">Đơn #${order.id}</div>
+                                    <div class="order-date">${order.date || 'N/A'}</div>
                                 </div>
-                            `).join('')}
-                        </div>
-    
-                        <div style="display:flex; justify-content:space-between; align-items:center;">
-                            <span style="font-size:13px; color:#6b7280;">PTTT: ${order.method || 'Tiền mặt (COD)'}</span>
-                            <div style="text-align:right;">
-                                <span style="color:#6b7280; font-size:13px;">Tổng thanh toán:</span>
-                                <strong style="color:#ef4444; font-size:18px; display:block;">
-                                    ${(order.total || 0).toLocaleString()}đ
-                                </strong>
+                                <span class="status-badge ${statusClass}">${order.status || 'Chờ xác nhận'}</span>
+                            </div>
+                            <ul class="product-list">${itemsHtml}</ul>
+                            ${addrHtml}
+                            <div class="order-footer">
+                                <span class="total-label">Tổng thanh toán:</span>
+                                <span class="total-amount">${(order.total || 0).toLocaleString()}đ</span>
                             </div>
                         </div>
-                    </div>
-                `;
-            });
-    
-            container.innerHTML = html;
+                    `;
+                });
+
+                container.innerHTML = html;
+
+            } catch (err) {
+                console.error('Lỗi tải đơn hàng:', err);
+                container.innerHTML = `
+                    <div style="text-align:center; padding:40px; background:white; border-radius:12px; color:red;">
+                        ❌ Không thể tải đơn hàng. Vui lòng thử lại.
+                        <br><button onclick="displayOrders()" style="margin-top:15px; padding:8px 20px; border-radius:6px; border:none; background:#333; color:white; cursor:pointer;">Thử lại</button>
+                    </div>`;
+            }
         }
-    
-        document.addEventListener('DOMContentLoaded', displayOrders);
+
+        // Tự động tải khi mở trang + cứ 15 giây tự cập nhật trạng thái
+        document.addEventListener('DOMContentLoaded', () => {
+            displayOrders();
+            setInterval(displayOrders, 15000); // Tự reload mỗi 15 giây
+        });
     </script>
 </body>
 </html>

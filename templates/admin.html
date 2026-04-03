@@ -515,20 +515,29 @@
 
     <div class="container">
       <div id="tab-orders" class="card">
-        <h2>Danh sách đơn đặt hàng</h2>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; flex-wrap:wrap; gap:10px;">
+          <h2 style="margin:0;">Danh sách đơn đặt hàng <span id="orderCount" style="font-size:13px;color:var(--text-muted);font-weight:400;"></span></h2>
+          <button class="btn btn-ship" onclick="loadOrders(true)" id="btnRefreshOrders" style="display:flex;align-items:center;gap:6px;">
+            🔄 Làm mới
+          </button>
+        </div>
+        <div style="overflow-x:auto;">
         <table>
           <thead>
             <tr>
               <th>Mã đơn</th>
-              <th>Email khách</th>
-              <th>Ngày đặt</th>
+              <th>Khách hàng</th>
+              <th>SĐT</th>
+              <th>Địa chỉ giao</th>
+              <th>Sản phẩm</th>
               <th>Tổng tiền</th>
+              <th>Ngày đặt</th>
               <th>Trạng thái</th>
               <th>Thao tác</th>
             </tr>
           </thead>
           <tbody id="orderTableBody">
-            <tr><td colspan="6" style="text-align:center;padding:40px;color:var(--text-muted)">Đang tải dữ liệu...</td></tr>
+            <tr><td colspan="9" style="text-align:center;padding:40px;color:var(--text-muted)">Đang tải dữ liệu...</td></tr>
           </tbody>
         </table>
       </div>
@@ -627,16 +636,17 @@
         if (typeof closeSidebar === 'function') closeSidebar();
     }
 
-// 3. Quản lý Đơn hàng - Bản chuẩn đã fix lỗi hiển thị ngày tháng và token
-// 1. Hàm LẤY danh sách đơn hàng
-    async function loadOrders() {
+// 3. Quản lý Đơn hàng
+    async function loadOrders(showAlert = false) {
         const tbody = document.getElementById('orderTableBody');
         if (!tbody) return;
+
+        const btn = document.getElementById('btnRefreshOrders');
+        if (btn) { btn.disabled = true; btn.textContent = '⏳ Đang tải...'; }
 
         const currentToken = localStorage.getItem("access_token");
 
         try {
-            // URL PHẢI LÀ: /admin/api/orders (để khớp với Python mới thêm)
             const res = await fetch('/admin/api/orders', { 
                 headers: { 
                     'Authorization': 'Bearer ' + currentToken,
@@ -645,15 +655,18 @@
             });
 
             if (res.status === 401 || res.status === 403) {
-                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:orange;padding:20px">Phiên đăng nhập hết hạn hoặc không có quyền Admin.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;color:orange;padding:20px">Phiên đăng nhập hết hạn.</td></tr>';
                 return;
             }
 
             const orders = await res.json();
             tbody.innerHTML = '';
 
+            const countEl = document.getElementById('orderCount');
+            if (countEl) countEl.textContent = `(${orders.length} đơn)`;
+
             if (!orders || orders.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:40px;color:var(--text-muted)">Hiện chưa có đơn hàng nào.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:40px;color:var(--text-muted)">Hiện chưa có đơn hàng nào.</td></tr>';
                 return;
             }
 
@@ -664,41 +677,52 @@
                 if (ord.status === "Đã hủy") sClass = "status-huy";
 
                 let dateStr = ord.created_at ? new Date(ord.created_at).toLocaleString('vi-VN') : "N/A";
-                
-                // Lưu ý: Backend trả về trường "total", nên ta dùng ord.total
                 let totalStr = new Intl.NumberFormat('vi-VN').format(ord.total || 0) + "đ";
+
+                // Danh sách sản phẩm gọn
+                const itemsHtml = (ord.items || []).map(it =>
+                    `<div style="font-size:12px;white-space:nowrap;">${it.name} <b>x${it.qty}</b></div>`
+                ).join('') || '<span style="color:#aaa;font-size:12px">—</span>';
 
                 tbody.innerHTML += `
                     <tr>
                         <td><b style="color:var(--primary)">#${ord.id}</b></td>
-                        <td>${ord.email || 'Khách hàng'}</td>
-                        <td><small>${dateStr}</small></td>
+                        <td>
+                            <div style="font-size:13px;font-weight:600;">${ord.customer_name || ord.email || 'Khách'}</div>
+                            <div style="font-size:11px;color:var(--text-muted)">${ord.email || ''}</div>
+                        </td>
+                        <td style="font-size:13px;">${ord.phone_number || '—'}</td>
+                        <td style="font-size:12px;max-width:160px;word-break:break-word;">${ord.shipping_address || '—'}</td>
+                        <td>${itemsHtml}</td>
                         <td><b style="color:var(--danger)">${totalStr}</b></td>
+                        <td><small>${dateStr}</small></td>
                         <td><span class="order-status ${sClass}">${ord.status || 'Chờ xác nhận'}</span></td>
                         <td>
-                            <div style="display:flex; gap:5px;">
-                                <button class="btn btn-ship" onclick="updateOrderStatus(${ord.id}, 'Đang giao')">Giao</button>
-                                <button class="btn btn-done" onclick="updateOrderStatus(${ord.id}, 'Đã giao')">Xong</button>
-                                <button class="btn btn-cancel" style="background:#ff4d4d; color:white; border:none; padding:4px 8px; border-radius:4px; cursor:pointer;" onclick="updateOrderStatus(${ord.id}, 'Đã hủy')">Hủy</button>
+                            <div style="display:flex; gap:4px; flex-wrap:wrap;">
+                                <button class="btn btn-ship" onclick="updateOrderStatus(${ord.id}, 'Đang giao')" title="Chuyển sang Đang giao">🚚</button>
+                                <button class="btn btn-done" onclick="updateOrderStatus(${ord.id}, 'Đã giao')" title="Đánh dấu Đã giao">✅</button>
+                                <button class="btn" style="background:#ef4444;color:white;border:none;padding:4px 8px;border-radius:6px;cursor:pointer;" onclick="updateOrderStatus(${ord.id}, 'Đã hủy')" title="Hủy đơn">✕</button>
                             </div>
                         </td>
                     </tr>`;
             });
+
+            if (showAlert) showToast('✅ Đã tải lại danh sách đơn hàng!');
         } catch (err) { 
             console.error("Lỗi:", err);
-            tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:red;padding:20px">Lỗi kết nối: ${err.message}</td></tr>`; 
+            tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;color:red;padding:20px">Lỗi kết nối: ${err.message}</td></tr>`; 
+        } finally {
+            if (btn) { btn.disabled = false; btn.textContent = '🔄 Làm mới'; }
         }
     }
 
-    // 2. Hàm CẬP NHẬT trạng thái
+    // Hàm CẬP NHẬT trạng thái
     async function updateOrderStatus(orderId, newStatus) {
         const currentToken = localStorage.getItem("access_token");
-        if (!confirm(`Chuyển đơn hàng #${orderId} sang trạng thái "${newStatus}"?`)) return;
+        if (!confirm(`Chuyển đơn hàng #${orderId} sang "${newStatus}"?`)) return;
 
         try {
-            // URL PHẢI LÀ: /admin/api/orders/...
             const url = `/admin/api/orders/${orderId}/status?new_status=${encodeURIComponent(newStatus)}`;
-            
             const res = await fetch(url, {
                 method: 'PUT',
                 headers: { 
@@ -708,8 +732,8 @@
             });
 
             if (res.ok) {
-                alert("Cập nhật thành công!");
-                loadOrders(); // Tải lại bảng để thấy thay đổi ngay
+                showToast(`✅ Đơn #${orderId} → ${newStatus}`);
+                loadOrders();
             } else {
                 const error = await res.json();
                 alert("Lỗi: " + (error.detail || "Không thể cập nhật"));
@@ -848,6 +872,15 @@
         } catch (err) { alert("Lỗi kết nối!"); }
     }
 
+        // Hàm hiện thông báo nhỏ (toast)
+    function showToast(msg) {
+        const t = document.getElementById('toast');
+        if (!t) return;
+        t.textContent = msg;
+        t.classList.add('show');
+        setTimeout(() => t.classList.remove('show'), 2500);
+    }
+
     // Hàm Đăng xuất
     function logout() {
         localStorage.clear();
@@ -868,7 +901,6 @@
         const btn = document.querySelector('.dark-toggle');
         btn.textContent = document.documentElement.classList.contains('dark') ? '☀️' : '🌙';
     }
-
     // Khởi chạy mặc định
     checkAuth();
     loadOrders();

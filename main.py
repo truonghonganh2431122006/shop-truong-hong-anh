@@ -234,6 +234,7 @@ class Product(Base):
 
     created_at = Column(DateTime, default=datetime.utcnow)
 
+# Tìm đến phần Schema (BaseModel) và sửa lại cho chuẩn:
 class OrderItemCreate(BaseModel):
     product_id: int
     quantity: int
@@ -273,7 +274,6 @@ class Order(Base):
     # Quan hệ
     user = relationship("User", back_populates="orders")
     items = relationship("OrderItem", back_populates="order", cascade="all, delete-orphan")
-
 
 class OrderItem(Base):
     __tablename__ = "order_items"
@@ -350,6 +350,9 @@ class CartItemSchema(BaseModel):
 
 class OrderCreateSchema(BaseModel):
     items: List[CartItemSchema]
+    shipping_address: Optional[str] = ""
+    phone_number: Optional[str] = ""
+    customer_name: Optional[str] = ""
 
 
 class OrderStatusUpdateSchema(BaseModel):
@@ -954,10 +957,17 @@ def create_order(data: OrderCreateSchema, user: User = Depends(get_current_user)
         product_map[it.product_id] = p
 
     try:
-        # Tạo đơn hàng mới (Trạng thái mặc định là NEW)
-        order = Order(user_id=user.id, status="NEW", created_at=datetime.utcnow())
+        # Tạo đơn hàng mới (Trạng thái mặc định là Chờ xác nhận)
+        order = Order(
+            user_id=user.id,
+            status="Chờ xác nhận",
+            shipping_address=data.shipping_address or "",
+            phone_number=data.phone_number or "",
+            note=data.customer_name or "",
+            created_at=datetime.now()
+        )
         db.add(order)
-        db.flush() 
+        db.flush()
 
         for it in data.items:
             p = product_map[it.product_id]
@@ -972,7 +982,7 @@ def create_order(data: OrderCreateSchema, user: User = Depends(get_current_user)
             db.add(oi)
 
         db.commit() 
-        return {"message": "Tạo đơn hàng thành công", "order_id": order.id, "status": "NEW"}
+        return {"message": "Tạo đơn hàng thành công", "order_id": order.id, "id": order.id, "status": "Chờ xác nhận"}
 
     except Exception as e:
         db.rollback()
@@ -1045,12 +1055,18 @@ def my_orders(user: User = Depends(get_current_user), db: Session = Depends(get_
         total = sum(i.quantity * i.unit_price for i in o.items)
         result.append({
             "id": o.id,
-            "status": o.status,
-            "created_at": o.created_at,
-            "updated_at": o.updated_at,
+            "status": o.status or "Chờ xác nhận",
+            "date": o.created_at.strftime("%H:%M %d/%m/%Y") if o.created_at else "N/A",
             "total": total,
+            "shipping_address": o.shipping_address or "",
+            "phone_number": o.phone_number or "",
+            "customer_name": o.note or "",
             "items": [
-                {"product_id": i.product_id, "quantity": i.quantity, "unit_price": i.unit_price}
+                {
+                    "name": i.product.name if i.product else f"Sản phẩm #{i.product_id}",
+                    "qty": i.quantity,
+                    "price": i.unit_price
+                }
                 for i in o.items
             ]
         })
@@ -1112,7 +1128,17 @@ def staff_update_order_status(
     db.commit()
     return {"message": "Cập nhật trạng thái thành công", "order_id": o.id, "status": o.status}
 
-# API dành riêng cho Admin lấy đơn hàng
+# Tìm đến phần Schema (BaseModel) và sửa lại cho chuẩn:
+class OrderItemCreate(BaseModel):
+    product_id: int
+    quantity: int
+    unit_price: float
+
+class OrderCreate(BaseModel):
+    items: List[OrderItemCreate]
+    shipping_address: str
+    phone_number: str
+
 @app.get("/admin/api/orders")
 async def get_admin_orders(db: Session = Depends(get_db)):
     orders = db.query(Order).order_by(Order.created_at.desc()).all()
@@ -1121,21 +1147,32 @@ async def get_admin_orders(db: Session = Depends(get_db)):
         total = sum(item.unit_price * item.quantity for item in o.items)
         result.append({
             "id": o.id,
-            "email": o.user.email if o.user else "Khách",
+            "email": o.user.email if o.user else "Khách vãng lai",
+            "customer_name": o.note or "",
+            "phone_number": o.phone_number or "",
+            "shipping_address": o.shipping_address or "",
             "total": total,
-            "status": o.status,
-            "created_at": o.created_at.isoformat()
+            "status": o.status or "Chờ xác nhận",
+            "created_at": o.created_at.isoformat() if o.created_at else "",
+            "items": [
+                {
+                    "name": item.product.name if item.product else f"SP #{item.product_id}",
+                    "qty": item.quantity,
+                    "price": item.unit_price
+                }
+                for item in o.items
+            ]
         })
     return result
 
-# API cập nhật trạng thái đơn
-@app.put("/admin/api/orders/{order_id}/status")
-async def update_order_status(order_id: int, new_status: str, db: Session = Depends(get_db)):
-    db_order = db.query(Order).filter(Order.id == order_id).first()
-    if not db_order: raise HTTPException(status_code=404)
-    db_order.status = new_status
+# API Cập nhật trạng thái đơn hàng
+@app.post("/admin/api/orders/{order_id}/status")
+async def update_order_status(order_id: int, data: Dict[str, str], db: Session = Depends(get_db)):
+    order = db.query(Order).filter(Order.id == order_id).first()
+    if not order: raise HTTPException(404, "Không thấy đơn")
+    order.status = data.get("status")
     db.commit()
-    return {"status": "success"}
+    return {"msg": "Success"}
 
 # ===================== REPORTS (ADMIN) =====================
 @app.get("/admin/reports/revenue")
