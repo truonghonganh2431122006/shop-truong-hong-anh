@@ -597,12 +597,16 @@
         try {
             const res = await fetch("/me", { headers: { "Authorization": "Bearer " + token } });
             const data = await res.json();
-            if (data.role.toUpperCase() !== "ADMIN") { 
+            const role = (data.role || '').toUpperCase();
+            if (role !== "ADMIN" && role !== "STAFF") { 
                 window.location.href = "/shop"; 
             } else {
-                currentAdminEmail = data.email; 
+                currentAdminEmail = data.email;
+                window._currentRole = role;
                 const el = document.getElementById('sidebarEmail');
                 if (el) el.textContent = data.email;
+                const roleEl = document.getElementById('sidebarRole');
+                if (roleEl) roleEl.textContent = role === 'ADMIN' ? 'Super Admin' : 'Nhân viên';
             }
         } catch (err) { window.location.href = "/login"; }
     }
@@ -807,6 +811,12 @@
     }
 
     async function deleteUser(userId) {
+
+        if (window._currentRole !== 'ADMIN') {
+          alert('Chỉ Admin mới được xóa tài khoản!');
+          return;
+        }
+
         if(!confirm("CẢNH BÁO: Xóa tài khoản này sẽ mất dữ liệu vĩnh viễn?")) return;
         try {
             const res = await fetch(`/users/${userId}`, {

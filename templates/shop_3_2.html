@@ -22627,6 +22627,7 @@
                 updateCartCount();
                 showToast('Đã thêm "' + name.substring(0, 40) + (name.length > 40 ? '...' : '') + '" vào giỏ hàng!');
             }
+
             function removeFromCart(idx) { cart.splice(idx, 1); updateCartCount(); renderCart(); }
             function changeQty(idx, delta) { if (!cart[idx]) return; cart[idx].qty += delta; if (cart[idx].qty < 1) cart[idx].qty = 1; updateCartCount(); renderCart(); }
             function clearCart() { cart = []; updateCartCount(); renderCart(); }
@@ -22719,13 +22720,19 @@
 
                 // Voucher
                 html += '<div style="margin:14px 0;padding:12px;background:#fffbea;border:1px solid #ffe066;border-radius:8px">';
-                html += '<div style="font-size:13px;font-weight:600;margin-bottom:8px">🎟 Mã Voucher</div>';
+                html += '<div style="font-size:13px;font-weight:600;margin-bottom:8px">🎟 Chọn Voucher giảm giá</div>';
                 html += '<div style="display:flex;gap:8px">';
-                html += '<input id="voucherInput" placeholder="Nhập mã (VD: GIAM10)" style="flex:1;padding:8px 10px;border:1px solid #ddd;border-radius:6px;font-size:13px" onkeydown="if(event.key===\'Enter\') window._applyVoucher()">';
+                html += '<select id="voucherInput" style="flex:1;padding:8px 10px;border:1px solid #ddd;border-radius:6px;font-size:13px">';
+                html += '<option value="">-- Chọn mã giảm giá --</option>';
+                html += '<option value="GIAM10">GIAM10 – Giảm 10%</option>';
+                html += '<option value="SALE20">SALE20 – Giảm 20%</option>';
+                html += '<option value="VIP30">VIP30 – Giảm 30%</option>';
+                html += '<option value="FREESHIP">FREESHIP – Miễn phí ship 30.000đ</option>';
+                html += '<option value="NEWUSER">NEWUSER – Tặng 50.000đ khách mới</option>';
+                html += '</select>';
                 html += '<button onclick="window._applyVoucher()" style="padding:8px 14px;background:#ffed00;border:none;border-radius:6px;font-weight:bold;cursor:pointer;font-size:13px">Áp dụng</button>';
                 html += '</div>';
                 html += '<div id="voucherMsg" style="margin-top:6px;font-size:12px"></div>';
-                html += '<div style="margin-top:6px;font-size:11px;color:#888">Mã có sẵn: GIAM10 · SALE20 · VIP30 · FREESHIP · NEWUSER</div>';
                 html += '</div>';
 
                 // Tổng tiền
@@ -22791,7 +22798,11 @@
                 const address = (document.getElementById('coAddress') || {}).value || '';
 
                 if (!name.trim() || !phone.trim() || !address.trim()) {
-                    alert('Vui lòng điền đủ thông tin giao hàng!');
+                    alert('Vui lòng điền đủ: Họ tên, Số điện thoại và Địa chỉ cụ thể!');
+                    return;
+                }
+                if (!city) {
+                    alert('Vui lòng chọn Tỉnh / Thành phố!');
                     return;
                 }
 
@@ -23532,7 +23543,7 @@
             document.getElementById('modalDesc').innerText = desc || "Sản phẩm chính hãng, chất lượng cao, bảo hành đầy đủ tại hệ thống.";
             document.getElementById('modalBuyBtn').onclick = function(ev) {
                 if (ev) ev.stopPropagation();
-                addToCart(id, name, price, img);
+                if (typeof window._addToCart === 'function') window._addToCart(id, name, price, img);
                 closeModal();
                 showToast('Đã thêm "' + name.substring(0,30) + '" vào giỏ hàng!');
             };
@@ -23544,11 +23555,18 @@
         }
 
         function buyNow(id, name, price, img) {
-            // Thêm vào giỏ rồi mở modal cart luôn
-            cart = [{ name, price, img, qty: 1, id }];
+            // Thêm vào giỏ
+            var found = false;
+            for (var i = 0; i < cart.length; i++) { if (cart[i].id === id || cart[i].name === name) { cart[i].qty++; found = true; break; } }
+            if (!found) cart.push({ id: id, name: name, price: price, img: img, qty: 1 });
             localStorage.setItem('cart', JSON.stringify(cart));
             updateCartCount();
+            // Mở cart modal và cuộn xuống form thanh toán
             openCartModal();
+            setTimeout(function() {
+                var form = document.getElementById('coName');
+                if (form) { form.scrollIntoView({ behavior: 'smooth', block: 'center' }); form.focus(); }
+            }, 200);
         }
 
         // 3. Lệnh chạy: Khi web tải xong thì gọi hàm trên
