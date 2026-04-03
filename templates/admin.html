@@ -901,9 +901,11 @@
         const btn = document.querySelector('.dark-toggle');
         btn.textContent = document.documentElement.classList.contains('dark') ? '☀️' : '🌙';
     }
-    // Khởi chạy mặc định
-    checkAuth();
-    loadOrders();
+    
+    checkAuth().then(() => {
+        loadOrders();
+    });
+
 </script>   
 </body>
 </html>

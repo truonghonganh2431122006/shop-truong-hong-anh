@@ -7,7 +7,6 @@ from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from typing import Optional, List, Dict, Any
 import uvicorn
-from datetime import datetime, timedelta, date
 from typing import Optional, List, Dict, Set
 import os
 
@@ -22,6 +21,14 @@ from sqlalchemy.orm import sessionmaker, declarative_base, Session, relationship
 
 from passlib.context import CryptContext
 from jose import jwt, JWTError
+
+from datetime import datetime, timedelta, date, timezone
+from zoneinfo import ZoneInfo
+
+VN_TZ = ZoneInfo("Asia/Ho_Chi_Minh")
+
+def now_vn():
+    return datetime.now(VN_TZ).replace(tzinfo=None)
 
 # Sử dụng 3 dấu xuyệt (/) sau sqlite: và đường dẫn dùng dấu xuyệt xuôi (/)
 
@@ -268,8 +275,8 @@ class Order(Base):
     status = Column(String, default=ORDER_NEW)
 
     # --- THỜI GIAN (Dùng datetime.now thay vì utcnow cho dễ theo dõi giờ VN) ---
-    created_at = Column(DateTime, default=datetime.now)
-    updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now)
+    created_at = Column(DateTime, default=now_vn)
+    updated_at = Column(DateTime, default=now_vn, onupdate=now_vn)
 
     # Quan hệ
     user = relationship("User", back_populates="orders")
@@ -968,7 +975,7 @@ def create_order(data: OrderCreateSchema, user: User = Depends(get_current_user)
             shipping_address=getattr(data, 'shipping_address', '') or '',
             phone_number=getattr(data, 'phone_number', '') or '',
             note=getattr(data, 'customer_name', '') or '',
-            created_at=datetime.now()
+            created_at=now_vn()
         )
         db.add(order)
         db.flush()
@@ -1169,14 +1176,19 @@ async def get_admin_orders(db: Session = Depends(get_db)):
         })
     return result
 
-# API Cập nhật trạng thái đơn hàng
-@app.post("/admin/api/orders/{order_id}/status")
-async def update_order_status(order_id: int, data: Dict[str, str], db: Session = Depends(get_db)):
-    order = db.query(Order).filter(Order.id == order_id).first()
-    if not order: raise HTTPException(404, "Không thấy đơn")
-    order.status = data.get("status")
+# API cập nhật trạng thái đơn
+@app.put("/admin/api/orders/{order_id}/status")
+async def update_order_status(
+    order_id: int, 
+    new_status: str = Query(...),
+    db: Session = Depends(get_db)
+):
+    db_order = db.query(Order).filter(Order.id == order_id).first()
+    if not db_order: raise HTTPException(status_code=404, detail="Không tìm thấy đơn hàng")
+    db_order.status = new_status
+    db_order.updated_at = now_vn()
     db.commit()
-    return {"msg": "Success"}
+    return {"status": "success", "new_status": new_status}
 
 # ===================== REPORTS (ADMIN) =====================
 @app.get("/admin/reports/revenue")
