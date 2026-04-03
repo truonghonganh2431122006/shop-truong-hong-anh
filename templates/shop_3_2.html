@@ -23535,23 +23535,52 @@
         }
 
         function showProductModal(name, price, img, desc, id) {
+            // 1. Đổ dữ liệu vào Modal
             document.getElementById('modalImg').src = img;
             document.getElementById('modalName').innerText = name;
             document.getElementById('modalPrice').innerText = new Intl.NumberFormat('vi-VN').format(price) + " ₫";
-            document.getElementById('modalDesc').innerText = desc || "Sản phẩm chính hãng, chất lượng cao, bảo hành đầy đủ tại hệ thống.";
+            
+            // THAY ĐỔI: Dòng mô tả chung cho tất cả sản phẩm
+            const moTaChung = "Sản phẩm chính hãng tại hệ thống Hồng Anh. Bảo hành 12 tháng, lỗi 1 đổi 1 trong 30 ngày. Cam kết chất lượng và giá tốt nhất thị trường.";
+            document.getElementById('modalDesc').innerText = desc || moTaChung;
+
+            // 2. Xử lý nút bấm "Thêm vào giỏ hàng"
             document.getElementById('modalBuyBtn').onclick = function(ev) {
                 if (ev) ev.stopPropagation();
-                // Thêm vào giỏ hàng
+
+                // Kiểm tra xem sản phẩm đã có trong giỏ chưa
                 var found = false;
                 for (var i = 0; i < cart.length; i++) { 
-                    if (cart[i].name === name) { cart[i].qty++; found = true; break; } 
+                    if (cart[i].name === name) { 
+                        cart[i].qty++; 
+                        found = true; 
+                        break; 
+                    } 
                 }
-                if (!found) cart.push({ id: parseInt(id), name: name, price: parseFloat(price), img: img, qty: 1 });
+
+                // Nếu chưa có thì thêm mới vào mảng cart
+                if (!found) {
+                    cart.push({ 
+                        id: parseInt(id) || Date.now(), 
+                        name: name, 
+                        price: parseFloat(price), 
+                        img: img, 
+                        qty: 1 
+                    });
+                }
+
+                // Lưu lại vào trình duyệt và cập nhật số lượng trên icon giỏ hàng
                 localStorage.setItem('cart', JSON.stringify(cart));
-                updateCartCount();
+                if (typeof updateCartCount === "function") updateCartCount();
+
+                // 3. Đóng bảng to (Modal)
                 closeModal();
-                showToast('Đã thêm "' + name.substring(0,30) + '" vào giỏ hàng!');
+
+                // 4. Hiện thông báo xanh (Toast) dưới chân trang
+                showToast('✅ Đã thêm "' + name + '" vào giỏ hàng thành công!');
             };
+
+            // 5. Hiển thị Modal
             document.getElementById('productModal').classList.add('show');
         }
 
