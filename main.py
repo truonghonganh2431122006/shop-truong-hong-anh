@@ -863,19 +863,20 @@ def seed_products(db: Session = Depends(get_db), current_user: User = Depends(ge
 
     
     # 3. Nạp vào database
+    # hellokitty
     for p in phones:
         new_p = Product(
             name=p["name"],
             price=p["price"],
             stock=100,
             image_url=p["img"],
-            description="Sản phẩm đã được update lên shop rồi Hồng Anh nhé !",
+            description="Sản phẩm chính hãng, bảo hành 12 tháng. Cam kết chất lượng tốt nhất, lỗi 1 đổi 1 trong 30 ngày đầu sử dụng. Hỗ trợ trả góp 0%.",
             is_active=True
         )
         db.add(new_p)
     
     db.commit()
-    return {"message": "Đã biến Shop thành Thế Giới Di Động thành công!"}
+    return {"message": "Đã cập nhật sản phẩm lên shop!"}
 
 @app.post("/admin/import-from-html")
 def import_from_html(data: List[ImportProductItem], admin: User = Depends(require_admin), db: Session = Depends(get_db)):
