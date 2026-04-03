@@ -15,6 +15,22 @@
             padding: 0 !important;
         }
 
+        /* CSS cho Cửa sổ chi tiết */
+        .modal-overlay {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7); z-index: 10001; justify-content: center; align-items: center;
+        }
+        .modal-content {
+            background: white; width: 90%; max-width: 700px; border-radius: 15px;
+            padding: 30px; position: relative; animation: popUp 0.3s ease;
+        }
+        @keyframes popUp { from {transform: scale(0.8); opacity: 0;} to {transform: scale(1); opacity: 1;} }
+        .close-modal {
+            position: absolute; top: 10px; right: 20px; font-size: 35px; cursor: pointer; color: #999;
+        }
+        .modal-body { display: flex; gap: 25px; flex-wrap: wrap; }
+        .modal-left, .modal-right { flex: 1; min-width: 280px; }
+
         /* Khung chứa dùng công thức Grid để chia đúng 6 cột */
         .listproduct {
             display: grid !important;
@@ -22526,6 +22542,30 @@
     </div>
     <div class="toast-msg" id="toastMsg"></div>
 
+    <div id="productModal" class="modal-overlay" onclick="closeModal(event)">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <span class="close-modal" onclick="closeModal()">&times;</span>
+            <div class="modal-body">
+                <div class="modal-left">
+                    <img id="modalImg" src="" alt="Ảnh sản phẩm" style="width:100%; border-radius:8px;">
+                </div>
+                <div class="modal-right">
+                    <h2 id="modalName" style="margin-top:0;"></h2>
+                    <p class="modal-price" id="modalPrice" style="color:red; font-size:24px; font-weight:bold;"></p>
+                    <hr>
+                    <div class="modal-desc">
+                        <h4 style="margin-bottom:10px;">Mô tả chi tiết:</h4>
+                        <p id="modalDesc" style="color:#555; line-height:1.6;"></p>
+                    </div>
+                    <button class="modal-buy-btn" id="modalBuyBtn" 
+                        style="width:100%; padding:15px; background:#ffed00; border:none; border-radius:8px; font-weight:bold; cursor:pointer; margin-top:20px;">
+                        THÊM VÀO GIỎ HÀNG
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
         (function () {
             'use strict';
@@ -23382,58 +23422,79 @@
         // 2. Hàm chính: Lấy dữ liệu từ Database và đổ vào HTML
         async function displayProducts() {
             try {
-                // Gọi đến API trên Render của bạn
                 const response = await fetch('https://shop-truong-hong-anh.onrender.com/products');
                 const products = await response.json();
-                
-                // Tìm đến cái "hố" trống mà bạn vừa dọn dẹp
                 const container = document.getElementById('product-list-container');
                 
-                if (!container) {
-                    console.error("Không tìm thấy thẻ có id='product-list-container'");
-                    return;
-                }
-
-                container.innerHTML = ""; // Xóa trắng trước khi nạp
+                if (!container) return;
+                container.innerHTML = ""; 
 
                 products.forEach(p => {
-                    // Xử lý ảnh lỗi hoặc thiếu
-                    const imgUrl = p.image_url || "https://via.placeholder.com/200x200?text=Samsung";
+                    const imgUrl = p.image_url || "https://via.placeholder.com/200x200?text=No+Image";
                     const displayPrice = cleanPrice(p.price);
 
-                    // Vẽ từng khối sản phẩm
-                    container.innerHTML += `
-                        <div class="item">
-                            <a href="#" class="remain_quantity main-contain">
-                                <div class="item-img">
-                                    <img src="${imgUrl}" alt="${p.name}" width="207" height="207">
-                                </div>
-                                <h3>${p.name}</h3>
-                                <strong class="price">
-                                    ${displayPrice} ₫
-                                    <span class="price-and-discount">
-                                        <label class="price-old black">Giá tốt</label>
-                                        <small>-30%</small>
-                                    </span>
-                                </strong>
-                                <div class="fs-contain">
-                                    <img width="15" height="15" src="https://cdnv2.tgdd.vn/webmwg/2024/ContentMwg/images/homev2/flash-sale.png" />
-                                    <span class="rq_count fscount">
-                                        <i style="width:70%;" class="fs-iconfire"></i>
-                                        <b>Còn 7/10 suất</b>
-                                    </span>
-                                </div>
-                            </a>
-                            <div class="btn-buy">
-                                <a href="javascript:void(0)" class="buy-now">Mua ngay</a>
+                    // Tạo thẻ div sản phẩm
+                    const itemDiv = document.createElement('div');
+                    itemDiv.className = "item";
+                    
+                    // LỆNH QUAN TRỌNG: Nhấn vào khung này để mở bảng to
+                    itemDiv.onclick = () => {
+                        showProductModal(p.name, p.price, imgUrl, p.description, p.id);
+                    };
+
+                    // Vẽ nội dung bên trong
+                    itemDiv.innerHTML = `
+                        <a href="javascript:void(0)" class="remain_quantity main-contain">
+                            <div class="item-img">
+                                <img src="${imgUrl}" alt="${p.name}" width="207" height="207">
                             </div>
+                            <h3>${p.name}</h3>
+                            <strong class="price">
+                                ${displayPrice} ₫
+                                <span class="price-and-discount">
+                                    <label class="price-old black">Giá tốt</label>
+                                    <small>-30%</small>
+                                </span>
+                            </strong>
+                            <div class="fs-contain">
+                                <img width="15" height="15" src="https://cdnv2.tgdd.vn/webmwg/2024/ContentMwg/images/homev2/flash-sale.png" />
+                                <span class="rq_count fscount">
+                                    <i style="width:70%;" class="fs-iconfire"></i>
+                                    <b>Còn 7/10 suất</b>
+                                </span>
+                            </div>
+                        </a>
+                        <div class="btn-buy">
+                            <a href="javascript:void(0)" class="buy-now" onclick="event.stopPropagation(); addToCart(${p.id}, '${p.name}', ${p.price}, '${imgUrl}')">Mua ngay</a>
                         </div>
                     `;
+                    container.appendChild(itemDiv);
                 });
                 console.log("Đã nạp thành công " + products.length + " sản phẩm!");
             } catch (error) {
                 console.error("Lỗi khi kết nối API:", error);
             }
+        }
+
+        function showProductModal(name, price, img, desc, id) {
+            document.getElementById('modalImg').src = img;
+            document.getElementById('modalName').innerText = name;
+            document.getElementById('modalPrice').innerText = price.toLocaleString() + " ₫";
+            // Nếu không có mô tả thì hiện chữ mặc định
+            document.getElementById('modalDesc').innerText = desc || "Sản phẩm chính hãng, chất lượng cao, bảo hành đầy đủ tại hệ thống.";
+            
+            // Nút mua trong modal
+            document.getElementById('modalBuyBtn').onclick = () => {
+                addToCart(id, name, price, img);
+                closeModal();
+            };
+
+            // Hiện modal lên
+            document.getElementById('productModal').style.display = 'flex';
+        }
+
+        function closeModal() {
+            document.getElementById('productModal').style.display = 'none';
         }
 
         // 3. Lệnh chạy: Khi web tải xong thì gọi hàm trên
