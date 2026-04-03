@@ -698,11 +698,30 @@
                         <td><small>${dateStr}</small></td>
                         <td><span class="order-status ${sClass}">${ord.status || 'Chờ xác nhận'}</span></td>
                         <td>
-                            <div style="display:flex; gap:4px; flex-wrap:wrap;">
-                                <button class="btn btn-ship" onclick="updateOrderStatus(${ord.id}, 'Đang giao')" title="Chuyển sang Đang giao">🚚</button>
-                                <button class="btn btn-done" onclick="updateOrderStatus(${ord.id}, 'Đã giao')" title="Đánh dấu Đã giao">✅</button>
-                                <button class="btn" style="background:#ef4444;color:white;border:none;padding:4px 8px;border-radius:6px;cursor:pointer;" onclick="updateOrderStatus(${ord.id}, 'Đã hủy')" title="Hủy đơn">✕</button>
-                            </div>
+                            <select onchange="updateOrderStatus(${ord.id}, this.value); this.blur();" 
+                                style="
+                                    padding:6px 10px; border-radius:8px; font-size:12px; font-weight:600;
+                                    border:1px solid #e2e8f0; cursor:pointer; outline:none;
+                                    background:${
+                                        ord.status === 'Đang giao' ? '#dbeafe' :
+                                        ord.status === 'Đã giao' ? '#dcfce7' :
+                                        ord.status === 'Đã hủy' ? '#fee2e2' :
+                                        ord.status === 'Đã xác nhận' ? '#ede9fe' :
+                                        '#fefce8'
+                                    };
+                                    color:${
+                                        ord.status === 'Đang giao' ? '#1d4ed8' :
+                                        ord.status === 'Đã giao' ? '#15803d' :
+                                        ord.status === 'Đã hủy' ? '#b91c1c' :
+                                        ord.status === 'Đã xác nhận' ? '#6d28d9' :
+                                        '#854d0e'
+                                    };">
+                                <option value="" disabled selected>${ord.status || 'Chờ xác nhận'}</option>
+                                <option value="Đã xác nhận"  ${ord.status === 'Đã xác nhận'  ? 'selected' : ''}>✅ Đã xác nhận</option>
+                                <option value="Đang giao"    ${ord.status === 'Đang giao'    ? 'selected' : ''}>🚚 Đang giao</option>
+                                <option value="Đã giao"      ${ord.status === 'Đã giao'      ? 'selected' : ''}>📦 Đã giao</option>
+                                <option value="Đã hủy"       ${ord.status === 'Đã hủy'       ? 'selected' : ''}>✕ Đã hủy</option>
+                            </select>
                         </td>
                     </tr>`;
             });
@@ -899,13 +918,14 @@
     function toggleDark() {
         document.documentElement.classList.toggle('dark');
         const btn = document.querySelector('.dark-toggle');
-        btn.textContent = document.documentElement.classList.contains('dark') ? '☀️' : '🌙';
+        if (btn) btn.textContent = document.documentElement.classList.contains('dark') ? '☀️' : '🌙';
     }
-    
+
+    // Khởi động trang admin
     checkAuth().then(() => {
         loadOrders();
     });
 
-</script>   
+</script>
 </body>
 </html>
