@@ -22609,7 +22609,7 @@
             function parsePrice(str) { if (!str) return 0; return parseInt(str.replace(/[^\d]/g, '')) || 0; }
             function formatPrice(n) { return n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.') + ' ₫'; }
 
-            function addToCart(name, price, img) {
+            function addToCart(id, name, price, img) {
                 var found = false;
                 for (var i = 0; i < cart.length; i++) { 
                     if (cart[i].name === name) { 
@@ -22618,7 +22618,7 @@
                         break; 
                     } 
                 }
-                if (!found) cart.push({ name: name, price: price, img: img, qty: 1 });
+                if (!found) cart.push({ id: id, name: name, price: price, img: img, qty: 1 });
 
                 // --- DÒNG CẦN THÊM VÀO ĐÂY ---
                 localStorage.setItem('cart', JSON.stringify(cart)); 
@@ -22631,128 +22631,145 @@
             function changeQty(idx, delta) { if (!cart[idx]) return; cart[idx].qty += delta; if (cart[idx].qty < 1) cart[idx].qty = 1; updateCartCount(); renderCart(); }
             function clearCart() { cart = []; updateCartCount(); renderCart(); }
 
+            // ===== VOUCHER MAP =====
+            var VOUCHERS = {
+                'GIAM10': { label: 'Giảm 10%', type: 'percent', value: 10 },
+                'SALE20': { label: 'Giảm 20%', type: 'percent', value: 20 },
+                'VIP30':  { label: 'Giảm 30%', type: 'percent', value: 30 },
+                'FREESHIP': { label: 'Miễn phí vận chuyển 30.000đ', type: 'fixed', value: 30000 },
+                'NEWUSER': { label: 'Tặng 50.000đ cho khách mới', type: 'fixed', value: 50000 },
+            };
+            var appliedVoucher = null;
+
+            function applyVoucher() {
+                var code = (document.getElementById('voucherInput') || {}).value || '';
+                code = code.trim().toUpperCase();
+                var v = VOUCHERS[code];
+                if (!v) {
+                    document.getElementById('voucherMsg').innerHTML = '<span style="color:red">❌ Mã voucher không hợp lệ</span>';
+                    appliedVoucher = null;
+                } else {
+                    appliedVoucher = { code: code, ...v };
+                    document.getElementById('voucherMsg').innerHTML = '<span style="color:green">✅ Áp dụng thành công: ' + v.label + '</span>';
+                }
+                updateCartSummary();
+            }
+
+            function getSelectedIndices() {
+                var checks = document.querySelectorAll('.cart-item-check');
+                var selected = [];
+                checks.forEach(function(cb) { if (cb.checked) selected.push(parseInt(cb.dataset.idx)); });
+                return selected;
+            }
+
+            function updateCartSummary() {
+                var selected = getSelectedIndices();
+                var rawTotal = 0;
+                selected.forEach(function(i) {
+                    if (!cart[i]) return;
+                    rawTotal += (parseFloat(cart[i].price) || 0) * (parseInt(cart[i].qty) || 1);
+                });
+                var discount = 0;
+                if (appliedVoucher && selected.length > 0) {
+                    if (appliedVoucher.type === 'percent') {
+                        discount = Math.round(rawTotal * appliedVoucher.value / 100);
+                    } else {
+                        discount = Math.min(appliedVoucher.value, rawTotal);
+                    }
+                }
+                var finalTotal = rawTotal - discount;
+                var summaryEl = document.getElementById('cartSummary');
+                if (!summaryEl) return;
+                var dHtml = discount > 0 ? '<div style="color:green;font-size:13px;margin-bottom:4px">Giảm giá: -' + formatPrice(discount) + '</div>' : '';
+                summaryEl.innerHTML = dHtml + '<div class="cart-total" style="margin:0">Tổng thanh toán (' + selected.length + ' sản phẩm): <b style="color:#d0021c">' + formatPrice(finalTotal) + '</b></div>';
+            }
+
             function renderCart() {
                 var el = document.getElementById('cartContent'); if (!el) return;
                 if (cart.length === 0) { el.innerHTML = '<h2>Giỏ hàng</h2><div class="empty-cart">🛒 Giỏ hàng trống</div>'; return; }
-                var total = 0, html = '<h2>Giỏ hàng (' + getTotalQty() + ' sản phẩm)</h2>';
-                html += '<table><tr><th>Sản phẩm</th><th style="text-align:center">SL</th><th style="text-align:right">Giá</th><th></th></tr>';
+
+                var html = '<h2>Giỏ hàng (' + getTotalQty() + ' sản phẩm)</h2>';
+
+                // Nút chọn tất cả
+                html += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;padding:8px;background:#f8f8f8;border-radius:6px">';
+                html += '<input type="checkbox" id="checkAll" onchange="window._toggleAll(this.checked)" checked style="width:16px;height:16px;cursor:pointer">';
+                html += '<label for="checkAll" style="cursor:pointer;font-size:13px;font-weight:600">Chọn tất cả</label>';
+                html += '<button onclick="window._clearCart()" style="margin-left:auto;background:none;border:1px solid #d0021c;color:#d0021c;padding:4px 12px;border-radius:6px;cursor:pointer;font-size:12px">🗑 Xóa tất cả</button>';
+                html += '</div>';
+
+                // Danh sách sản phẩm với checkbox
+                html += '<table style="width:100%;border-collapse:collapse">';
+                html += '<tr style="background:#f5f5f5"><th style="padding:8px 4px;text-align:left;font-size:12px;width:20px"></th><th style="padding:8px;text-align:left;font-size:12px">Sản phẩm</th><th style="padding:8px;text-align:center;font-size:12px">SL</th><th style="padding:8px;text-align:right;font-size:12px">Giá</th><th></th></tr>';
+
                 cart.forEach(function (item, i) {
-                    // Ép kiểu về số thực (parseFloat) và số nguyên (parseInt) để tính toán chính xác
                     var price = parseFloat(item.price) || 0;
                     var qty = parseInt(item.qty) || 0;
-                    
-                    var lt = price * qty; 
-                    total = Number(total) + lt; // Ép total về số trước khi cộng dồn
-
-                    html += '<tr><td style="max-width:200px;word-break:break-word">' + item.name + '</td>';
-                    html += '<td style="text-align:center;white-space:nowrap"><button onclick="window._changeQty(' + i + ',-1)" style="width:26px;height:26px;border:1px solid #ddd;background:#f5f5f5;cursor:pointer;border-radius:4px;font-size:14px">−</button> <span style="display:inline-block;min-width:24px;text-align:center;font-weight:bold">' + qty + '</span> <button onclick="window._changeQty(' + i + ',1)" style="width:26px;height:26px;border:1px solid #ddd;background:#f5f5f5;cursor:pointer;border-radius:4px;font-size:14px">+</button></td>';
-                    html += '<td style="color:#d0021c;font-weight:bold;white-space:nowrap;text-align:right">' + formatPrice(lt) + '</td>';
-                    html += '<td><button class="btn-remove" onclick="window._removeFromCart(' + i + ')">✕ Xóa</button></td></tr>';
+                    var lt = price * qty;
+                    html += '<tr style="border-bottom:1px solid #f0f0f0">';
+                    html += '<td style="padding:8px 4px"><input type="checkbox" class="cart-item-check" data-idx="' + i + '" checked onchange="window._onCheckChange()" style="width:16px;height:16px;cursor:pointer"></td>';
+                    html += '<td style="padding:8px;max-width:180px;word-break:break-word;font-size:13px">';
+                    if (item.img) html += '<img src="' + item.img + '" style="width:36px;height:36px;object-fit:cover;border-radius:4px;vertical-align:middle;margin-right:6px">';
+                    html += item.name + '</td>';
+                    html += '<td style="text-align:center;white-space:nowrap;padding:8px"><button onclick="window._changeQty(' + i + ',-1)" style="width:24px;height:24px;border:1px solid #ddd;background:#f5f5f5;cursor:pointer;border-radius:4px;font-size:13px">−</button> <span style="display:inline-block;min-width:20px;text-align:center;font-weight:bold;font-size:13px">' + qty + '</span> <button onclick="window._changeQty(' + i + ',1)" style="width:24px;height:24px;border:1px solid #ddd;background:#f5f5f5;cursor:pointer;border-radius:4px;font-size:13px">+</button></td>';
+                    html += '<td style="color:#d0021c;font-weight:bold;white-space:nowrap;text-align:right;padding:8px;font-size:13px">' + formatPrice(lt) + '</td>';
+                    html += '<td style="padding:8px"><button class="btn-remove" onclick="window._removeFromCart(' + i + ')">✕</button></td>';
+                    html += '</tr>';
                 });
+                html += '</table>';
 
-                html += '</table><div class="cart-total">Tổng cộng: ' + formatPrice(total) + '</div>';
-                html += '<button onclick="window._clearCart()" style="background:none;border:1px solid #d0021c;color:#d0021c;padding:8px 16px;border-radius:6px;cursor:pointer;font-size:13px;margin-bottom:16px">🗑 Xóa toàn bộ giỏ hàng</button>';
-                
+                // Voucher
+                html += '<div style="margin:14px 0;padding:12px;background:#fffbea;border:1px solid #ffe066;border-radius:8px">';
+                html += '<div style="font-size:13px;font-weight:600;margin-bottom:8px">🎟 Mã Voucher</div>';
+                html += '<div style="display:flex;gap:8px">';
+                html += '<input id="voucherInput" placeholder="Nhập mã (VD: GIAM10)" style="flex:1;padding:8px 10px;border:1px solid #ddd;border-radius:6px;font-size:13px" onkeydown="if(event.key===\'Enter\') window._applyVoucher()">';
+                html += '<button onclick="window._applyVoucher()" style="padding:8px 14px;background:#ffed00;border:none;border-radius:6px;font-weight:bold;cursor:pointer;font-size:13px">Áp dụng</button>';
+                html += '</div>';
+                html += '<div id="voucherMsg" style="margin-top:6px;font-size:12px"></div>';
+                html += '<div style="margin-top:6px;font-size:11px;color:#888">Mã có sẵn: GIAM10 · SALE20 · VIP30 · FREESHIP · NEWUSER</div>';
+                html += '</div>';
+
+                // Tổng tiền
+                html += '<div id="cartSummary"></div>';
+
+                // Form thông tin
                 html += '<h3 style="margin:16px 0 8px;font-size:16px">Thông tin đặt hàng</h3>';
                 html += '<div class="cart-form" style="display:flex;flex-direction:column;gap:10px">';
                 html += '<input type="text" id="coName" placeholder="Họ và tên" required style="padding:10px;border:1px solid #ddd;border-radius:4px">';
                 html += '<input type="tel" id="coPhone" placeholder="Số điện thoại" required style="padding:10px;border:1px solid #ddd;border-radius:4px">';
-                
-                // 3 ô chọn địa chỉ
-                // 1. CHỌN TỈNH (Dùng Select)
                 html += '<select id="coCity" style="padding:10px; border:1px solid #ddd; border-radius:4px;">';
-                html += '  <option value="">-- Chọn Tỉnh / Thành phố --</option>';
-                html += '<option value="An Giang">An Giang</option>';
-                html += '<option value="Bà Rịa – Vũng Tàu">Bà Rịa – Vũng Tàu</option>';
-                html += '<option value="Bạc Liêu">Bạc Liêu</option>';
-                html += '<option value="Bắc Kạn">Bắc Kạn</option>';
-                html += '<option value="Bắc Giang">Bắc Giang</option>';
-                html += '<option value="Bắc Ninh">Bắc Ninh</option>';
-                html += '<option value="Bến Tre">Bến Tre</option>';
-                html += '<option value="Bình Dương">Bình Dương</option>';
-                html += '<option value="Bình Định">Bình Định</option>';
-                html += '<option value="Bình Phước">Bình Phước</option>';
-                html += '<option value="Bình Thuận">Bình Thuận</option>';
-                html += '<option value="Cà Mau">Cà Mau</option>';
-                html += '<option value="Cao Bằng">Cao Bằng</option>';
-                html += '<option value="Cần Thơ">Cần Thơ</option>';
-                html += '<option value="Đà Nẵng">Đà Nẵng</option>';
-                html += '<option value="Đắk Lắk">Đắk Lắk</option>';
-                html += '<option value="Đắk Nông">Đắk Nông</option>';
-                html += '<option value="Điện Biên">Điện Biên</option>';
-                html += '<option value="Đồng Nai">Đồng Nai</option>';
-                html += '<option value="Đồng Tháp">Đồng Tháp</option>';
-                html += '<option value="Gia Lai">Gia Lai</option>';
-                html += '<option value="Hà Giang">Hà Giang</option>';
-                html += '<option value="Hà Nam">Hà Nam</option>';
-                html += '<option value="Hà Nội">Hà Nội</option>';
-                html += '<option value="Hà Tây">Hà Tây</option>';
-                html += '<option value="Hà Tĩnh">Hà Tĩnh</option>';
-                html += '<option value="Hải Dương">Hải Dương</option>';
-                html += '<option value="Hải Phòng">Hải Phòng</option>';
-                html += '<option value="Hậu Giang">Hậu Giang</option>';
-                html += '<option value="Hòa Bình">Hòa Bình</option>';
-                html += '<option value="Hưng Yên">Hưng Yên</option>';
-                html += '<option value="TP. Hồ Chí Minh">TP. Hồ Chí Minh</option>';
-                html += '<option value="Khánh Hòa">Khánh Hòa</option>';
-                html += '<option value="Kiên Giang">Kiên Giang</option>';
-                html += '<option value="Kon Tum">Kon Tum</option>';
-                html += '<option value="Lai Châu">Lai Châu</option>';
-                html += '<option value="Lạng Sơn">Lạng Sơn</option>';
-                html += '<option value="Lào Cai">Lào Cai</option>';
-                html += '<option value="Lâm Đồng">Lâm Đồng</option>';
-                html += '<option value="Long An">Long An</option>';
-                html += '<option value="Nam Định">Nam Định</option>';
-                html += '<option value="Nghệ An">Nghệ An</option>';
-                html += '<option value="Ninh Bình">Ninh Bình</option>';
-                html += '<option value="Ninh Thuận">Ninh Thuận</option>';
-                html += '<option value="Phú Thọ">Phú Thọ</option>';
-                html += '<option value="Phú Yên">Phú Yên</option>';
-                html += '<option value="Quảng Bình">Quảng Bình</option>';
-                html += '<option value="Quảng Nam">Quảng Nam</option>';
-                html += '<option value="Quảng Ngãi">Quảng Ngãi</option>';
-                html += '<option value="Quảng Ninh">Quảng Ninh</option>';
-                html += '<option value="Quảng Trị">Quảng Trị</option>';
-                html += '<option value="Sóc Trăng">Sóc Trăng</option>';
-                html += '<option value="Sơn La">Sơn La</option>';
-                html += '<option value="Tây Ninh">Tây Ninh</option>';
-                html += '<option value="Thái Bình">Thái Bình</option>';
-                html += '<option value="Thái Nguyên">Thái Nguyên</option>';
-                html += '<option value="Thanh Hóa">Thanh Hóa</option>';
-                html += '<option value="Thừa Thiên Huế">Thừa Thiên Huế</option>';
-                html += '<option value="Tiền Giang">Tiền Giang</option>';
-                html += '<option value="Trà Vinh">Trà Vinh</option>';
-                html += '<option value="Tuyên Quang">Tuyên Quang</option>';
-                html += '<option value="Vĩnh Long">Vĩnh Long</option>';
-                html += '<option value="Vĩnh Phúc">Vĩnh Phúc</option>';
-                html += '<option value="Yên Bái">Yên Bái</option>';
+                html += '<option value="">-- Chọn Tỉnh / Thành phố --</option>';
+                ['An Giang','Bà Rịa – Vũng Tàu','Bạc Liêu','Bắc Kạn','Bắc Giang','Bắc Ninh','Bến Tre','Bình Dương','Bình Định','Bình Phước','Bình Thuận','Cà Mau','Cao Bằng','Cần Thơ','Đà Nẵng','Đắk Lắk','Đắk Nông','Điện Biên','Đồng Nai','Đồng Tháp','Gia Lai','Hà Giang','Hà Nam','Hà Nội','Hà Tây','Hà Tĩnh','Hải Dương','Hải Phòng','Hậu Giang','Hòa Bình','Hưng Yên','TP. Hồ Chí Minh','Khánh Hòa','Kiên Giang','Kon Tum','Lai Châu','Lạng Sơn','Lào Cai','Lâm Đồng','Long An','Nam Định','Nghệ An','Ninh Bình','Ninh Thuận','Phú Thọ','Phú Yên','Quảng Bình','Quảng Nam','Quảng Ngãi','Quảng Ninh','Quảng Trị','Sóc Trăng','Sơn La','Tây Ninh','Thái Bình','Thái Nguyên','Thanh Hóa','Thừa Thiên Huế','Tiền Giang','Trà Vinh','Tuyên Quang','Vĩnh Long','Vĩnh Phúc','Yên Bái'].forEach(function(c){ html += '<option value="'+c+'">'+c+'</option>'; });
                 html += '</select>';
-
-                // 2. NHẬP QUẬN/HUYỆN & XÃ (Dùng Input Text)
                 html += '<input type="text" id="coDistrict" placeholder="Nhập Quận / Huyện" required style="padding:10px; border:1px solid #ddd; border-radius:4px;">';
                 html += '<input type="text" id="coWard" placeholder="Nhập Phường / Xã" required style="padding:10px; border:1px solid #ddd; border-radius:4px;">';
                 html += '<input type="text" id="coAddress" placeholder="Số nhà, tên đường cụ thể" required style="padding:10px; border:1px solid #ddd; border-radius:4px;">';
-
                 html += '<div style="margin-top:10px;text-align:left"><b style="font-size:14px">Thanh toán:</b>';
-
-                // Thêm onclick để ẩn QR khi chọn COD
                 html += '<div style="margin:5px 0"><input type="radio" name="payMethod" value="COD" checked id="pCod" onclick="document.getElementById(\'qrArea\').style.display=\'none\'"> <label for="pCod">Tiền mặt (COD)</label></div>';
-
-                // Thêm onclick để hiện QR khi chọn Chuyển khoản
                 html += '<div style="margin:5px 0"><input type="radio" name="payMethod" value="BANK" id="pBank" onclick="document.getElementById(\'qrArea\').style.display=\'block\'"> <label for="pBank">Chuyển khoản (QR)</label></div>';
-
-                // Khung QR: Bạn nên để sẵn link ảnh VietQR để chắc chắn nó luôn hiện (không lo lỗi file QR.jpg)
                 html += '<div id="qrArea" style="display:none;text-align:center;padding:10px;border:1px dashed #ccc;margin-top:10px;">';
                 html += '<p style="font-size:12px;color:#666">Quét mã để chuyển khoản:</p>';
-                html += '<img src="https://img.vietqr.io/image/MB-0356551694-compact.png?amount=' + (typeof total !== 'undefined' ? total : 0) + '&addInfo=Thanh toan don hang" style="max-width:150px;border-radius:8px;">';
+                html += '<img src="https://img.vietqr.io/image/MB-0356551694-compact.png" style="max-width:150px;border-radius:8px;">';
                 html += '</div></div>';
-
-                // Giữ nguyên class "btn-checkout" để không bị đổi giao diện
                 html += '<button class="btn-checkout" onclick="if(!localStorage.getItem(\'access_token\')){ alert(\'⚠️ Vui lòng đăng nhập để hoàn tất đặt hàng!\'); window.location.href=\'/login\'; } else { window._confirmOrder(); }">✓ Xác nhận đặt hàng</button>';
+                html += '</div>';
 
                 el.innerHTML = html;
-
-            } 
+                // Sau khi render xong thì cập nhật tổng
+                window._onCheckChange = function() { updateCartSummary(); };
+                window._toggleAll = function(checked) {
+                    document.querySelectorAll('.cart-item-check').forEach(function(cb){ cb.checked = checked; });
+                    updateCartSummary();
+                };
+                window._applyVoucher = applyVoucher;
+                updateCartSummary();
+                // Khôi phục voucher nếu đã áp
+                if (appliedVoucher) {
+                    var vi = document.getElementById('voucherInput');
+                    if (vi) vi.value = appliedVoucher.code;
+                    var vm = document.getElementById('voucherMsg');
+                    if (vm) vm.innerHTML = '<span style="color:green">✅ Đang áp dụng: ' + appliedVoucher.label + '</span>';
+                }
+            }
 
 
             window._removeFromCart = removeFromCart;
@@ -22778,15 +22795,21 @@
                     return;
                 }
 
-                const fullAddr = `${address.trim()}, ${ward.trim()}, ${district.trim()}, ${city}`;
-                const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+                // 2. Lấy chỉ những sản phẩm được TICK chọn
+                const selectedIdx = getSelectedIndices();
+                if (selectedIdx.length === 0) {
+                    alert('Vui lòng chọn ít nhất 1 sản phẩm để đặt hàng!');
+                    return;
+                }
+                const selectedCart = selectedIdx.map(i => cart[i]).filter(Boolean);
 
-                if (cart.length === 0) {
+                const fullAddr = `${address.trim()}, ${ward.trim()}, ${district.trim()}, ${city}`;
+
+                if (selectedCart.length === 0) {
                     alert("Giỏ hàng của bạn đang trống!");
                     return;
                 }
 
-                // hello
                 // Lấy danh sách sản phẩm từ DB để match tên → id
                 let productList = [];
                 try {
@@ -22805,17 +22828,17 @@
                     productMap[p.name.trim().toLowerCase()] = { id: p.id, price: p.price };
                 });
 
-                // Match từng item trong giỏ với DB theo tên
+                // Match từng item được chọn với DB theo tên
                 const validItems = [];
                 const notFound = [];
-                cart.forEach(item => {
+                selectedCart.forEach(item => {
                     const key = (item.name || '').trim().toLowerCase();
                     const match = productMap[key];
                     if (match) {
                         validItems.push({
                             product_id: match.id,
                             quantity: parseInt(item.qty || item.quantity) || 1,
-                            unit_price: match.price  // Luôn dùng giá từ DB, không dùng giá cache
+                            unit_price: match.price
                         });
                     } else {
                         notFound.push(item.name);
@@ -22853,8 +22876,13 @@
                     const result = await res.json();
 
                     if (res.ok) {
-                        // Xóa giỏ hàng sau khi đặt thành công
-                        localStorage.removeItem('cart');
+                        // Chỉ xóa các sản phẩm đã đặt khỏi giỏ
+                        const remainCart = cart.filter((_, i) => !selectedIdx.includes(i));
+                        cart.length = 0;
+                        remainCart.forEach(function(x){ cart.push(x); });
+                        localStorage.setItem('cart', JSON.stringify(cart));
+                        appliedVoucher = null;
+                        updateCartCount();
                         
                         const contentEl = document.getElementById('cartContent');
                         if (contentEl) {
@@ -22871,7 +22899,6 @@
                         }
                     } else {
                         console.error("Lỗi chi tiết từ Server:", result);
-                        // Bóc tách lỗi từ mảng detail của FastAPI để hiện thông báo dễ hiểu
                         let errorMsg = "Server từ chối đơn hàng";
                         if (result.detail && Array.isArray(result.detail)) {
                             errorMsg = result.detail[0].msg;
@@ -23507,6 +23534,7 @@
                 if (ev) ev.stopPropagation();
                 addToCart(id, name, price, img);
                 closeModal();
+                showToast('Đã thêm "' + name.substring(0,30) + '" vào giỏ hàng!');
             };
             document.getElementById('productModal').classList.add('show');
         }

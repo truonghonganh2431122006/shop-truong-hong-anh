@@ -500,7 +500,7 @@ def login(data: LoginRequest, db: Session = Depends(get_db)):
     # Kiểm tra lại đoạn này trong main.py
     user_role = (user.role or "USER").upper()
     
-    if user_role == "ADMIN":
+    if user_role in ("ADMIN", "STAFF"):
         redirect_url = "/admin"
     else:
         redirect_url = "/shop"
@@ -1434,6 +1434,117 @@ def startup_event():
         print(f">>> LOI STARTUP: {e}")
     finally:
         db.close()
+# ===================== API BỔ SUNG =====================
+
+# 1. Cập nhật sản phẩm (tên, giá, ảnh, mô tả) - Staff & Admin
+@app.put("/admin/products/{product_id}/update")
+def update_product_info(
+    product_id: int,
+    data: ProductUpdateSchema,
+    user: User = Depends(require_staff_or_admin),
+    db: Session = Depends(get_db)
+):
+    p = db.query(Product).filter(Product.id == product_id).first()
+    if not p:
+        raise HTTPException(status_code=404, detail="Không tìm thấy sản phẩm")
+    if data.name is not None:
+        p.name = data.name.strip()
+    if data.price is not None:
+        p.price = data.price
+    if data.image_url is not None:
+        p.image_url = data.image_url
+    if data.description is not None:
+        p.description = data.description
+    db.commit()
+    return {"message": "Đã cập nhật sản phẩm thành công"}
+
+
+# 2. Thêm sản phẩm mới có xác thực - Staff & Admin
+@app.post("/admin/products/new")
+def admin_create_product(
+    data: ProductCreateSchema,
+    user: User = Depends(require_staff_or_admin),
+    db: Session = Depends(get_db)
+):
+    p = Product(
+        name=data.name.strip(),
+        price=data.price,
+        image_url=data.image_url or "",
+        description=data.description or "",
+        stock=data.stock if data.stock is not None else 100,
+        is_active=True
+    )
+    db.add(p)
+    db.commit()
+    db.refresh(p)
+    return {"message": "Đã thêm sản phẩm mới", "id": p.id, "name": p.name}
+
+
+# 3. Bổ nhiệm / hạ chức user (USER ↔ STAFF) - chỉ Admin
+@app.put("/users/{user_id}/set-role")
+def set_user_role(
+    user_id: int,
+    role: str = Query(..., description="USER hoặc STAFF"),
+    admin: User = Depends(require_admin),
+    db: Session = Depends(get_db)
+):
+    if user_id == admin.id:
+        raise HTTPException(status_code=400, detail="Không thể thay đổi vai trò của chính mình")
+    u = db.query(User).filter(User.id == user_id).first()
+    if not u:
+        raise HTTPException(status_code=404, detail="Không tìm thấy user")
+    if u.role.upper() == ROLE_ADMIN:
+        raise HTTPException(status_code=400, detail="Không thể thay đổi quyền của Admin")
+    new_role = role.upper()
+    if new_role not in {ROLE_USER, ROLE_STAFF}:
+        raise HTTPException(status_code=400, detail="Role không hợp lệ (USER hoặc STAFF)")
+    u.role = new_role
+    db.commit()
+    return {"message": f"Đã cập nhật {u.email} → {u.role}"}
+
+
+# 4. Xóa user - Staff KHÔNG được xóa Admin
+@app.delete("/users/{user_id}/safe")
+def safe_delete_user(
+    user_id: int,
+    current_user: User = Depends(require_staff_or_admin),
+    db: Session = Depends(get_db)
+):
+    if user_id == current_user.id:
+        raise HTTPException(status_code=400, detail="Không thể tự xóa chính mình!")
+    u = db.query(User).filter(User.id == user_id).first()
+    if not u:
+        raise HTTPException(status_code=404, detail="Không tìm thấy user")
+    if u.role.upper() == ROLE_ADMIN:
+        raise HTTPException(status_code=403, detail="Không được phép xóa tài khoản Admin!")
+    db.delete(u)
+    db.commit()
+    return {"message": f"Đã xóa {u.email}"}
+
+
+# 5. Tổng doanh thu - Staff & Admin (chỉ đơn Đã giao)
+@app.get("/admin/revenue")
+def get_total_revenue(
+    user: User = Depends(require_staff_or_admin),
+    db: Session = Depends(get_db)
+):
+    from collections import defaultdict
+    done_orders = db.query(Order).filter(Order.status == "Đã giao").all()
+    total = 0
+    monthly: dict = defaultdict(int)
+    for o in done_orders:
+        amt = sum(i.quantity * i.unit_price for i in o.items)
+        total += amt
+        if o.created_at:
+            key = o.created_at.strftime("%m/%Y")
+            monthly[key] += amt
+    return {
+        "total_revenue": total,
+        "total_orders_done": len(done_orders),
+        "monthly": dict(sorted(monthly.items()))
+    }
+
+
 # --- PHẢI NẰM Ở CUỐI FILE main.py ---
 if __name__ == "__main__":
     # Render cấp cổng nào mình chạy cổng đó
