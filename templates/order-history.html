@@ -189,10 +189,10 @@
             }
         }
 
-        // Tự động tải khi mở trang + cứ 5 giây tự cập nhật trạng thái
+        // Tự động tải khi mở trang + cứ 10 giây tự cập nhật trạng thái
         document.addEventListener('DOMContentLoaded', () => {
             displayOrders();
-            setInterval(displayOrders, 5000); // Tự reload mỗi 5 giấy
+            setInterval(displayOrders, 100); // Tự reload mỗi 10 giấy
         });
     </script>
 </body>

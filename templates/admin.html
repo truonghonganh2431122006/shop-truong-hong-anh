@@ -927,6 +927,10 @@
         loadOrders();
     });
 
+    document.addEventListener('DOMContentLoaded', () => {
+      displayOrders();
+      setInterval(displayOrders, 100); // Tự reload mỗi 10 giấy
+    });
 </script>
 </body>
 </html>
