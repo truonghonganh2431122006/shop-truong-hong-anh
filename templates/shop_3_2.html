@@ -17,9 +17,16 @@
 
         /* CSS cho Cửa sổ chi tiết */
         .modal-overlay {
-            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.7); z-index: 10001; justify-content: center; align-items: center;
+            display: none !important; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7); z-index: 99998; justify-content: center; align-items: center;
         }
+        .modal-overlay.show { display: flex !important; }
+
+        /* Ép click xuyên qua <a> bên trong, đi thẳng lên .item */
+        .listproduct .item > a.remain_quantity { pointer-events: none; }
+        .listproduct .item > a.remain_quantity * { pointer-events: none; }
+        .listproduct .item .btn-buy,
+        .listproduct .item .btn-buy * { pointer-events: auto; }
         .modal-content {
             background: white; width: 90%; max-width: 700px; border-radius: 15px;
             padding: 30px; position: relative; animation: popUp 0.3s ease;
@@ -22912,6 +22919,20 @@
                 var link = e.target.closest('a');
                 var btn = e.target.closest('button');
 
+                // ===== MỞ MODAL CHI TIẾT SẢN PHẨM =====
+                var productItem = e.target.closest('.item');
+                if (productItem && !e.target.closest('.btn-buy') && !e.target.closest('.buy-now')) {
+                    e.stopImmediatePropagation();
+                    var pname = productItem.getAttribute('data-pname');
+                    var pprice = parseFloat(productItem.getAttribute('data-pprice'));
+                    var pimg = productItem.getAttribute('data-pimg');
+                    var pdesc = productItem.getAttribute('data-pdesc');
+                    var pid = productItem.getAttribute('data-pid');
+                    if (pname) showProductModal(pname, pprice, pimg, pdesc, pid);
+                    return false;
+                }
+                // ========================================
+
                 // Handle "add to cart"/"buy now" buttons
                 if (btn && !link) {
                     var btnText = (btn.textContent || '').toLowerCase();
@@ -23436,6 +23457,12 @@
                     // Tạo thẻ div sản phẩm
                     const itemDiv = document.createElement('div');
                     itemDiv.className = "item";
+                    itemDiv.setAttribute('data-pname', p.name);
+                    itemDiv.setAttribute('data-pprice', p.price);
+                    itemDiv.setAttribute('data-pimg', imgUrl);
+                    itemDiv.setAttribute('data-pdesc', p.description || '');
+                    itemDiv.setAttribute('data-pid', p.id);
+                    itemDiv.style.cursor = 'pointer';
 
                     // Vẽ nội dung bên trong
                     itemDiv.innerHTML = `
@@ -23464,13 +23491,6 @@
                         </div>
                     `;
                     container.appendChild(itemDiv);
-
-                    // Gắn click SAU KHI đã set innerHTML để chắc chắn hoạt động
-                    itemDiv.addEventListener('click', function(e) {
-                        // Nếu click vào nút "Mua ngay" thì bỏ qua, không mở modal
-                        if (e.target.closest('.btn-buy')) return;
-                        showProductModal(p.name, p.price, imgUrl, p.description, p.id);
-                    });
                 });
                 console.log("Đã nạp thành công " + products.length + " sản phẩm!");
             } catch (error) {
@@ -23481,22 +23501,18 @@
         function showProductModal(name, price, img, desc, id) {
             document.getElementById('modalImg').src = img;
             document.getElementById('modalName').innerText = name;
-            document.getElementById('modalPrice').innerText = price.toLocaleString() + " ₫";
-            // Nếu không có mô tả thì hiện chữ mặc định
+            document.getElementById('modalPrice').innerText = new Intl.NumberFormat('vi-VN').format(price) + " ₫";
             document.getElementById('modalDesc').innerText = desc || "Sản phẩm chính hãng, chất lượng cao, bảo hành đầy đủ tại hệ thống.";
-            
-            // Nút mua trong modal
-            document.getElementById('modalBuyBtn').onclick = () => {
+            document.getElementById('modalBuyBtn').onclick = function(ev) {
+                if (ev) ev.stopPropagation();
                 addToCart(id, name, price, img);
                 closeModal();
             };
-
-            // Hiện modal lên
-            document.getElementById('productModal').style.display = 'flex';
+            document.getElementById('productModal').classList.add('show');
         }
 
         function closeModal() {
-            document.getElementById('productModal').style.display = 'none';
+            document.getElementById('productModal').classList.remove('show');
         }
 
         // 3. Lệnh chạy: Khi web tải xong thì gọi hàm trên
