@@ -23487,7 +23487,7 @@
                             </div>
                         </a>
                         <div class="btn-buy">
-                            <a href="javascript:void(0)" class="buy-now" onclick="event.stopPropagation(); addToCart(${p.id}, '${p.name}', ${p.price}, '${imgUrl}')">Mua ngay</a>
+                            <a href="javascript:void(0)" class="buy-now" onclick="event.stopPropagation(); buyNow(${p.id}, '${p.name}', ${p.price}, '${imgUrl}')">Mua ngay</a>
                         </div>
                     `;
                     container.appendChild(itemDiv);
@@ -23513,6 +23513,14 @@
 
         function closeModal() {
             document.getElementById('productModal').classList.remove('show');
+        }
+
+        function buyNow(id, name, price, img) {
+            // Thêm vào giỏ rồi mở modal cart luôn
+            cart = [{ name, price, img, qty: 1, id }];
+            localStorage.setItem('cart', JSON.stringify(cart));
+            updateCartCount();
+            openCartModal();
         }
 
         // 3. Lệnh chạy: Khi web tải xong thì gọi hàm trên
