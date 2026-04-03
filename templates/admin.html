@@ -485,6 +485,9 @@
         <button id="btn-users" onclick="showTab('users')">
           <span class="nav-icon">👥</span> Tài khoản
         </button>
+        <button id="btn-revenue" onclick="showTab('revenue')">
+          <span class="nav-icon">💰</span> Doanh thu
+        </button>
       </div>
     </nav>
 
@@ -580,6 +583,20 @@
           </tbody>
         </table>
       </div>
+
+      <!-- TAB DOANH THU -->
+      <div id="tab-revenue" class="card" style="display:none;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:10px;">
+          <h2 style="margin:0;">💰 Báo cáo Doanh thu</h2>
+          <button class="btn btn-done" onclick="loadRevenue()" style="display:flex;align-items:center;gap:6px;">🔄 Làm mới</button>
+        </div>
+        <div style="background:var(--warning-bg);border:1px solid var(--warning);border-radius:10px;padding:12px 16px;margin-bottom:20px;font-size:13px;color:var(--warning);">
+          ⚠️ Chỉ tổng hợp tiền từ các đơn hàng có trạng thái <b>"Đã giao"</b>
+        </div>
+        <div id="revenueContent">
+          <p style="color:var(--text-muted);text-align:center;padding:40px;">Nhấn "Làm mới" hoặc chọn tab để tải dữ liệu...</p>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -617,18 +634,20 @@
         document.getElementById('tab-orders').style.display = 'none';
         document.getElementById('tab-products').style.display = 'none';
         document.getElementById('tab-users').style.display = 'none';
+        document.getElementById('tab-revenue').style.display = 'none';
         
         // Gỡ bỏ class active ở các nút
         document.getElementById('btn-orders').classList.remove('active');
         document.getElementById('btn-products').classList.remove('active');
         document.getElementById('btn-users').classList.remove('active');
+        document.getElementById('btn-revenue').classList.remove('active');
 
         // Hiện tab được chọn
         document.getElementById('tab-' + tabName).style.display = 'block';
         document.getElementById('btn-' + tabName).classList.add('active');
 
         // Cập nhật tiêu đề trang
-        const titles = { orders: '📦 Đơn hàng', products: '🛍️ Sản phẩm', users: '👥 Tài khoản' };
+        const titles = { orders: '📦 Đơn hàng', products: '🛍️ Sản phẩm', users: '👥 Tài khoản', revenue: '💰 Doanh thu' };
         if (document.getElementById('pageTitle')) {
             document.getElementById('pageTitle').textContent = titles[tabName];
         }
@@ -636,7 +655,8 @@
         // Gọi hàm load dữ liệu tương ứng
         if(tabName === 'orders') loadOrders();
         if(tabName === 'users') loadUsers();
-        if(tabName === 'products') loadProducts(); // <-- Đã thêm gọi dữ liệu sản phẩm
+        if(tabName === 'products') loadProducts();
+        if(tabName === 'revenue') loadRevenue();
         
         if (typeof closeSidebar === 'function') closeSidebar();
     }
@@ -988,28 +1008,66 @@
     async function loadRevenue() {
         const el = document.getElementById('revenueContent');
         if (!el) return;
+        el.innerHTML = '<p style="text-align:center;padding:40px;color:var(--text-muted)">⏳ Đang tải dữ liệu doanh thu...</p>';
         try {
             const res = await fetch('/admin/revenue', { headers: { 'Authorization': 'Bearer ' + token } });
+            if (!res.ok) { el.innerHTML = '<p style="color:red;text-align:center">❌ Lỗi tải dữ liệu. Vui lòng thử lại.</p>'; return; }
             const data = await res.json();
             const fmt = n => new Intl.NumberFormat('vi-VN').format(n) + ' ₫';
-            let monthlyHtml = Object.entries(data.monthly || {})
-                .sort((a,b) => a[0].localeCompare(b[0]))
-                .map(([m,v]) => `<div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border)"><span>${m}</span><b style="color:var(--success)">${fmt(v)}</b></div>`)
-                .join('') || '<p style="color:var(--text-muted)">Chưa có đơn đã giao</p>';
+
+            // Bảng doanh thu theo tháng
+            const monthEntries = Object.entries(data.monthly || {}).sort((a,b) => a[0].localeCompare(b[0]));
+            let monthlyHtml = '';
+            if (monthEntries.length === 0) {
+                monthlyHtml = '<p style="color:var(--text-muted);text-align:center;padding:20px;">Chưa có đơn nào được giao.</p>';
+            } else {
+                monthlyHtml = `
+                <table style="width:100%;border-collapse:collapse;margin-top:8px;">
+                    <thead>
+                        <tr>
+                            <th style="text-align:left;padding:10px 14px;background:var(--bg);border-bottom:2px solid var(--border);font-size:12px;color:var(--text-muted);text-transform:uppercase;">Tháng</th>
+                            <th style="text-align:right;padding:10px 14px;background:var(--bg);border-bottom:2px solid var(--border);font-size:12px;color:var(--text-muted);text-transform:uppercase;">Doanh thu</th>
+                            <th style="text-align:right;padding:10px 14px;background:var(--bg);border-bottom:2px solid var(--border);font-size:12px;color:var(--text-muted);text-transform:uppercase;">Tỷ trọng</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${monthEntries.map(([m, v]) => {
+                            const pct = data.total_revenue > 0 ? ((v / data.total_revenue) * 100).toFixed(1) : 0;
+                            return `<tr>
+                                <td style="padding:12px 14px;border-bottom:1px solid var(--border);font-size:14px;">📅 ${m}</td>
+                                <td style="padding:12px 14px;border-bottom:1px solid var(--border);text-align:right;font-weight:700;color:var(--success);font-size:14px;">${fmt(v)}</td>
+                                <td style="padding:12px 14px;border-bottom:1px solid var(--border);text-align:right;">
+                                    <div style="display:flex;align-items:center;justify-content:flex-end;gap:8px;">
+                                        <div style="width:80px;height:8px;background:var(--border);border-radius:4px;overflow:hidden;">
+                                            <div style="width:${pct}%;height:100%;background:var(--success);border-radius:4px;"></div>
+                                        </div>
+                                        <span style="font-size:12px;color:var(--text-muted);min-width:36px;text-align:right;">${pct}%</span>
+                                    </div>
+                                </td>
+                            </tr>`;
+                        }).join('')}
+                    </tbody>
+                </table>`;
+            }
+
             el.innerHTML = `
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:24px">
-                    <div style="background:var(--success-bg);border-radius:12px;padding:24px;text-align:center">
-                        <div style="font-size:13px;color:var(--success);margin-bottom:8px">TỔNG DOANH THU</div>
-                        <div style="font-size:28px;font-weight:800;color:var(--success)">${fmt(data.total_revenue)}</div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:28px;">
+                    <div style="background:var(--success-bg);border-radius:14px;padding:28px;text-align:center;border:1px solid rgba(16,185,129,0.2);">
+                        <div style="font-size:12px;font-weight:700;letter-spacing:1px;color:var(--success);margin-bottom:10px;">💵 TỔNG DOANH THU</div>
+                        <div style="font-size:26px;font-weight:800;color:var(--success);">${fmt(data.total_revenue)}</div>
+                        <div style="font-size:11px;color:var(--text-muted);margin-top:6px;">Tính từ đơn "Đã giao"</div>
                     </div>
-                    <div style="background:var(--info-bg);border-radius:12px;padding:24px;text-align:center">
-                        <div style="font-size:13px;color:var(--info);margin-bottom:8px">ĐƠN ĐÃ GIAO</div>
-                        <div style="font-size:28px;font-weight:800;color:var(--info)">${data.total_orders_done}</div>
+                    <div style="background:var(--info-bg);border-radius:14px;padding:28px;text-align:center;border:1px solid rgba(59,130,246,0.2);">
+                        <div style="font-size:12px;font-weight:700;letter-spacing:1px;color:var(--info);margin-bottom:10px;">📦 ĐƠN ĐÃ GIAO</div>
+                        <div style="font-size:26px;font-weight:800;color:var(--info);">${data.total_orders_done}</div>
+                        <div style="font-size:11px;color:var(--text-muted);margin-top:6px;">Đơn hàng thành công</div>
                     </div>
                 </div>
-                <h3 style="margin-bottom:12px;font-size:15px">Doanh thu theo tháng</h3>
+                <h3 style="margin-bottom:4px;font-size:15px;color:var(--text);">📊 Doanh thu theo tháng</h3>
                 ${monthlyHtml}`;
-        } catch(e) { el.innerHTML = '<p style="color:red">Lỗi tải dữ liệu doanh thu</p>'; }
+        } catch(e) {
+            el.innerHTML = '<p style="color:red;text-align:center;padding:20px;">❌ Lỗi tải dữ liệu doanh thu</p>';
+        }
     }
 
     // ==== BỔ NHIỆM STAFF ====

@@ -174,15 +174,17 @@
             if (!confirm(`Bạn chắc chắn muốn hủy đơn #${orderId}?`)) return;
             const token = localStorage.getItem('access_token');
             try {
+                // Dùng endpoint admin/api để cập nhật trạng thái thành "Đã hủy"
                 const res = await fetch(`/admin/api/orders/${orderId}/status?new_status=${encodeURIComponent('Đã hủy')}`, {
                     method: 'PUT',
                     headers: { 'Authorization': 'Bearer ' + token }
                 });
                 if (res.ok) {
                     alert(`✅ Đã hủy đơn #${orderId}`);
-                    displayOrders(); // Tải lại ngay
+                    displayOrders();
                 } else {
-                    alert('Không thể hủy đơn. Vui lòng thử lại!');
+                    const err = await res.json().catch(() => ({}));
+                    alert('Không thể hủy đơn: ' + (err.detail || 'Vui lòng thử lại!'));
                 }
             } catch (err) {
                 alert('Lỗi kết nối server!');

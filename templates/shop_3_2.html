@@ -22836,14 +22836,14 @@
                 // Map tên sản phẩm → {id, price} từ DB
                 const productMap = {};
                 productList.forEach(p => {
-                    productMap[p.name.trim().toLowerCase()] = { id: p.id, price: p.price };
+                    productMap[String(p.name || '').trim().toLowerCase()] = { id: p.id, price: p.price };
                 });
 
                 // Match từng item được chọn với DB theo tên
                 const validItems = [];
                 const notFound = [];
                 selectedCart.forEach(item => {
-                    const key = (item.name || '').trim().toLowerCase();
+                    const key = String(item.name || '').trim().toLowerCase();
                     const match = productMap[key];
                     if (match) {
                         validItems.push({
@@ -22949,7 +22949,9 @@
                 }
                 var pImg = '';
                 if (imgEl) pImg = imgEl.src || imgEl.getAttribute('data-src') || '';
-                return { name: pName, price: pPrice, img: pImg };
+                var pId = 0;
+                if (itemEl) pId = parseInt(itemEl.getAttribute('data-pid') || itemEl.getAttribute('data-id') || 0) || 0;
+                return { id: pId, name: pName, price: pPrice, img: pImg };
             }
 
             // ===== NAVIGATION BLOCKER =====
@@ -22978,7 +22980,7 @@
                         e.preventDefault(); e.stopImmediatePropagation();
                         var itemEl = btn.closest('.item');
                         var prod = extractProductFromItem(itemEl);
-                        if (prod) addToCart(prod.name, prod.price, prod.img);
+                        if (prod) addToCart(prod.id || 0, prod.name, prod.price, prod.img);
                         return false;
                     }
                 }
@@ -22997,7 +22999,7 @@
                         e.preventDefault(); e.stopImmediatePropagation();
                         var itemEl = link.closest('.item');
                         var prod = extractProductFromItem(itemEl);
-                        if (prod) addToCart(prod.name, prod.price, prod.img);
+                        if (prod) addToCart(prod.id || 0, prod.name, prod.price, prod.img);
                         return false;
                     }
 
