@@ -260,8 +260,8 @@ class Order(Base):
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     
     # --- THÔNG TIN THÊM CHO ADMIN ---
-    shipping_address = Column(Text, nullable=False) # Địa chỉ nhận hàng
-    phone_number = Column(String(15), nullable=False) # Số điện thoại khách
+    shipping_address = Column(Text, nullable=True, default="") # Địa chỉ nhận hàng
+    phone_number = Column(String(15), nullable=True, default="") # Số điện thoại khách
     note = Column(String(255), nullable=True) # Ghi chú của khách (nếu có)
     
     # --- TRẠNG THÁI ---
@@ -925,10 +925,14 @@ def delete_product(product_id: int, admin: User = Depends(require_admin), db: Se
 # 1. SCHEMAS (Giữ để không lỗi 422)
 class OrderItemSchema(BaseModel):
     product_id: int
-    quantity: int
+    quantity: int 
 
+#helloh
 class OrderCreateSchema(BaseModel):
-    items: List[OrderItemSchema]
+    items: List[CartItemSchema]
+    shipping_address: Optional[str] = ""
+    phone_number: Optional[str] = ""
+    customer_name: Optional[str] = ""
 
 # 2. API: USER XEM ĐƠN HÀNG CỦA CHÍNH MÌNH (Sửa lỗi 405 & Phân quyền)
 @app.get("/orders")
@@ -961,9 +965,9 @@ def create_order(data: OrderCreateSchema, user: User = Depends(get_current_user)
         order = Order(
             user_id=user.id,
             status="Chờ xác nhận",
-            shipping_address=data.shipping_address or "",
-            phone_number=data.phone_number or "",
-            note=data.customer_name or "",
+            shipping_address=getattr(data, 'shipping_address', '') or '',
+            phone_number=getattr(data, 'phone_number', '') or '',
+            note=getattr(data, 'customer_name', '') or '',
             created_at=datetime.now()
         )
         db.add(order)
