@@ -23469,15 +23469,11 @@
     document.addEventListener('DOMContentLoaded', activateShopButtons);
     </script>
     <script>
-        // 1. Hàm dọn dẹp giá tiền (Biến 287000360000 thành 2.870.000)
+        // 1. Hàm dọn dẹp giá tiền - hiển thị đúng giá từ DB
         function cleanPrice(price) {
-            let s = price.toString();
-            // Nếu giá dài bất thường (bị dính giá cũ từ TGDD)
-            if (s.length > 9) { 
-                s = s.substring(0, 7); 
-            }
+            let n = parseInt(price) || 0;
             // Định dạng có dấu chấm phân cách hàng nghìn
-            return new Intl.NumberFormat('vi-VN').format(s);
+            return new Intl.NumberFormat('vi-VN').format(n);
         }
 
         // 2. Hàm chính: Lấy dữ liệu từ Database và đổ vào HTML
@@ -23545,7 +23541,14 @@
             document.getElementById('modalDesc').innerText = desc || "Sản phẩm chính hãng, chất lượng cao, bảo hành đầy đủ tại hệ thống.";
             document.getElementById('modalBuyBtn').onclick = function(ev) {
                 if (ev) ev.stopPropagation();
-                if (typeof window._addToCart === 'function') window._addToCart(id, name, price, img);
+                // Thêm vào giỏ hàng
+                var found = false;
+                for (var i = 0; i < cart.length; i++) { 
+                    if (cart[i].name === name) { cart[i].qty++; found = true; break; } 
+                }
+                if (!found) cart.push({ id: parseInt(id), name: name, price: parseFloat(price), img: img, qty: 1 });
+                localStorage.setItem('cart', JSON.stringify(cart));
+                updateCartCount();
                 closeModal();
                 showToast('Đã thêm "' + name.substring(0,30) + '" vào giỏ hàng!');
             };
@@ -23565,10 +23568,20 @@
             updateCartCount();
             // Mở cart modal và cuộn xuống form thanh toán
             openCartModal();
+            // Cuộn xuống form nhập thông tin ngay sau khi render
             setTimeout(function() {
                 var form = document.getElementById('coName');
-                if (form) { form.scrollIntoView({ behavior: 'smooth', block: 'center' }); form.focus(); }
-            }, 200);
+                if (form) { 
+                    form.scrollIntoView({ behavior: 'smooth', block: 'center' }); 
+                    form.focus(); 
+                } else {
+                    // Nếu form chưa render, thử lại sau 300ms
+                    setTimeout(function() {
+                        var f2 = document.getElementById('coName');
+                        if (f2) { f2.scrollIntoView({ behavior: 'smooth', block: 'center' }); f2.focus(); }
+                    }, 300);
+                }
+            }, 250);
         }
 
         // 3. Lệnh chạy: Khi web tải xong thì gọi hàm trên

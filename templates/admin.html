@@ -549,7 +549,7 @@
       <div id="tab-products" class="card" style="display:none;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
           <h2>Danh sách sản phẩm kho</h2>
-          <button class="btn btn-done" onclick="alert('Tính năng thêm sản phẩm sẽ sớm cập nhật')">+ Thêm sản phẩm mới</button>
+          <button class="btn btn-done" onclick="openAddProductModal()">+ Thêm sản phẩm mới</button>
         </div>
         <table>
           <thead>
@@ -602,6 +602,44 @@
 
   <!-- Toast -->
   <div class="toast" id="toast"></div>
+
+  <!-- Modal THÊM sản phẩm -->
+  <div id="addProductModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:9999; align-items:center; justify-content:center;">
+    <div style="background:var(--card-bg); border-radius:16px; padding:32px; width:440px; max-width:95vw; box-shadow:0 20px 60px rgba(0,0,0,0.2); position:relative;">
+      <button onclick="closeAddProductModal()" style="position:absolute;top:14px;right:18px;background:none;border:none;font-size:22px;cursor:pointer;color:var(--text-muted)">✕</button>
+      <h2 style="margin-bottom:20px; border:none;">➕ Thêm sản phẩm mới</h2>
+      <div style="display:flex;flex-direction:column;gap:12px;">
+        <input id="newProdName" type="text" placeholder="Tên sản phẩm *" style="padding:10px 14px;border:1px solid var(--border);border-radius:8px;font-size:14px;background:var(--bg);color:var(--text);font-family:inherit;">
+        <input id="newProdPrice" type="number" placeholder="Giá (VNĐ) *" style="padding:10px 14px;border:1px solid var(--border);border-radius:8px;font-size:14px;background:var(--bg);color:var(--text);font-family:inherit;">
+        <input id="newProdImg" type="text" placeholder="URL ảnh sản phẩm" style="padding:10px 14px;border:1px solid var(--border);border-radius:8px;font-size:14px;background:var(--bg);color:var(--text);font-family:inherit;">
+        <input id="newProdStock" type="number" placeholder="Số lượng kho (mặc định 100)" style="padding:10px 14px;border:1px solid var(--border);border-radius:8px;font-size:14px;background:var(--bg);color:var(--text);font-family:inherit;">
+        <textarea id="newProdDesc" placeholder="Mô tả sản phẩm" rows="3" style="padding:10px 14px;border:1px solid var(--border);border-radius:8px;font-size:14px;background:var(--bg);color:var(--text);font-family:inherit;resize:vertical;"></textarea>
+        <div style="display:flex;gap:10px;margin-top:4px;">
+          <button onclick="closeAddProductModal()" style="flex:1;padding:11px;border:1px solid var(--border);border-radius:8px;background:transparent;color:var(--text);cursor:pointer;font-size:14px;font-weight:600;font-family:inherit;">Hủy</button>
+          <button onclick="submitAddProduct()" style="flex:2;padding:11px;border:none;border-radius:8px;background:linear-gradient(135deg,#10b981,#059669);color:#fff;cursor:pointer;font-size:14px;font-weight:700;font-family:inherit;">✅ Lưu sản phẩm</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal SỬA sản phẩm -->
+  <div id="editProductModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:9999; align-items:center; justify-content:center;">
+    <div style="background:var(--card-bg); border-radius:16px; padding:32px; width:440px; max-width:95vw; box-shadow:0 20px 60px rgba(0,0,0,0.2); position:relative;">
+      <button onclick="closeEditProductModal()" style="position:absolute;top:14px;right:18px;background:none;border:none;font-size:22px;cursor:pointer;color:var(--text-muted)">✕</button>
+      <h2 style="margin-bottom:20px; border:none;">✏️ Sửa sản phẩm</h2>
+      <div style="display:flex;flex-direction:column;gap:12px;">
+        <input id="editProdId" type="hidden">
+        <input id="editProdName" type="text" placeholder="Tên sản phẩm *" style="padding:10px 14px;border:1px solid var(--border);border-radius:8px;font-size:14px;background:var(--bg);color:var(--text);font-family:inherit;">
+        <input id="editProdPrice" type="number" placeholder="Giá (VNĐ) *" style="padding:10px 14px;border:1px solid var(--border);border-radius:8px;font-size:14px;background:var(--bg);color:var(--text);font-family:inherit;">
+        <input id="editProdImg" type="text" placeholder="URL ảnh sản phẩm" style="padding:10px 14px;border:1px solid var(--border);border-radius:8px;font-size:14px;background:var(--bg);color:var(--text);font-family:inherit;">
+        <textarea id="editProdDesc" placeholder="Mô tả sản phẩm" rows="3" style="padding:10px 14px;border:1px solid var(--border);border-radius:8px;font-size:14px;background:var(--bg);color:var(--text);font-family:inherit;resize:vertical;"></textarea>
+        <div style="display:flex;gap:10px;margin-top:4px;">
+          <button onclick="closeEditProductModal()" style="flex:1;padding:11px;border:1px solid var(--border);border-radius:8px;background:transparent;color:var(--text);cursor:pointer;font-size:14px;font-weight:600;font-family:inherit;">Hủy</button>
+          <button onclick="submitEditProduct()" style="flex:2;padding:11px;border:none;border-radius:8px;background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff;cursor:pointer;font-size:14px;font-weight:700;font-family:inherit;">💾 Lưu thay đổi</button>
+        </div>
+      </div>
+    </div>
+  </div>
 
 <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
     // Lấy token từ bộ nhớ trình duyệt
@@ -959,7 +997,12 @@
         document.getElementById('addProductModal').style.display = 'flex'; 
     }
     function closeAddProductModal() { 
-        document.getElementById('addProductModal').style.display = 'none'; 
+        document.getElementById('addProductModal').style.display = 'none';
+        // Reset form
+        ['newProdName','newProdPrice','newProdImg','newProdDesc','newProdStock'].forEach(function(id){
+            var el = document.getElementById(id);
+            if(el) el.value = '';
+        });
     }
     async function submitAddProduct() {
         const name = document.getElementById('newProdName').value.trim();
