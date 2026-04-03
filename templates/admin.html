@@ -492,7 +492,7 @@
       <div class="sidebar-user">
         <div class="user-avatar">👤</div>
         <div class="user-info">
-          <div class="user-name" id="sidebarEmail">admin@shop.com</div>
+          <div class="user-name" id="sidebarEmail"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="a6c7c2cbcfc8e6d5cec9d688c5c9cb">[email&#160;protected]</a></div>
           <div class="user-role">Super Admin</div>
         </div>
       </div>
@@ -540,7 +540,8 @@
             <tr><td colspan="9" style="text-align:center;padding:40px;color:var(--text-muted)">Đang tải dữ liệu...</td></tr>
           </tbody>
         </table>
-      </div>
+        </div><!-- end overflow-x:auto -->
+      </div><!-- end tab-orders -->
 
       <div id="tab-products" class="card" style="display:none;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
@@ -585,7 +586,7 @@
   <!-- Toast -->
   <div class="toast" id="toast"></div>
 
-<script>
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
     // Lấy token từ bộ nhớ trình duyệt
     const token = localStorage.getItem("access_token");
     let currentAdminEmail = "";
@@ -921,7 +922,7 @@
         if (btn) btn.textContent = document.documentElement.classList.contains('dark') ? '☀️' : '🌙';
     }
 
-    // Khởi động trang admin
+    // ===== KHỞI ĐỘNG =====
     checkAuth().then(() => {
         loadOrders();
     });
