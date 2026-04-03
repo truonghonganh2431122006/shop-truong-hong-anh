@@ -23194,28 +23194,34 @@
                 // 2. Chuyển đổi dữ liệu giỏ hàng sang định dạng Server yêu cầu
                 // Tớ thêm phần kiểm tra ID cực kỹ ở đây
                 const orderItems = cart.map(item => {
-                    // Cố gắng lấy ID từ mọi trường có thể (id, product_id, hoặc productId)
-                    const finalId = item.id || item.product_id || item.productId;
+                    // Thử lấy ID từ mọi trường có thể
+                    const rawId = item.id || item.product_id || item.productId || item.ID || item.itemId;
+                    const finalId = parseInt(rawId);
                     
                     return {
-                        product_id: parseInt(finalId),
+                        product_id: isNaN(finalId) ? null : finalId,
                         quantity: parseInt(item.qty || item.quantity) || 1,
-                        unit_price: parseFloat(item.price || item.unit_price) || 0
+                        unit_price: parseFloat(item.price || item.unit_price || item.salePrice || 0)
                     };
                 });
 
-                // Kiểm tra xem có món nào bị thiếu ID (NaN) không trước khi gửi
-                const hasError = orderItems.some(item => isNaN(item.product_id));
-                if (hasError) {
-                    alert("Lỗi: Giỏ hàng cũ không hợp lệ. Vui lòng nhấn nút 'Xóa giỏ hàng' và chọn lại sản phẩm!");
-                    console.error("Dữ liệu lỗi:", orderItems);
+                // Lọc bỏ item lỗi thay vì chặn toàn bộ đơn
+                const validItems = orderItems.filter(item => item.product_id !== null && item.product_id > 0);
+
+                if (validItems.length === 0) {
+                    // Tất cả đều lỗi — xóa giỏ cũ và báo user
+                    localStorage.removeItem('cart');
+                    alert("Giỏ hàng bị lỗi dữ liệu cũ và đã được xóa.\nVui lòng chọn lại sản phẩm!");
+                    window.location.reload();
                     return;
                 }
 
+                // Dùng validItems thay vì orderItems từ đây trở đi
                 const orderData = {
-                    items: orderItems,
+                    items: validItems,
                     shipping_address: fullAddr,
-                    phone_number: phone.trim()
+                    phone_number: phone.trim(),
+                    customer_name: name.trim()
                 };
 
                 try {
