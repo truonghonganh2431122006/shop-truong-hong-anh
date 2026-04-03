@@ -23191,39 +23191,60 @@
                     return;
                 }
 
-                // 2. Chuyển đổi dữ liệu giỏ hàng sang định dạng Server yêu cầu
-                // Tớ thêm phần kiểm tra ID cực kỹ ở đây
-                const orderItems = cart.map(item => {
-                    // Thử lấy ID từ mọi trường có thể
-                    const rawId = item.id || item.product_id || item.productId || item.ID || item.itemId;
-                    const finalId = parseInt(rawId);
-                    
-                    return {
-                        product_id: isNaN(finalId) ? null : finalId,
-                        quantity: parseInt(item.qty || item.quantity) || 1,
-                        unit_price: parseFloat(item.price || item.unit_price || item.salePrice || 0)
-                    };
+                // hello
+                // Lấy danh sách sản phẩm từ DB để match tên → id
+                let productList = [];
+                try {
+                    const pRes = await fetch('/products', {
+                        headers: { 'Authorization': 'Bearer ' + token }
+                    });
+                    productList = await pRes.json();
+                } catch(e) {
+                    alert("Không thể kết nối server để xác thực giỏ hàng!");
+                    return;
+                }
+
+                // Map tên sản phẩm → {id, price} từ DB
+                const productMap = {};
+                productList.forEach(p => {
+                    productMap[p.name.trim().toLowerCase()] = { id: p.id, price: p.price };
                 });
 
-                // Lọc bỏ item lỗi thay vì chặn toàn bộ đơn
-                const validItems = orderItems.filter(item => item.product_id !== null && item.product_id > 0);
+                // Match từng item trong giỏ với DB theo tên
+                const validItems = [];
+                const notFound = [];
+                cart.forEach(item => {
+                    const key = (item.name || '').trim().toLowerCase();
+                    const match = productMap[key];
+                    if (match) {
+                        validItems.push({
+                            product_id: match.id,
+                            quantity: parseInt(item.qty || item.quantity) || 1,
+                            unit_price: match.price  // Luôn dùng giá từ DB, không dùng giá cache
+                        });
+                    } else {
+                        notFound.push(item.name);
+                    }
+                });
+
+                if (notFound.length > 0) {
+                    console.warn("Không tìm thấy sản phẩm trong DB:", notFound);
+                }
 
                 if (validItems.length === 0) {
-                    // Tất cả đều lỗi — xóa giỏ cũ và báo user
+                    alert("Không thể xác định sản phẩm trong giỏ hàng!\nVui lòng xóa giỏ và chọn lại.");
                     localStorage.removeItem('cart');
-                    alert("Giỏ hàng bị lỗi dữ liệu cũ và đã được xóa.\nVui lòng chọn lại sản phẩm!");
                     window.location.reload();
                     return;
                 }
 
-                // Dùng validItems thay vì orderItems từ đây trở đi
                 const orderData = {
                     items: validItems,
                     shipping_address: fullAddr,
                     phone_number: phone.trim(),
                     customer_name: name.trim()
                 };
-
+                
                 try {
                     const res = await fetch('/orders', {
                         method: 'POST',
