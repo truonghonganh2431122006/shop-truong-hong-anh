@@ -22566,7 +22566,7 @@
                     </div>
                     <button class="modal-buy-btn" id="modalBuyBtn" 
                         style="width:100%; padding:15px; background:#ffed00; border:none; border-radius:8px; font-weight:bold; cursor:pointer; margin-top:20px;">
-                        THÊM VÀO GIỎ HÀNG
+                        MUA NGAY
                     </button>
                 </div>
             </div>
@@ -23167,7 +23167,7 @@
                     + '<h3>' + displayName + '</h3>'
                     + '<div class="price"><strong>' + formatPrice(price) + '</strong></div>'
                     + '</a>'
-                    + '<a href="javascript:void(0)" class="btn-buy" style="display:block;text-align:center;background:#ffd400;color:#333;padding:8px;border-radius:4px;margin-top:8px;font-weight:bold;text-decoration:none;font-size:13px">Mua ngay</a>';
+                    + '<a href="javascript:void(0)" class="btn-buy" style="display:block;text-align:center;background:#ffd400;color:#333;padding:8px;border-radius:4px;margin-top:8px;font-weight:bold;text-decoration:none;font-size:13px">🛒Giỏ hàng</a>';
                 container.appendChild(itemDiv);
 
                 // Attach error handler on the image
@@ -23535,52 +23535,28 @@
         }
 
         function showProductModal(name, price, img, desc, id) {
-            // 1. Đổ dữ liệu vào Modal
+            // 1. Đổ dữ liệu vào Modal (Ảnh, Tên, Giá, Mô tả)
             document.getElementById('modalImg').src = img;
             document.getElementById('modalName').innerText = name;
             document.getElementById('modalPrice').innerText = new Intl.NumberFormat('vi-VN').format(price) + " ₫";
             
-            // THAY ĐỔI: Dòng mô tả chung cho tất cả sản phẩm
             const moTaChung = "Sản phẩm chính hãng tại hệ thống Hồng Anh. Bảo hành 12 tháng, lỗi 1 đổi 1 trong 30 ngày. Cam kết chất lượng và giá tốt nhất thị trường.";
             document.getElementById('modalDesc').innerText = desc || moTaChung;
 
-            // 2. Xử lý nút bấm "Thêm vào giỏ hàng"
+            // 2. Thay đổi nút bấm thành chức năng "MUA NGAY"
+            // (Giống hệt nút Mua ngay ở danh sách sản phẩm bên ngoài)
             document.getElementById('modalBuyBtn').onclick = function(ev) {
-                if (ev) ev.stopPropagation();
+                if (ev) ev.stopPropagation(); // Ngăn click lan ra ngoài
 
-                // Kiểm tra xem sản phẩm đã có trong giỏ chưa
-                var found = false;
-                for (var i = 0; i < cart.length; i++) { 
-                    if (cart[i].name === name) { 
-                        cart[i].qty++; 
-                        found = true; 
-                        break; 
-                    } 
-                }
-
-                // Nếu chưa có thì thêm mới vào mảng cart
-                if (!found) {
-                    cart.push({ 
-                        id: parseInt(id) || Date.now(), 
-                        name: name, 
-                        price: parseFloat(price), 
-                        img: img, 
-                        qty: 1 
-                    });
-                }
-
-                // Lưu lại vào trình duyệt và cập nhật số lượng trên icon giỏ hàng
-                localStorage.setItem('cart', JSON.stringify(cart));
-                if (typeof updateCartCount === "function") updateCartCount();
-
-                // 3. Đóng bảng to (Modal)
+                // Bước A: Đóng bảng chi tiết sản phẩm lại cho đỡ vướng
                 closeModal();
 
-                // 4. Hiện thông báo xanh (Toast) dưới chân trang
-                showToast('✅ Đã thêm "' + name + '" vào giỏ hàng thành công!');
+                // Bước B: Gọi hàm buyNow (Hàm này bạn đã có sẵn ở dưới rồi)
+                // Nó sẽ tự động: Thêm vào giỏ -> Hiện thông báo xanh -> Mở giỏ hàng -> Cuộn tới Form nhập tên
+                buyNow(id, name, price, img);
             };
 
-            // 5. Hiển thị Modal
+            // 3. Hiển thị Modal
             document.getElementById('productModal').classList.add('show');
         }
 
