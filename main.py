@@ -1545,6 +1545,64 @@ def get_total_revenue(
     }
 
 
+# ===================== CHATBOT AI (CLAUDE PROXY) =====================
+import httpx
+
+CLAUDE_API_KEY = os.getenv("CLAUDE_API_KEY", "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")
+CLAUDE_API_URL = "https://api.anthropic.com/v1/messages"
+CLAUDE_MODEL   = "claude-sonnet-4-20250514"
+
+CHATBOT_SYSTEM = (
+    "Bạn là Hồng Anh AI - trợ lý bán hàng của shop Trương Hồng Anh chuyên điện thoại, "
+    "laptop, tablet, phụ kiện và đồng hồ thông minh chính hãng. "
+    "Trả lời thân thiện, ngắn gọn 2-3 câu bằng tiếng Việt có dấu. "
+    "Luôn hướng khách xem sản phẩm hoặc đặt hàng tại shop."
+)
+
+class ChatMessage(BaseModel):
+    role: str       # "user" hoặc "assistant"
+    content: str
+
+class ChatRequest(BaseModel):
+    messages: List[ChatMessage]
+
+@app.post("/api/chat")
+async def chat_proxy(req: ChatRequest):
+    """Proxy nhận tin nhắn từ frontend, gọi Claude API, trả về reply."""
+    if not req.messages:
+        raise HTTPException(status_code=400, detail="Tin nhắn trống")
+
+    # Chuyển sang định dạng Claude API
+    claude_messages = [{"role": m.role, "content": m.content} for m in req.messages]
+
+    payload = {
+        "model": CLAUDE_MODEL,
+        "max_tokens": 512,
+        "system": CHATBOT_SYSTEM,
+        "messages": claude_messages,
+    }
+
+    headers = {
+        "x-api-key": CLAUDE_API_KEY,
+        "anthropic-version": "2023-06-01",
+        "content-type": "application/json",
+    }
+
+    try:
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            res = await client.post(CLAUDE_API_URL, json=payload, headers=headers)
+        data = res.json()
+        if res.status_code != 200:
+            detail = data.get("error", {}).get("message", "Lỗi Claude API")
+            raise HTTPException(status_code=res.status_code, detail=detail)
+        reply = data["content"][0]["text"]
+        return {"reply": reply}
+    except httpx.TimeoutException:
+        raise HTTPException(status_code=504, detail="AI phản hồi quá chậm, thử lại nhé!")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 # --- PHẢI NẰM Ở CUỐI FILE main.py ---
 if __name__ == "__main__":
     # Render cấp cổng nào mình chạy cổng đó

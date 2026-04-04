@@ -23718,11 +23718,11 @@
 
 <script>
 (function(){
-  var KEY  = 'AIzaSyDb1bLcCMCiaxaL3NEBgsTh-uOrnCaJGb0';
-  var URL_ = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=' + KEY;
-  var SYS  = 'Bạn là Hồng Anh AI - trợ lý bán hàng của shop Trương Hồng Anh chuyên iPhone và phụ kiện chính hãng. Trả lời thân thiện, ngắn gọn 2-3 câu bằng tiếng Việt có dấu. Luôn hướng khách xem sản phẩm hoặc đặt hàng.';
-  var GREET= 'Chào bạn! 👋 Trợ lý ảo <b>Hồng Anh AI</b> có thể giúp gì cho bạn?<br><span style="color:#888;font-size:11px">Tư vấn iPhone, phụ kiện, giá cả, bảo hành...</span>';
+  // ===== GỌI QUA BACKEND PROXY /api/chat (Claude AI) =====
+  var CHAT_URL = '/api/chat';
+  var GREET= 'Chào bạn! 👋 Trợ lý ảo <b>Hồng Anh AI</b> có thể giúp gì cho bạn?<br><span style="color:#888;font-size:11px">Tư vấn điện thoại, laptop, phụ kiện, giá cả, bảo hành...</span>';
 
+  // hist lưu theo định dạng Claude: [{role:'user',content:'...'},{role:'assistant',content:'...'}]
   var isOpen=false, isBusy=false, hist=[], started=false;
 
   function el(id){return document.getElementById(id);}
@@ -23744,7 +23744,7 @@
     if(!txt||isBusy)return;
     inp.value='';inp.style.height='auto';
     usrMsg(txt);
-    hist.push({role:'user',parts:[{text:txt}]});
+    hist.push({role:'user', content:txt});
     ask();
   };
 
@@ -23752,39 +23752,24 @@
     isBusy=true;
     var dot=showDots();
     try{
-      var res=await fetch(URL_,{
+      var res=await fetch(CHAT_URL,{
         method:'POST',
         headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({
-          system_instruction:{parts:[{text:SYS}]},
-          contents:hist
-        })
+        body:JSON.stringify({ messages: hist })
       });
       var d=await res.json();
 
-      // Xử lý lỗi quota 429
-      if(res.status===429){
+      if(!res.ok){
         dot.remove();
-        errMsg('⚠️ AI đang bận, vui lòng thử lại sau vài phút nhé! Hoặc liên hệ shop qua hotline để được tư vấn trực tiếp.');
+        var errTxt = d.detail || 'AI đang gặp sự cố, thử lại sau nhé!';
+        if(res.status===429) errTxt='⚠️ AI đang quá tải, thử lại sau vài giây nhé!';
+        if(res.status===504) errTxt='⚠️ AI phản hồi chậm, thử lại nhé!';
+        errMsg(errTxt);
         isBusy=false;return;
       }
 
-      var reply='';
-      if(d.candidates&&d.candidates[0]&&d.candidates[0].content){
-        reply=d.candidates[0].content.parts[0].text||'';
-      } else if(d.error){
-        // Phân loại lỗi rõ ràng
-        if(d.error.code===429||String(d.error.message||'').toLowerCase().includes('quota')){
-          dot.remove();
-          errMsg('⚠️ AI đang quá tải, thử lại sau vài giây nhé! Bạn có thể liên hệ shop để được hỗ trợ ngay.');
-          isBusy=false;return;
-        }
-        reply='⚠️ '+( d.error.message||'Lỗi không xác định');
-      } else {
-        reply='Xin lỗi, mình chưa hiểu câu hỏi. Bạn thử hỏi lại theo cách khác nhé!';
-      }
-
-      hist.push({role:'model',parts:[{text:reply}]});
+      var reply = d.reply || 'Xin lỗi, mình chưa hiểu câu hỏi. Bạn thử hỏi lại nhé!';
+      hist.push({role:'assistant', content:reply});
       dot.remove();
       botMsg(md(reply));
     }catch(e){
