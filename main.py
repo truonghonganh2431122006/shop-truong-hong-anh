@@ -1514,8 +1514,7 @@ def get_total_revenue(
 import httpx
 import asyncio
 
-# Lấy key mới tại: https://aistudio.google.com/apikey (miễn phí)
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "AIzaSyAx1YwFLtn4bFBEQXb6_MQDQ4ZeSh4nbK4")
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "AIzaSyAPtiUYBT0T-oywd_yZEHHYJOoN37NJRjc")
 
 CHATBOT_SYSTEM = (
     "Bạn là Hồng Anh AI - trợ lý bán hàng của shop Trương Hồng Anh chuyên điện thoại, "
@@ -1553,24 +1552,22 @@ async def chat_proxy(req: ChatRequest):
         "gemini-2.0-flash:generateContent?key=" + GEMINI_API_KEY
     )
 
-    # Retry tối đa 3 lần khi gặp 429
     MAX_RETRY = 3
     for attempt in range(MAX_RETRY):
         try:
             async with httpx.AsyncClient(timeout=30.0) as client:
                 res = await client.post(
-                    url,
-                    json=payload,
+                    url, json=payload,
                     headers={"Content-Type": "application/json"},
                 )
             data = res.json()
             print(f">>> [CHAT] Gemini status: {res.status_code} (lần {attempt+1})")
 
             if res.status_code == 429:
-                wait = 2 ** attempt  # 1s, 2s, 4s
+                wait = 2 ** attempt
                 print(f">>> [CHAT] 429 - chờ {wait}s rồi thử lại...")
                 await asyncio.sleep(wait)
-                continue  # thử lại
+                continue
 
             if res.status_code != 200:
                 err = data.get("error", {}).get("message", "Lỗi Gemini API")
@@ -1591,13 +1588,10 @@ async def chat_proxy(req: ChatRequest):
             print(f">>> [CHAT] Exception: {str(e)}")
             raise HTTPException(status_code=500, detail=str(e))
 
-    # Hết retry vẫn 429
     raise HTTPException(status_code=503, detail="AI đang bận, vui lòng thử lại sau 10 giây!")
 
 
 # --- PHẢI NẰM Ở CUỐI FILE main.py ---
 if __name__ == "__main__":
-    # Render cấp cổng nào mình chạy cổng đó
     port = int(os.environ.get("PORT", 10000))
-    # Host 0.0.0.0 là bắt buộc để Render "nhìn" thấy app
     uvicorn.run(app, host="0.0.0.0", port=port)
