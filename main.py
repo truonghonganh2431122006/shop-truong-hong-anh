@@ -1514,7 +1514,7 @@ def get_total_revenue(
 import httpx
 
 # Lấy key tại: https://aistudio.google.com/apikey (miễn phí)
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "AIzaSyDkhhXLeUQuzvHCHUJ6u6tYMVCFX-KYIbY")
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "AIzaSyD2JgECdcXRDbMmUzl9AXdvFrk18LFJVSs")
 GEMINI_URL = (
     "https://generativelanguage.googleapis.com/v1beta/models/"
     "gemini-2.0-flash:generateContent?key=" + GEMINI_API_KEY
