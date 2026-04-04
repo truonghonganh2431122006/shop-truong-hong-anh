@@ -10,3 +10,5 @@ bcrypt==4.0.1
 python-jose[cryptography]
 email-validator
 psycopg2-binary==2.9.9
+httpx
+python-dotenv
