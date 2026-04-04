@@ -23718,11 +23718,11 @@
 
 <script>
 (function(){
-  // ===== GỌI QUA BACKEND PROXY /api/chat (Claude AI) =====
+  // ===== GỌI QUA BACKEND PROXY /api/chat (Gemini AI - miễn phí) =====
   var CHAT_URL = '/api/chat';
   var GREET= 'Chào bạn! 👋 Trợ lý ảo <b>Hồng Anh AI</b> có thể giúp gì cho bạn?<br><span style="color:#888;font-size:11px">Tư vấn điện thoại, laptop, phụ kiện, giá cả, bảo hành...</span>';
 
-  // hist lưu theo định dạng Claude: [{role:'user',content:'...'},{role:'assistant',content:'...'}]
+  // hist: [{role:'user',content:'...'},{role:'assistant',content:'...'}]
   var isOpen=false, isBusy=false, hist=[], started=false;
 
   function el(id){return document.getElementById(id);}

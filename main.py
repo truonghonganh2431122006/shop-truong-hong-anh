@@ -1510,12 +1510,15 @@ def get_total_revenue(
     }
 
 
-# ===================== CHATBOT AI (CLAUDE PROXY) =====================
+# ===================== CHATBOT AI (GEMINI PROXY) =====================
 import httpx
 
-CLAUDE_API_KEY = os.getenv("CLAUDE_API_KEY", "")
-CLAUDE_API_URL = "https://api.anthropic.com/v1/messages"
-CLAUDE_MODEL   = "claude-sonnet-4-20250514"
+# Lấy key tại: https://aistudio.google.com/apikey (miễn phí)
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "AIzaSyDkhhXLeUQuzvHCHUJ6u6tYMVCFX-KYIbY")
+GEMINI_URL = (
+    "https://generativelanguage.googleapis.com/v1beta/models/"
+    "gemini-2.0-flash:generateContent?key=" + GEMINI_API_KEY
+)
 
 CHATBOT_SYSTEM = (
     "Bạn là Hồng Anh AI - trợ lý bán hàng của shop Trương Hồng Anh chuyên điện thoại, "
@@ -1533,37 +1536,47 @@ class ChatRequest(BaseModel):
 
 @app.post("/api/chat")
 async def chat_proxy(req: ChatRequest):
-    """Proxy nhận tin nhắn từ frontend, gọi Claude API, trả về reply."""
+    """Proxy gọi Gemini API, trả về reply cho frontend."""
     if not req.messages:
         raise HTTPException(status_code=400, detail="Tin nhắn trống")
 
-    # Chuyển sang định dạng Claude API
-    claude_messages = [{"role": m.role, "content": m.content} for m in req.messages]
+    # Chuyển sang định dạng Gemini (role: user/model, parts: [{text}])
+    gemini_contents = []
+    for m in req.messages:
+        role = "model" if m.role == "assistant" else "user"
+        gemini_contents.append({"role": role, "parts": [{"text": m.content}]})
 
     payload = {
-        "model": CLAUDE_MODEL,
-        "max_tokens": 512,
-        "system": CHATBOT_SYSTEM,
-        "messages": claude_messages,
+        "system_instruction": {"parts": [{"text": CHATBOT_SYSTEM}]},
+        "contents": gemini_contents,
     }
 
-    headers = {
-        "x-api-key": CLAUDE_API_KEY,
-        "anthropic-version": "2023-06-01",
-        "content-type": "application/json",
-    }
+    # Tạo URL với key mới nhất (đề phòng env thay đổi sau khi import)
+    url = (
+        "https://generativelanguage.googleapis.com/v1beta/models/"
+        "gemini-2.0-flash:generateContent?key=" + GEMINI_API_KEY
+    )
 
     try:
         async with httpx.AsyncClient(timeout=30.0) as client:
-            res = await client.post(CLAUDE_API_URL, json=payload, headers=headers)
+            res = await client.post(
+                url,
+                json=payload,
+                headers={"Content-Type": "application/json"},
+            )
         data = res.json()
-        print(f">>> [CHAT] Claude status: {res.status_code}")
+        print(f">>> [CHAT] Gemini status: {res.status_code}")
+
+        if res.status_code == 429:
+            raise HTTPException(status_code=429, detail="AI đang quá tải, thử lại sau vài giây nhé!")
         if res.status_code != 200:
-            err_msg = data.get("error", {}).get("message", "Lỗi Claude API")
-            print(f">>> [CHAT] Lỗi Claude: {err_msg}")
-            raise HTTPException(status_code=res.status_code, detail=err_msg)
-        reply = data["content"][0]["text"]
+            err = data.get("error", {}).get("message", "Lỗi Gemini API")
+            print(f">>> [CHAT] Lỗi Gemini: {err}")
+            raise HTTPException(status_code=res.status_code, detail=err)
+
+        reply = data["candidates"][0]["content"]["parts"][0]["text"]
         return {"reply": reply}
+
     except httpx.TimeoutException:
         raise HTTPException(status_code=504, detail="AI phản hồi quá chậm, thử lại nhé!")
     except HTTPException:
