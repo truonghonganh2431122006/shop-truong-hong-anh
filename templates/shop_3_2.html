@@ -23718,11 +23718,11 @@
 
 <script>
 (function(){
-  // ===== GỌI QUA BACKEND PROXY /api/chat (Gemini AI - miễn phí) =====
+  // ===== GỌI QUA BACKEND PROXY /api/chat (Claude AI) =====
   var CHAT_URL = '/api/chat';
   var GREET= 'Chào bạn! 👋 Trợ lý ảo <b>Hồng Anh AI</b> có thể giúp gì cho bạn?<br><span style="color:#888;font-size:11px">Tư vấn điện thoại, laptop, phụ kiện, giá cả, bảo hành...</span>';
 
-  // hist: [{role:'user',content:'...'},{role:'assistant',content:'...'}]
+  // hist lưu theo định dạng Claude: [{role:'user',content:'...'},{role:'assistant',content:'...'}]
   var isOpen=false, isBusy=false, hist=[], started=false;
 
   function el(id){return document.getElementById(id);}
@@ -23762,9 +23762,19 @@
       if(!res.ok){
         dot.remove();
         var errTxt = d.detail || 'AI đang gặp sự cố, thử lại sau nhé!';
-        if(res.status===429) errTxt='⚠️ AI đang quá tải, thử lại sau vài giây nhé!';
+        if(res.status===429||res.status===503) errTxt='⏳ AI đang bận, tự động thử lại sau 5 giây...';
         if(res.status===504) errTxt='⚠️ AI phản hồi chậm, thử lại nhé!';
         errMsg(errTxt);
+        // Tự động retry sau 5 giây nếu 429/503
+        if(res.status===429||res.status===503){
+          setTimeout(function(){ isBusy=false; haSend && hist.length && (function(){
+            // Lấy lại tin nhắn cuối của user và gửi lại
+            var lastUser = null;
+            for(var i=hist.length-1;i>=0;i--){ if(hist[i].role==='user'){lastUser=hist[i].content;break;} }
+            if(lastUser){ hist.pop(); usrMsg(lastUser); hist.push({role:'user',content:lastUser}); ask(); }
+          })(); }, 5000);
+          return;
+        }
         isBusy=false;return;
       }
 
