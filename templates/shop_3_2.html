@@ -22564,6 +22564,10 @@
                         <h4 style="margin-bottom:10px;">Mô tả chi tiết:</h4>
                         <p id="modalDesc" style="color:#555; line-height:1.6;"></p>
                     </div>
+                    <button class="modal-buy-btn" id="modalBuyBtn" 
+                        style="width:100%; padding:15px; background:#ffed00; border:none; border-radius:8px; font-weight:bold; cursor:pointer; margin-top:20px;">
+                        MUA NGAY
+                    </button>
                 </div>
             </div>
         </div>
@@ -23495,13 +23499,6 @@
                     itemDiv.setAttribute('data-pdesc', p.description || '');
                     itemDiv.setAttribute('data-pid', p.id);
                     itemDiv.style.cursor = 'pointer';
-
-                    // Gắn sự kiện click để mở modal chi tiết sản phẩm
-                    itemDiv.addEventListener('click', function(e) {
-                        // Nếu click vào nút "Giỏ hàng" thì không mở modal
-                        if (e.target.closest('.btn-buy')) return;
-                        showProductModal(p.name, p.price, imgUrl, p.description || '', p.id);
-                    });
 
                     // Vẽ nội dung bên trong
                     itemDiv.innerHTML = `
