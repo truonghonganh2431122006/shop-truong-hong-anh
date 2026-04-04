@@ -667,9 +667,9 @@ def unban_user(data: AdminActionSchema, admin: User = Depends(require_admin), db
 class EmailRequest(BaseModel):
     email: str
 
-# 2. Hàm xóa chuẩn duy nhất
+# 2. Hàm xóa chuẩn duy nhất (theo email)
 @app.delete("/admin/delete")
-def delete_user(data: EmailRequest, db: Session = Depends(get_db), current_user: User = Depends(require_admin)):
+def delete_user_by_email(data: EmailRequest, db: Session = Depends(get_db), current_user: User = Depends(require_admin)):
     # Tìm user dựa trên email gửi từ giao diện
     user_to_delete = db.query(User).filter(User.email == data.email).first()
     
@@ -1177,9 +1177,9 @@ async def get_admin_orders(db: Session = Depends(get_db)):
         })
     return result
 
-# API cập nhật trạng thái đơn
+# API cập nhật trạng thái đơn (dùng cho admin.html và order-history.html)
 @app.put("/admin/api/orders/{order_id}/status")
-async def update_order_status(
+async def update_order_status_api(
     order_id: int, 
     new_status: str = Query(...),
     db: Session = Depends(get_db)
@@ -1364,41 +1364,6 @@ async def admin_update_status(order_id: int, data: dict, db: Session = Depends(g
 def startup_event():
     db = SessionLocal()
     try:
-        # --- THAY ĐỔI THÔNG TIN Ở ĐÂY ---
-        admin_email = "honganh@gmail.com"  # Email mới của bạn
-        admin_pass = "admin123"           # Mật khẩu mới của bạn
-        # -------------------------------
-
-        user = db.query(User).filter(User.email == admin_email).first()
-        
-        if user:
-            # Nếu đã có email này, cập nhật mật khẩu và quyền
-            user.role = "ADMIN"
-            user.status = "ACTIVE"
-            user.password = get_password_hash(admin_pass) # Dùng hàm băm pass có sẵn ở đầu file
-            db.commit()
-            print(f">>> HE THONG: DA CAP NHAT QUYEN ADMIN CHO {admin_email}")
-        else:
-            # Nếu chưa có, tạo mới hoàn toàn
-            new_admin = User(
-                email=admin_email,
-                password=get_password_hash(admin_pass),
-                role="ADMIN",
-                status="ACTIVE"
-            )
-            db.add(new_admin)
-            db.commit()
-            print(f">>> HE THONG: DA TAO MOI TK ADMIN: {admin_email} / {admin_pass}")
-            
-    except Exception as e:
-        print(f">>> LOI STARTUP: {e}")
-    finally:
-        db.close()
-
-@app.on_event("startup")
-def startup_event():
-    db = SessionLocal()
-    try:
         # 1. Định nghĩa Admin DUY NHẤT được phép
         super_admin = "honganh@gmail.com"
         admin_pass = "admin123"
@@ -1548,7 +1513,7 @@ def get_total_revenue(
 # ===================== CHATBOT AI (CLAUDE PROXY) =====================
 import httpx
 
-CLAUDE_API_KEY = os.getenv("CLAUDE_API_KEY", "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")
+CLAUDE_API_KEY = os.getenv("CLAUDE_API_KEY", "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")
 CLAUDE_API_URL = "https://api.anthropic.com/v1/messages"
 CLAUDE_MODEL   = "claude-sonnet-4-20250514"
 
