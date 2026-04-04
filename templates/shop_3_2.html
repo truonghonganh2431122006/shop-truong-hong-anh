@@ -23496,6 +23496,13 @@
                     itemDiv.setAttribute('data-pid', p.id);
                     itemDiv.style.cursor = 'pointer';
 
+                    // Gắn sự kiện click để mở modal chi tiết sản phẩm
+                    itemDiv.addEventListener('click', function(e) {
+                        // Nếu click vào nút "Giỏ hàng" thì không mở modal
+                        if (e.target.closest('.btn-buy')) return;
+                        showProductModal(p.name, p.price, imgUrl, p.description || '', p.id);
+                    });
+
                     // Vẽ nội dung bên trong
                     itemDiv.innerHTML = `
                         <a href="javascript:void(0)" class="remain_quantity main-contain">
