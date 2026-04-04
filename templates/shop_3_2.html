@@ -20849,7 +20849,7 @@
             // 5. TỰ ĐỘNG THAY THẾ CÁC NÚT MUA NGAY (Tránh bị hiện alert cũ)
             document.addEventListener('click', function(e) {
                 // Tìm xem cái đang bấm có phải nút mua ngay không
-                if(e.target && (e.target.classList.contains('buy-now') || e.target.innerText.includes('MUA NGAY'))) {
+                if(e.target && (e.target.classList.contains('buy-now') || (e.target.innerText && e.target.innerText.includes('MUA NGAY')))) {
                     if(!localStorage.getItem("access_token")) {
                         e.preventDefault(); // Chặn hành động cũ
                         e.stopPropagation();
@@ -23593,257 +23593,85 @@
         document.addEventListener('DOMContentLoaded', displayProducts);
     </script>
 
-<!-- ============================================================ -->
-<!-- HỒNG ANH AI CHATBOT - Powered by Google Gemini              -->
-<!-- ============================================================ -->
+<!-- ============ HỒNG ANH AI CHATBOT ============ -->
 <style>
-  /* === FAB BUTTON === */
   #ha-fab {
-    position: fixed;
-    bottom: 28px;
-    right: 28px;
-    width: 58px;
-    height: 58px;
-    background: #ffed00;
-    border-radius: 50%;
-    border: none;
-    cursor: pointer;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.22);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 99990;
-    transition: transform 0.25s cubic-bezier(.34,1.56,.64,1), box-shadow 0.2s;
+    position:fixed;bottom:28px;right:28px;width:58px;height:58px;
+    background:#ffed00;border-radius:50%;border:none;cursor:pointer;
+    box-shadow:0 4px 20px rgba(0,0,0,0.22);
+    display:flex;align-items:center;justify-content:center;
+    z-index:99990;transition:transform 0.25s cubic-bezier(.34,1.56,.64,1),box-shadow 0.2s;
   }
-  #ha-fab:hover {
-    transform: scale(1.12);
-    box-shadow: 0 6px 28px rgba(0,0,0,0.28);
+  #ha-fab:hover{transform:scale(1.12);box-shadow:0 6px 28px rgba(0,0,0,0.28);}
+  #ha-fab svg{width:28px;height:28px;}
+  #ha-fab-badge{
+    position:absolute;top:-2px;right:-2px;background:#e53e3e;color:#fff;
+    font-size:10px;font-weight:700;width:18px;height:18px;border-radius:50%;
+    display:none;align-items:center;justify-content:center;border:2px solid #fff;
   }
-  #ha-fab svg { width: 28px; height: 28px; }
-
-  /* Badge số tin chưa đọc */
-  #ha-fab-badge {
-    position: absolute;
-    top: -2px; right: -2px;
-    background: #e53e3e;
-    color: #fff;
-    font-size: 10px;
-    font-weight: 700;
-    width: 18px; height: 18px;
-    border-radius: 50%;
-    display: none;
-    align-items: center;
-    justify-content: center;
-    border: 2px solid #fff;
+  #ha-win{
+    position:fixed;bottom:100px;right:28px;width:360px;max-width:calc(100vw - 40px);
+    height:520px;max-height:calc(100vh - 120px);background:#fff;border-radius:20px;
+    box-shadow:0 12px 48px rgba(0,0,0,0.18);
+    display:flex;flex-direction:column;overflow:hidden;z-index:99989;
+    transform:scale(0.85) translateY(20px);opacity:0;pointer-events:none;
+    transition:transform 0.28s cubic-bezier(.34,1.56,.64,1),opacity 0.22s;
+    transform-origin:bottom right;
   }
-
-  /* === CHAT WINDOW === */
-  #ha-chat-window {
-    position: fixed;
-    bottom: 100px;
-    right: 28px;
-    width: 360px;
-    max-width: calc(100vw - 40px);
-    height: 520px;
-    max-height: calc(100vh - 120px);
-    background: #fff;
-    border-radius: 20px;
-    box-shadow: 0 12px 48px rgba(0,0,0,0.18), 0 2px 8px rgba(0,0,0,0.08);
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-    z-index: 99989;
-    transform: scale(0.85) translateY(20px);
-    opacity: 0;
-    pointer-events: none;
-    transition: transform 0.28s cubic-bezier(.34,1.56,.64,1), opacity 0.22s ease;
-    transform-origin: bottom right;
+  #ha-win.open{transform:scale(1) translateY(0);opacity:1;pointer-events:all;}
+  #ha-hdr{
+    background:linear-gradient(135deg,#1a1a2e,#16213e);
+    padding:14px 18px;display:flex;align-items:center;gap:12px;flex-shrink:0;
   }
-  #ha-chat-window.ha-open {
-    transform: scale(1) translateY(0);
-    opacity: 1;
-    pointer-events: all;
+  #ha-av{width:40px;height:40px;background:#ffed00;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  #ha-av svg{width:22px;height:22px;}
+  #ha-hdr-info{flex:1;min-width:0;}
+  #ha-hdr-name{color:#fff;font-size:14px;font-weight:700;font-family:-apple-system,sans-serif;}
+  #ha-hdr-status{color:#4ade80;font-size:11px;margin-top:1px;font-family:-apple-system,sans-serif;}
+  #ha-x{background:rgba(255,255,255,0.1);border:none;color:#fff;width:30px;height:30px;
+    border-radius:50%;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;
+    transition:background 0.2s;flex-shrink:0;}
+  #ha-x:hover{background:rgba(255,255,255,0.2);}
+  #ha-msgs{
+    flex:1;overflow-y:auto;padding:16px 14px;display:flex;flex-direction:column;
+    gap:10px;background:#f7f8fc;scroll-behavior:smooth;
   }
-
-  /* Header */
-  #ha-header {
-    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-    padding: 14px 18px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    flex-shrink: 0;
+  #ha-msgs::-webkit-scrollbar{width:4px;}
+  #ha-msgs::-webkit-scrollbar-thumb{background:#d0d0d0;border-radius:4px;}
+  .ha-b{
+    max-width:82%;padding:10px 14px;border-radius:18px;font-size:13.5px;
+    line-height:1.55;word-break:break-word;
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+    animation:ha-pop 0.2s cubic-bezier(.34,1.56,.64,1);
   }
-  #ha-header-avatar {
-    width: 40px; height: 40px;
-    background: #ffed00;
-    border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    flex-shrink: 0;
-  }
-  #ha-header-avatar svg { width: 22px; height: 22px; }
-  #ha-header-info { flex: 1; min-width: 0; }
-  #ha-header-name {
-    color: #fff;
-    font-size: 14px;
-    font-weight: 700;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  }
-  #ha-header-status {
-    color: #4ade80;
-    font-size: 11px;
-    margin-top: 1px;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  }
-  #ha-close-btn {
-    background: rgba(255,255,255,0.1);
-    border: none;
-    color: #fff;
-    width: 30px; height: 30px;
-    border-radius: 50%;
-    cursor: pointer;
-    font-size: 16px;
-    display: flex; align-items: center; justify-content: center;
-    transition: background 0.2s;
-    flex-shrink: 0;
-  }
-  #ha-close-btn:hover { background: rgba(255,255,255,0.2); }
-
-  /* Messages area */
-  #ha-messages {
-    flex: 1;
-    overflow-y: auto;
-    padding: 16px 14px;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    background: #f7f8fc;
-    scroll-behavior: smooth;
-  }
-  #ha-messages::-webkit-scrollbar { width: 4px; }
-  #ha-messages::-webkit-scrollbar-thumb { background: #d0d0d0; border-radius: 4px; }
-
-  /* Bubble */
-  .ha-bubble {
-    max-width: 82%;
-    padding: 10px 14px;
-    border-radius: 18px;
-    font-size: 13.5px;
-    line-height: 1.55;
-    word-break: break-word;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    animation: ha-pop 0.2s cubic-bezier(.34,1.56,.64,1);
-  }
-  @keyframes ha-pop {
-    from { transform: scale(0.88); opacity: 0; }
-    to   { transform: scale(1);    opacity: 1; }
-  }
-  .ha-bubble.bot {
-    background: #fff;
-    color: #1a1a2e;
-    align-self: flex-start;
-    border-bottom-left-radius: 6px;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
-  }
-  .ha-bubble.user {
-    background: #1a1a2e;
-    color: #fff;
-    align-self: flex-end;
-    border-bottom-right-radius: 6px;
-  }
-
-  /* Typing indicator */
-  .ha-typing {
-    display: flex;
-    gap: 5px;
-    align-items: center;
-    padding: 12px 16px;
-    background: #fff;
-    border-radius: 18px;
-    border-bottom-left-radius: 6px;
-    align-self: flex-start;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
-  }
-  .ha-typing span {
-    width: 7px; height: 7px;
-    background: #aaa;
-    border-radius: 50%;
-    animation: ha-bounce 1.2s infinite;
-  }
-  .ha-typing span:nth-child(2) { animation-delay: 0.2s; }
-  .ha-typing span:nth-child(3) { animation-delay: 0.4s; }
-  @keyframes ha-bounce {
-    0%, 60%, 100% { transform: translateY(0); background: #bbb; }
-    30% { transform: translateY(-6px); background: #ffed00; }
-  }
-
-  /* Input area */
-  #ha-input-area {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 12px 14px;
-    background: #fff;
-    border-top: 1px solid #eee;
-    flex-shrink: 0;
-  }
-  #ha-input {
-    flex: 1;
-    padding: 10px 14px;
-    border: 1.5px solid #e2e8f0;
-    border-radius: 24px;
-    font-size: 13.5px;
-    outline: none;
-    resize: none;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    transition: border-color 0.2s;
-    max-height: 80px;
-    line-height: 1.4;
-  }
-  #ha-input:focus { border-color: #ffed00; }
-  #ha-send-btn {
-    width: 40px; height: 40px;
-    background: #ffed00;
-    border: none;
-    border-radius: 50%;
-    cursor: pointer;
-    display: flex; align-items: center; justify-content: center;
-    flex-shrink: 0;
-    transition: transform 0.2s, box-shadow 0.2s;
-  }
-  #ha-send-btn:hover { transform: scale(1.08); box-shadow: 0 2px 8px rgba(0,0,0,0.15); }
-  #ha-send-btn svg { width: 18px; height: 18px; }
-
-  /* Quick reply chips */
-  #ha-quick-replies {
-    display: flex;
-    gap: 6px;
-    flex-wrap: wrap;
-    padding: 0 14px 10px;
-    background: #f7f8fc;
-    flex-shrink: 0;
-  }
-  .ha-chip {
-    padding: 5px 12px;
-    background: #fff;
-    border: 1.5px solid #e2e8f0;
-    border-radius: 20px;
-    font-size: 12px;
-    cursor: pointer;
-    color: #1a1a2e;
-    font-weight: 500;
-    transition: all 0.18s;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    white-space: nowrap;
-  }
-  .ha-chip:hover { background: #ffed00; border-color: #ffed00; }
+  @keyframes ha-pop{from{transform:scale(0.88);opacity:0}to{transform:scale(1);opacity:1}}
+  .ha-b.bot{background:#fff;color:#1a1a2e;align-self:flex-start;border-bottom-left-radius:6px;box-shadow:0 1px 4px rgba(0,0,0,0.08);}
+  .ha-b.usr{background:#1a1a2e;color:#fff;align-self:flex-end;border-bottom-right-radius:6px;}
+  .ha-b.err{background:#fff3cd;color:#856404;align-self:flex-start;border-bottom-left-radius:6px;border-left:3px solid #ffc107;}
+  .ha-dots{display:flex;gap:5px;align-items:center;padding:12px 16px;background:#fff;
+    border-radius:18px;border-bottom-left-radius:6px;align-self:flex-start;
+    box-shadow:0 1px 4px rgba(0,0,0,0.08);}
+  .ha-dots span{width:7px;height:7px;background:#aaa;border-radius:50%;animation:ha-bounce 1.2s infinite;}
+  .ha-dots span:nth-child(2){animation-delay:.2s;}.ha-dots span:nth-child(3){animation-delay:.4s;}
+  @keyframes ha-bounce{0%,60%,100%{transform:translateY(0);background:#bbb}30%{transform:translateY(-6px);background:#ffed00}}
+  #ha-chips{display:flex;gap:6px;flex-wrap:wrap;padding:0 14px 10px;background:#f7f8fc;flex-shrink:0;}
+  .ha-chip{padding:5px 12px;background:#fff;border:1.5px solid #e2e8f0;border-radius:20px;
+    font-size:12px;cursor:pointer;color:#1a1a2e;font-weight:500;transition:all .18s;
+    white-space:nowrap;font-family:-apple-system,sans-serif;}
+  .ha-chip:hover{background:#ffed00;border-color:#ffed00;}
+  #ha-inp-area{display:flex;align-items:center;gap:8px;padding:12px 14px;background:#fff;border-top:1px solid #eee;flex-shrink:0;}
+  #ha-inp{flex:1;padding:10px 14px;border:1.5px solid #e2e8f0;border-radius:24px;
+    font-size:13.5px;outline:none;resize:none;font-family:-apple-system,sans-serif;
+    transition:border-color .2s;max-height:80px;line-height:1.4;}
+  #ha-inp:focus{border-color:#ffed00;}
+  #ha-send{width:40px;height:40px;background:#ffed00;border:none;border-radius:50%;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;flex-shrink:0;
+    transition:transform .2s,box-shadow .2s;}
+  #ha-send:hover{transform:scale(1.08);box-shadow:0 2px 8px rgba(0,0,0,0.15);}
+  #ha-send svg{width:18px;height:18px;}
 </style>
 
-<!-- FAB Button -->
-<button id="ha-fab" onclick="haChatToggle()" title="Chat với Hồng Anh AI" aria-label="Mở chat AI">
+<button id="ha-fab" onclick="haChatToggle()" title="Chat với Hồng Anh AI">
   <svg viewBox="0 0 24 24" fill="none" stroke="#1a1a2e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
     <rect x="3" y="3" width="18" height="14" rx="3"/>
     <circle cx="8.5" cy="10" r="1.2" fill="#1a1a2e" stroke="none"/>
@@ -23854,11 +23682,9 @@
   <span id="ha-fab-badge"></span>
 </button>
 
-<!-- Chat Window -->
-<div id="ha-chat-window" role="dialog" aria-label="Hồng Anh AI Chat">
-  <!-- Header -->
-  <div id="ha-header">
-    <div id="ha-header-avatar">
+<div id="ha-win">
+  <div id="ha-hdr">
+    <div id="ha-av">
       <svg viewBox="0 0 24 24" fill="none" stroke="#1a1a2e" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
         <rect x="3" y="3" width="18" height="14" rx="3"/>
         <circle cx="8.5" cy="10" r="1.2" fill="#1a1a2e" stroke="none"/>
@@ -23867,30 +23693,23 @@
         <path d="M8 17l2 4 2-4"/>
       </svg>
     </div>
-    <div id="ha-header-info">
-      <div id="ha-header-name">Hồng Anh AI</div>
-      <div id="ha-header-status">● Đang hoạt động</div>
+    <div id="ha-hdr-info">
+      <div id="ha-hdr-name">Hồng Anh AI</div>
+      <div id="ha-hdr-status">● Đang hoạt động</div>
     </div>
-    <button id="ha-close-btn" onclick="haChatToggle()" aria-label="Đóng chat">✕</button>
+    <button id="ha-x" onclick="haChatToggle()">✕</button>
   </div>
-
-  <!-- Messages -->
-  <div id="ha-messages"></div>
-
-  <!-- Quick reply chips -->
-  <div id="ha-quick-replies">
-    <button class="ha-chip" onclick="haQuickReply(this)">📱 Xem iPhone</button>
-    <button class="ha-chip" onclick="haQuickReply(this)">💰 Giá tốt nhất</button>
-    <button class="ha-chip" onclick="haQuickReply(this)">🎧 Phụ kiện</button>
-    <button class="ha-chip" onclick="haQuickReply(this)">🚚 Ship toàn quốc</button>
+  <div id="ha-msgs"></div>
+  <div id="ha-chips">
+    <button class="ha-chip" onclick="haQ('Tư vấn iPhone')">📱 iPhone</button>
+    <button class="ha-chip" onclick="haQ('Giá tốt nhất hôm nay')">💰 Giá tốt</button>
+    <button class="ha-chip" onclick="haQ('Có phụ kiện gì?')">🎧 Phụ kiện</button>
+    <button class="ha-chip" onclick="haQ('Chính sách bảo hành')">🛡️ Bảo hành</button>
   </div>
-
-  <!-- Input -->
-  <div id="ha-input-area">
-    <textarea id="ha-input" rows="1" placeholder="Nhập câu hỏi..." aria-label="Nhập tin nhắn"></textarea>
-    <button id="ha-send-btn" onclick="haSend()" aria-label="Gửi tin nhắn">
+  <div id="ha-inp-area">
+    <textarea id="ha-inp" rows="1" placeholder="Nhập câu hỏi..."></textarea>
+    <button id="ha-send" onclick="haSend()">
       <svg viewBox="0 0 24 24" fill="none" stroke="#1a1a2e" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-        <line x1="22" y1="2" x2="11" y2="13"/>
         <polygon points="22 2 15 22 11 13 2 9 22 2" fill="#1a1a2e" stroke="none"/>
       </svg>
     </button>
@@ -23898,170 +23717,128 @@
 </div>
 
 <script>
-(function () {
-  'use strict';
+(function(){
+  var KEY  = 'AIzaSyBMvYnJJmZ6WVnSDx4dYqlcZ0NP6WGvAOE';
+  var URL_ = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=' + KEY;
+  var SYS  = 'Bạn là Hồng Anh AI - trợ lý bán hàng của shop Trương Hồng Anh chuyên iPhone và phụ kiện chính hãng. Trả lời thân thiện, ngắn gọn 2-3 câu bằng tiếng Việt có dấu. Luôn hướng khách xem sản phẩm hoặc đặt hàng.';
+  var GREET= 'Chào bạn! 👋 Trợ lý ảo <b>Hồng Anh AI</b> có thể giúp gì cho bạn?<br><span style="color:#888;font-size:11px">Tư vấn iPhone, phụ kiện, giá cả, bảo hành...</span>';
 
-  // ===== CONFIG =====
-  // chatbot
-  var HA_API_KEY    = 'AIzaSyCbOjqeq5DmygTES_3SIlR7pszyVMLaPZM';
-  var HA_API_URL    = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=' + HA_API_KEY;
-  var HA_GREETING   = 'Chào bạn! 👋 Trợ lý ảo <b>Hồng Anh AI</b> có thể giúp gì cho bạn?<br><small style="color:#888;font-size:11px">Tư vấn iPhone, phụ kiện, giá cả, bảo hành...</small>';
-  var HA_SYSTEM     = 'Bạn là Hồng Anh AI - trợ lý bán hàng thông minh của shop Trương Hồng Anh, chuyên iPhone và phụ kiện chính hãng. Phong cách: thân thiện, lễ phép, nhiệt tình, ngắn gọn súc tích. Luôn hướng khách hàng tới việc xem sản phẩm hoặc đặt hàng. Trả lời bằng tiếng Việt. Nếu không biết giá cụ thể, hãy mời khách liên hệ hoặc xem trang sản phẩm. Không nói quá 3-4 câu mỗi tin nhắn.';
+  var isOpen=false, isBusy=false, hist=[], started=false;
 
-  // ===== STATE =====
-  var haIsOpen      = false;
-  var haIsTyping    = false;
-  var haHistory     = []; // { role, parts }
-  var haInitialized = false;
+  function el(id){return document.getElementById(id);}
 
-  // ===== DOM refs =====
-  function $id(id) { return document.getElementById(id); }
-
-  // ===== TOGGLE =====
-  window.haChatToggle = function () {
-    haIsOpen = !haIsOpen;
-    var win = $id('ha-chat-window');
-    if (haIsOpen) {
-      win.classList.add('ha-open');
-      if (!haInitialized) { haInitialized = true; haAddBotMsg(HA_GREETING); }
-      setTimeout(function () { $id('ha-input').focus(); }, 320);
-      // Ẩn badge
-      var badge = $id('ha-fab-badge');
-      badge.style.display = 'none';
-    } else {
-      win.classList.remove('ha-open');
+  window.haChatToggle=function(){
+    isOpen=!isOpen;
+    el('ha-win').classList.toggle('open',isOpen);
+    if(isOpen){
+      if(!started){started=true;botMsg(GREET);}
+      setTimeout(function(){el('ha-inp')&&el('ha-inp').focus();},300);
+      var b=el('ha-fab-badge');if(b)b.style.display='none';
     }
   };
 
-  // ===== QUICK REPLY =====
-  window.haQuickReply = function (btn) {
-    $id('ha-input').value = btn.textContent.replace(/^[^\s]+\s/, ''); // Bỏ emoji
-    haSend();
+  window.haQ=function(t){el('ha-inp').value=t;haSend();};
+
+  window.haSend=function(){
+    var inp=el('ha-inp'), txt=inp.value.trim();
+    if(!txt||isBusy)return;
+    inp.value='';inp.style.height='auto';
+    usrMsg(txt);
+    hist.push({role:'user',parts:[{text:txt}]});
+    ask();
   };
 
-  // ===== SEND =====
-  window.haSend = function () {
-    var input = $id('ha-input');
-    var text  = input.value.trim();
-    if (!text || haIsTyping) return;
-    input.value = '';
-    input.style.height = 'auto';
-
-    haAddUserMsg(text);
-    haHistory.push({ role: 'user', parts: [{ text: text }] });
-    haFetchGemini();
-  };
-
-  // ===== FETCH GEMINI =====
-  async function haFetchGemini() {
-    haIsTyping = true;
-    var typingEl = haShowTyping();
-
-    var payload = {
-      system_instruction: { parts: [{ text: HA_SYSTEM }] },
-      contents: haHistory
-    };
-
-    try {
-      var res = await fetch(HA_API_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
+  async function ask(){
+    isBusy=true;
+    var dot=showDots();
+    try{
+      var res=await fetch(URL_,{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({
+          system_instruction:{parts:[{text:SYS}]},
+          contents:hist
+        })
       });
-      var data = await res.json();
+      var d=await res.json();
 
-      // Xử lý response
-      var reply = '';
-      if (data.candidates && data.candidates[0] && data.candidates[0].content) {
-        reply = data.candidates[0].content.parts[0].text || '';
-      } else if (data.error) {
-        reply = '⚠️ Xin lỗi, có lỗi xảy ra: ' + (data.error.message || 'Vui lòng thử lại.');
+      // Xử lý lỗi quota 429
+      if(res.status===429){
+        dot.remove();
+        errMsg('⚠️ AI đang bận, vui lòng thử lại sau vài phút nhé! Hoặc liên hệ shop qua hotline để được tư vấn trực tiếp.');
+        isBusy=false;return;
+      }
+
+      var reply='';
+      if(d.candidates&&d.candidates[0]&&d.candidates[0].content){
+        reply=d.candidates[0].content.parts[0].text||'';
+      } else if(d.error){
+        // Phân loại lỗi rõ ràng
+        if(d.error.code===429||String(d.error.message||'').toLowerCase().includes('quota')){
+          dot.remove();
+          errMsg('⚠️ AI đang quá tải, thử lại sau vài giây nhé! Bạn có thể liên hệ shop để được hỗ trợ ngay.');
+          isBusy=false;return;
+        }
+        reply='⚠️ '+( d.error.message||'Lỗi không xác định');
       } else {
-        reply = '⚠️ Không nhận được phản hồi, vui lòng thử lại nhé!';
+        reply='Xin lỗi, mình chưa hiểu câu hỏi. Bạn thử hỏi lại theo cách khác nhé!';
       }
 
-      // Lưu lịch sử
-      haHistory.push({ role: 'model', parts: [{ text: reply }] });
-
-      typingEl.remove();
-      haAddBotMsg(haMarkdownToHtml(reply));
-
-    } catch (err) {
-      typingEl.remove();
-      haAddBotMsg('⚠️ Không thể kết nối, kiểm tra mạng và thử lại nhé!');
+      hist.push({role:'model',parts:[{text:reply}]});
+      dot.remove();
+      botMsg(md(reply));
+    }catch(e){
+      dot.remove();
+      errMsg('⚠️ Lỗi kết nối mạng. Kiểm tra internet rồi thử lại nhé!');
     }
-    haIsTyping = false;
+    isBusy=false;
   }
 
-  // ===== RENDER HELPERS =====
-  function haAddUserMsg(text) {
-    var div = document.createElement('div');
-    div.className = 'ha-bubble user';
-    div.textContent = text;
-    $id('ha-messages').appendChild(div);
-    haScrollBottom();
+  function usrMsg(t){
+    var d=document.createElement('div');
+    d.className='ha-b usr';d.textContent=t;
+    el('ha-msgs').appendChild(d);scroll();
+  }
+  function botMsg(h){
+    var d=document.createElement('div');
+    d.className='ha-b bot';d.innerHTML=h;
+    el('ha-msgs').appendChild(d);scroll();
+    if(!isOpen){var b=el('ha-fab-badge');if(b){b.style.display='flex';b.textContent='1';}}
+  }
+  function errMsg(h){
+    var d=document.createElement('div');
+    d.className='ha-b err';d.innerHTML=h;
+    el('ha-msgs').appendChild(d);scroll();
+  }
+  function showDots(){
+    var d=document.createElement('div');
+    d.className='ha-dots';
+    d.innerHTML='<span></span><span></span><span></span>';
+    el('ha-msgs').appendChild(d);scroll();return d;
+  }
+  function scroll(){var m=el('ha-msgs');if(m)m.scrollTop=m.scrollHeight;}
+  function md(t){
+    return t
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+      .replace(/\*\*(.+?)\*\*/g,'<b>$1</b>')
+      .replace(/\*(.+?)\*/g,'<i>$1</i>')
+      .replace(/`(.+?)`/g,'<code style="background:#f0f0f0;padding:1px 5px;border-radius:3px">$1</code>')
+      .replace(/\n/g,'<br>');
   }
 
-  function haAddBotMsg(html) {
-    var div = document.createElement('div');
-    div.className = 'ha-bubble bot';
-    div.innerHTML = html;
-    $id('ha-messages').appendChild(div);
-    haScrollBottom();
-    // Hiện badge nếu chat đang đóng
-    if (!haIsOpen) {
-      var badge = $id('ha-fab-badge');
-      badge.style.display = 'flex';
-      badge.textContent = '1';
-    }
-  }
-
-  function haShowTyping() {
-    var div = document.createElement('div');
-    div.className = 'ha-typing';
-    div.innerHTML = '<span></span><span></span><span></span>';
-    $id('ha-messages').appendChild(div);
-    haScrollBottom();
-    return div;
-  }
-
-  function haScrollBottom() {
-    var m = $id('ha-messages');
-    m.scrollTop = m.scrollHeight;
-  }
-
-  // Chuyển markdown cơ bản → HTML
-  function haMarkdownToHtml(text) {
-    return text
-      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-      .replace(/\*\*(.+?)\*\*/g, '<b>$1</b>')
-      .replace(/\*(.+?)\*/g, '<i>$1</i>')
-      .replace(/`(.+?)`/g, '<code style="background:#f0f0f0;padding:1px 5px;border-radius:3px">$1</code>')
-      .replace(/\n/g, '<br>');
-  }
-
-  // ===== ENTER KEY =====
-  document.addEventListener('DOMContentLoaded', function () {
-    var input = $id('ha-input');
-    if (!input) return;
-    input.addEventListener('keydown', function (e) {
-      if (e.key === 'Enter' && !e.shiftKey) {
-        e.preventDefault();
-        haSend();
-      }
+  document.addEventListener('DOMContentLoaded',function(){
+    var inp=el('ha-inp');if(!inp)return;
+    inp.addEventListener('keydown',function(e){
+      if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();haSend();}
     });
-    // Auto-resize textarea
-    input.addEventListener('input', function () {
-      this.style.height = 'auto';
-      this.style.height = Math.min(this.scrollHeight, 80) + 'px';
+    inp.addEventListener('input',function(){
+      this.style.height='auto';
+      this.style.height=Math.min(this.scrollHeight,80)+'px';
     });
   });
-
 })();
 </script>
-<!-- ============================================================ -->
-<!-- END HỒNG ANH AI CHATBOT                                     -->
-<!-- ============================================================ -->
+<!-- ============ END CHATBOT ============ -->
     </body>
 
 </html>
