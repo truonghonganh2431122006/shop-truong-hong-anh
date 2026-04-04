@@ -1547,49 +1547,68 @@ async def chat_proxy(req: ChatRequest):
         "contents": gemini_contents,
     }
 
-    # Cách 1: Dùng tên model chuẩn (Khuyên dùng)
-    url = (
-        "https://generativelanguage.googleapis.com/v1beta/models/"
-        "gemini-1.5-flash:generateContent?key=" + GEMINI_API_KEY
-    )
+    # Danh sách model ưu tiên - thử lần lượt nếu model trước bị lỗi
+    MODELS_TO_TRY = [
+        "gemini-2.0-flash",       # Model ổn định mới nhất
+        "gemini-2.0-flash-lite",  # Fallback nhẹ hơn
+        "gemini-1.5-flash",       # Fallback cũ hơn nếu cần
+    ]
+
+    BASE_URL = "https://generativelanguage.googleapis.com/v1beta/models/"
 
     MAX_RETRY = 3
-    for attempt in range(MAX_RETRY):
-        try:
-            async with httpx.AsyncClient(timeout=30.0) as client:
-                res = await client.post(
-                    url, json=payload,
-                    headers={"Content-Type": "application/json"},
-                )
-            data = res.json()
-            print(f">>> [CHAT] Gemini status: {res.status_code} (lần {attempt+1})")
+    last_error = "Lỗi không xác định"
 
-            if res.status_code == 429:
-                wait = 2 ** attempt
-                print(f">>> [CHAT] 429 - chờ {wait}s rồi thử lại...")
-                await asyncio.sleep(wait)
-                continue
+    for model_name in MODELS_TO_TRY:
+        url = f"{BASE_URL}{model_name}:generateContent?key={GEMINI_API_KEY}"
 
-            if res.status_code != 200:
-                err = data.get("error", {}).get("message", "Lỗi Gemini API")
-                print(f">>> [CHAT] Lỗi: {err}")
-                raise HTTPException(status_code=res.status_code, detail=err)
+        for attempt in range(MAX_RETRY):
+            try:
+                async with httpx.AsyncClient(timeout=30.0) as client:
+                    res = await client.post(
+                        url, json=payload,
+                        headers={"Content-Type": "application/json"},
+                    )
+                data = res.json()
+                print(f">>> [CHAT] Model={model_name} status={res.status_code} (lần {attempt+1})")
 
-            reply = data["candidates"][0]["content"]["parts"][0]["text"]
-            return {"reply": reply}
+                if res.status_code == 429:
+                    wait = 2 ** attempt
+                    print(f">>> [CHAT] 429 - chờ {wait}s rồi thử lại...")
+                    await asyncio.sleep(wait)
+                    continue
 
-        except httpx.TimeoutException:
-            if attempt < MAX_RETRY - 1:
-                await asyncio.sleep(1)
-                continue
-            raise HTTPException(status_code=504, detail="AI phản hồi quá chậm, thử lại nhé!")
-        except HTTPException:
-            raise
-        except Exception as e:
-            print(f">>> [CHAT] Exception: {str(e)}")
-            raise HTTPException(status_code=500, detail=str(e))
+                # Model không tìm thấy → thử model khác ngay
+                if res.status_code == 404:
+                    err = data.get("error", {}).get("message", "Model không tồn tại")
+                    print(f">>> [CHAT] Model {model_name} không khả dụng: {err}")
+                    last_error = err
+                    break  # Thoát vòng retry, thử model tiếp theo
 
-    raise HTTPException(status_code=503, detail="AI đang bận, vui lòng thử lại sau 10 giây!")
+                if res.status_code != 200:
+                    err = data.get("error", {}).get("message", "Lỗi Gemini API")
+                    print(f">>> [CHAT] Lỗi {res.status_code}: {err}")
+                    last_error = err
+                    break  # Thử model tiếp theo
+
+                reply = data["candidates"][0]["content"]["parts"][0]["text"]
+                print(f">>> [CHAT] Thành công với model: {model_name}")
+                return {"reply": reply}
+
+            except httpx.TimeoutException:
+                if attempt < MAX_RETRY - 1:
+                    await asyncio.sleep(1)
+                    continue
+                last_error = "AI phản hồi quá chậm"
+                break
+            except HTTPException:
+                raise
+            except Exception as e:
+                print(f">>> [CHAT] Exception với {model_name}: {str(e)}")
+                last_error = str(e)
+                break
+
+    raise HTTPException(status_code=503, detail=f"AI đang bận hoặc không khả dụng. Vui lòng thử lại sau!")
 
 
 # --- PHẢI NẰM Ở CUỐI FILE main.py ---
