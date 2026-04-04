@@ -1513,7 +1513,7 @@ def get_total_revenue(
 # ===================== CHATBOT AI (CLAUDE PROXY) =====================
 import httpx
 
-CLAUDE_API_KEY = os.getenv("CLAUDE_API_KEY", "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")
+CLAUDE_API_KEY = os.getenv("CLAUDE_API_KEY", "")
 CLAUDE_API_URL = "https://api.anthropic.com/v1/messages"
 CLAUDE_MODEL   = "claude-sonnet-4-20250514"
 
