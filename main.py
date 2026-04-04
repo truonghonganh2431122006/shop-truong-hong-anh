@@ -1513,7 +1513,7 @@ def get_total_revenue(
 # ===================== CHATBOT AI (CLAUDE PROXY) =====================
 import httpx
 
-CLAUDE_API_KEY = os.getenv("CLAUDE_API_KEY", "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")
+CLAUDE_API_KEY = os.getenv("CLAUDE_API_KEY", "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")
 CLAUDE_API_URL = "https://api.anthropic.com/v1/messages"
 CLAUDE_MODEL   = "claude-sonnet-4-20250514"
 
@@ -1557,14 +1557,19 @@ async def chat_proxy(req: ChatRequest):
         async with httpx.AsyncClient(timeout=30.0) as client:
             res = await client.post(CLAUDE_API_URL, json=payload, headers=headers)
         data = res.json()
+        print(f">>> [CHAT] Claude status: {res.status_code}")
         if res.status_code != 200:
-            detail = data.get("error", {}).get("message", "Lỗi Claude API")
-            raise HTTPException(status_code=res.status_code, detail=detail)
+            err_msg = data.get("error", {}).get("message", "Lỗi Claude API")
+            print(f">>> [CHAT] Lỗi Claude: {err_msg}")
+            raise HTTPException(status_code=res.status_code, detail=err_msg)
         reply = data["content"][0]["text"]
         return {"reply": reply}
     except httpx.TimeoutException:
         raise HTTPException(status_code=504, detail="AI phản hồi quá chậm, thử lại nhé!")
+    except HTTPException:
+        raise
     except Exception as e:
+        print(f">>> [CHAT] Exception: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
 
