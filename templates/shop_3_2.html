@@ -23718,17 +23718,19 @@
 
 <script>
 (function(){
-  // ====================================================
-  // HỒNG ANH AI — Gọi thẳng Gemini 2.0 Flash từ browser
-  // Nếu key hết quota: lấy key mới tại aistudio.google.com
-  // rồi thay vào dòng dưới đây
-  // ====================================================
-  var GEMINI_KEY = 'AIzaSyDAJtU-wGahaA0XmW2kDJ7wQwvTcEP_Vwk';
-  var GEMINI_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=' + GEMINI_KEY;
-  var SYS = 'Bạn là Hồng Anh AI - trợ lý bán hàng của shop Trương Hồng Anh chuyên điện thoại, laptop, tablet, phụ kiện và đồng hồ thông minh chính hãng. Trả lời thân thiện, ngắn gọn 2-3 câu bằng tiếng Việt có dấu. Luôn hướng khách xem sản phẩm hoặc đặt hàng tại shop.';
+  // ============================================================
+  // HỒNG ANH AI — Dùng Groq API (Miễn phí, không cần thẻ)
+  // Lấy key tại: console.groq.com → API Keys → Create API Key
+  // Dán key vào dòng dưới đây (dạng gsk_...)
+  // ============================================================
+  var GROQ_KEY = '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';
+  var GROQ_URL = 'https://api.groq.com/openai/v1/chat/completions';
+  var MODEL    = 'llama-3.1-8b-instant'; // Miễn phí, nhanh
+
+  var SYS  = 'Bạn là Hồng Anh AI - trợ lý bán hàng của shop Trương Hồng Anh chuyên điện thoại, laptop, tablet, phụ kiện và đồng hồ thông minh chính hãng. Trả lời thân thiện, ngắn gọn 2-3 câu bằng tiếng Việt có dấu. Luôn hướng khách xem sản phẩm hoặc đặt hàng tại shop.';
   var GREET = 'Chào bạn! 👋 Trợ lý ảo <b>Hồng Anh AI</b> có thể giúp gì cho bạn?<br><span style="color:#888;font-size:11px">Tư vấn điện thoại, laptop, phụ kiện, giá cả, bảo hành...</span>';
 
-  // hist theo định dạng Gemini: [{role:'user',parts:[{text:'...'}]}]
+  // hist theo định dạng OpenAI: [{role:'user',content:'...'},{role:'assistant',content:'...'}]
   var isOpen=false, isBusy=false, hist=[], started=false;
 
   function el(id){ return document.getElementById(id); }
@@ -23739,7 +23741,7 @@
     if(isOpen){
       if(!started){ started=true; botMsg(GREET); }
       setTimeout(function(){ el('ha-inp') && el('ha-inp').focus(); }, 300);
-      var b = el('ha-fab-badge'); if(b) b.style.display='none';
+      var b=el('ha-fab-badge'); if(b) b.style.display='none';
     }
   };
 
@@ -23750,7 +23752,7 @@
     if(!txt || isBusy) return;
     inp.value=''; inp.style.height='auto';
     usrMsg(txt);
-    hist.push({ role:'user', parts:[{ text:txt }] });
+    hist.push({ role:'user', content:txt });
     ask();
   };
 
@@ -23758,39 +23760,43 @@
     isBusy = true;
     var dot = showDots();
     try{
-      var res = await fetch(GEMINI_URL, {
+      // Gộp system prompt + lịch sử hội thoại
+      var messages = [{ role:'system', content:SYS }].concat(hist);
+
+      var res = await fetch(GROQ_URL, {
         method: 'POST',
-        headers: { 'Content-Type':'application/json' },
+        headers: {
+          'Content-Type':  'application/json',
+          'Authorization': 'Bearer ' + GROQ_KEY
+        },
         body: JSON.stringify({
-          system_instruction: { parts:[{ text:SYS }] },
-          contents: hist
+          model:       MODEL,
+          messages:    messages,
+          max_tokens:  300,
+          temperature: 0.7
         })
       });
+
       var d = await res.json();
       dot.remove();
 
-      // Xử lý lỗi quota
       if(res.status === 429){
-        errMsg('⚠️ API key đã hết lượt dùng miễn phí hôm nay. Vui lòng thử lại sau hoặc liên hệ shop để được hỗ trợ trực tiếp!');
-        hist.pop(); // Xóa tin nhắn vừa gửi để user có thể gửi lại
+        errMsg('⏳ AI đang bận quá, vui lòng thử lại sau 10 giây nhé!');
+        hist.pop();
         isBusy=false; return;
       }
-
       if(!res.ok){
-        var errDetail = (d.error && d.error.message) || 'Lỗi không xác định';
-        errMsg('⚠️ ' + errDetail);
+        var errTxt = (d.error && d.error.message) || 'Lỗi không xác định';
+        errMsg('⚠️ ' + errTxt);
         hist.pop();
         isBusy=false; return;
       }
 
-      var reply = '';
-      if(d.candidates && d.candidates[0] && d.candidates[0].content){
-        reply = d.candidates[0].content.parts[0].text || '';
-      } else {
-        reply = 'Xin lỗi, mình chưa hiểu câu hỏi. Bạn thử hỏi lại nhé!';
-      }
+      var reply = d.choices && d.choices[0] && d.choices[0].message
+        ? d.choices[0].message.content
+        : 'Xin lỗi, mình chưa hiểu câu hỏi. Bạn thử hỏi lại nhé!';
 
-      hist.push({ role:'model', parts:[{ text:reply }] });
+      hist.push({ role:'assistant', content:reply });
       botMsg(md(reply));
 
     } catch(e){
