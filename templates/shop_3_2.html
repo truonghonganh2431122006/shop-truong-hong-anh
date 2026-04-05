@@ -23718,100 +23718,112 @@
 
 <script>
 (function(){
-  // ===== GỌI QUA BACKEND PROXY /api/chat (Claude AI) =====
-  var CHAT_URL = '/api/chat';
-  var GREET= 'Chào bạn! 👋 Trợ lý ảo <b>Hồng Anh AI</b> có thể giúp gì cho bạn?<br><span style="color:#888;font-size:11px">Tư vấn điện thoại, laptop, phụ kiện, giá cả, bảo hành...</span>';
+  // ====================================================
+  // HỒNG ANH AI — Gọi thẳng Gemini 2.0 Flash từ browser
+  // Nếu key hết quota: lấy key mới tại aistudio.google.com
+  // rồi thay vào dòng dưới đây
+  // ====================================================
+  var GEMINI_KEY = 'AIzaSyAkCpTBKeChHqkIPIHKGAsp9M5JxRoVTW8';
+  var GEMINI_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=' + GEMINI_KEY;
+  var SYS = 'Bạn là Hồng Anh AI - trợ lý bán hàng của shop Trương Hồng Anh chuyên điện thoại, laptop, tablet, phụ kiện và đồng hồ thông minh chính hãng. Trả lời thân thiện, ngắn gọn 2-3 câu bằng tiếng Việt có dấu. Luôn hướng khách xem sản phẩm hoặc đặt hàng tại shop.';
+  var GREET = 'Chào bạn! 👋 Trợ lý ảo <b>Hồng Anh AI</b> có thể giúp gì cho bạn?<br><span style="color:#888;font-size:11px">Tư vấn điện thoại, laptop, phụ kiện, giá cả, bảo hành...</span>';
 
-  // hist lưu theo định dạng Claude: [{role:'user',content:'...'},{role:'assistant',content:'...'}]
+  // hist theo định dạng Gemini: [{role:'user',parts:[{text:'...'}]}]
   var isOpen=false, isBusy=false, hist=[], started=false;
 
-  function el(id){return document.getElementById(id);}
+  function el(id){ return document.getElementById(id); }
 
-  window.haChatToggle=function(){
-    isOpen=!isOpen;
-    el('ha-win').classList.toggle('open',isOpen);
+  window.haChatToggle = function(){
+    isOpen = !isOpen;
+    el('ha-win').classList.toggle('open', isOpen);
     if(isOpen){
-      if(!started){started=true;botMsg(GREET);}
-      setTimeout(function(){el('ha-inp')&&el('ha-inp').focus();},300);
-      var b=el('ha-fab-badge');if(b)b.style.display='none';
+      if(!started){ started=true; botMsg(GREET); }
+      setTimeout(function(){ el('ha-inp') && el('ha-inp').focus(); }, 300);
+      var b = el('ha-fab-badge'); if(b) b.style.display='none';
     }
   };
 
-  window.haQ=function(t){el('ha-inp').value=t;haSend();};
+  window.haQ = function(t){ el('ha-inp').value=t; haSend(); };
 
-  window.haSend=function(){
+  window.haSend = function(){
     var inp=el('ha-inp'), txt=inp.value.trim();
-    if(!txt||isBusy)return;
-    inp.value='';inp.style.height='auto';
+    if(!txt || isBusy) return;
+    inp.value=''; inp.style.height='auto';
     usrMsg(txt);
-    hist.push({role:'user', content:txt});
+    hist.push({ role:'user', parts:[{ text:txt }] });
     ask();
   };
 
   async function ask(){
-    isBusy=true;
-    var dot=showDots();
+    isBusy = true;
+    var dot = showDots();
     try{
-      var res=await fetch(CHAT_URL,{
-        method:'POST',
-        headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({ messages: hist })
+      var res = await fetch(GEMINI_URL, {
+        method: 'POST',
+        headers: { 'Content-Type':'application/json' },
+        body: JSON.stringify({
+          system_instruction: { parts:[{ text:SYS }] },
+          contents: hist
+        })
       });
-      var d=await res.json();
+      var d = await res.json();
+      dot.remove();
 
-      if(!res.ok){
-        dot.remove();
-        var errTxt = d.detail || 'AI đang gặp sự cố, thử lại sau nhé!';
-        if(res.status===429||res.status===503) errTxt='⏳ AI đang bận, tự động thử lại sau 5 giây...';
-        if(res.status===504) errTxt='⚠️ AI phản hồi chậm, thử lại nhé!';
-        errMsg(errTxt);
-        // Tự động retry sau 5 giây nếu 429/503
-        if(res.status===429||res.status===503){
-          setTimeout(function(){ isBusy=false; haSend && hist.length && (function(){
-            // Lấy lại tin nhắn cuối của user và gửi lại
-            var lastUser = null;
-            for(var i=hist.length-1;i>=0;i--){ if(hist[i].role==='user'){lastUser=hist[i].content;break;} }
-            if(lastUser){ hist.pop(); usrMsg(lastUser); hist.push({role:'user',content:lastUser}); ask(); }
-          })(); }, 5000);
-          return;
-        }
-        isBusy=false;return;
+      // Xử lý lỗi quota
+      if(res.status === 429){
+        errMsg('⚠️ API key đã hết lượt dùng miễn phí hôm nay. Vui lòng thử lại sau hoặc liên hệ shop để được hỗ trợ trực tiếp!');
+        hist.pop(); // Xóa tin nhắn vừa gửi để user có thể gửi lại
+        isBusy=false; return;
       }
 
-      var reply = d.reply || 'Xin lỗi, mình chưa hiểu câu hỏi. Bạn thử hỏi lại nhé!';
-      hist.push({role:'assistant', content:reply});
-      dot.remove();
+      if(!res.ok){
+        var errDetail = (d.error && d.error.message) || 'Lỗi không xác định';
+        errMsg('⚠️ ' + errDetail);
+        hist.pop();
+        isBusy=false; return;
+      }
+
+      var reply = '';
+      if(d.candidates && d.candidates[0] && d.candidates[0].content){
+        reply = d.candidates[0].content.parts[0].text || '';
+      } else {
+        reply = 'Xin lỗi, mình chưa hiểu câu hỏi. Bạn thử hỏi lại nhé!';
+      }
+
+      hist.push({ role:'model', parts:[{ text:reply }] });
       botMsg(md(reply));
-    }catch(e){
+
+    } catch(e){
       dot.remove();
-      errMsg('⚠️ Lỗi kết nối mạng. Kiểm tra internet rồi thử lại nhé!');
+      errMsg('⚠️ Lỗi kết nối. Kiểm tra internet rồi thử lại nhé!');
+      if(hist.length && hist[hist.length-1].role==='user') hist.pop();
     }
-    isBusy=false;
+    isBusy = false;
   }
 
   function usrMsg(t){
     var d=document.createElement('div');
-    d.className='ha-b usr';d.textContent=t;
-    el('ha-msgs').appendChild(d);scroll();
+    d.className='ha-b usr'; d.textContent=t;
+    el('ha-msgs').appendChild(d); scroll();
   }
   function botMsg(h){
     var d=document.createElement('div');
-    d.className='ha-b bot';d.innerHTML=h;
-    el('ha-msgs').appendChild(d);scroll();
-    if(!isOpen){var b=el('ha-fab-badge');if(b){b.style.display='flex';b.textContent='1';}}
+    d.className='ha-b bot'; d.innerHTML=h;
+    el('ha-msgs').appendChild(d); scroll();
+    if(!isOpen){ var b=el('ha-fab-badge'); if(b){b.style.display='flex';b.textContent='1';} }
   }
   function errMsg(h){
     var d=document.createElement('div');
-    d.className='ha-b err';d.innerHTML=h;
-    el('ha-msgs').appendChild(d);scroll();
+    d.className='ha-b err'; d.innerHTML=h;
+    el('ha-msgs').appendChild(d); scroll();
   }
   function showDots(){
     var d=document.createElement('div');
     d.className='ha-dots';
     d.innerHTML='<span></span><span></span><span></span>';
-    el('ha-msgs').appendChild(d);scroll();return d;
+    el('ha-msgs').appendChild(d); scroll(); return d;
   }
-  function scroll(){var m=el('ha-msgs');if(m)m.scrollTop=m.scrollHeight;}
+  function scroll(){ var m=el('ha-msgs'); if(m) m.scrollTop=m.scrollHeight; }
   function md(t){
     return t
       .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
@@ -23821,12 +23833,12 @@
       .replace(/\n/g,'<br>');
   }
 
-  document.addEventListener('DOMContentLoaded',function(){
-    var inp=el('ha-inp');if(!inp)return;
-    inp.addEventListener('keydown',function(e){
-      if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();haSend();}
+  document.addEventListener('DOMContentLoaded', function(){
+    var inp=el('ha-inp'); if(!inp) return;
+    inp.addEventListener('keydown', function(e){
+      if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); haSend(); }
     });
-    inp.addEventListener('input',function(){
+    inp.addEventListener('input', function(){
       this.style.height='auto';
       this.style.height=Math.min(this.scrollHeight,80)+'px';
     });
