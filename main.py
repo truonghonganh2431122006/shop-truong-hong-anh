@@ -1514,14 +1514,13 @@ def get_total_revenue(
 import httpx
 import asyncio
 
-# 1. Lấy Key từ Environment của Render (Nếu không có thì dùng Key dự phòng)
-# Lưu ý: Bạn nên dán Key vào mục Environment trên Render như tớ hướng dẫn ở trên
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "AIzaSyAJKjMcv0vhlG-KDfeOZGNxtppZ6lyN3B4")
+# 1. Lấy Key từ Environment của Render
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "AIzaSyAkCpTBKeChHqkIPIHKGAsp9M5JxRoVTW8")
 
-# 2. Sửa lại URL: Dùng bản 1.5-flash để ổn định nhất và sửa lỗi 404
-GEMINI_URL = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={GEMINI_API_KEY}"
+# 2. URL đúng — gemini-2.0-flash, KHÔNG có ?key= ở đây (key được gắn khi gọi)
+GEMINI_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent"
 
-# 3. Giữ nguyên System Prompt của bạn (Rất tốt)
+# 3. System Prompt
 CHATBOT_SYSTEM = (
     "Bạn là Hồng Anh AI - trợ lý bán hàng của shop Trương Hồng Anh chuyên điện thoại, "
     "laptop, tablet, phụ kiện và đồng hồ thông minh chính hãng. "
