@@ -9,535 +9,35 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="referrer" content="no-referrer">
     <title>Web bán hàng Trương Hồng Anh</title>
-
-    <!-- Google Fonts: Inter — miễn phí, hiện đại -->
-
     <style>
-        /* ═══════════════════════════════════════════════════════════
-       HỒNG ANH SHOP ✦ UI PRO UPGRADE
-       Tất cả rule dùng prefix #product-list-container / #ha- /
-       .ha- / var(--ha-) để không ghi đè CSS gốc của file
-    ═══════════════════════════════════════════════════════════ */
-
-        /* --- Design Token --- */
-        :root {
-            --ha-blue: #0071e3;
-            --ha-blue-dk: #0058b8;
-            --ha-yellow: #ffed00;
-            --ha-red: #d0021c;
-            --ha-bg: #f5f5f7;
-            --ha-white: #ffffff;
-            --ha-text: #1d1d1f;
-            --ha-sub: #6e6e73;
-            --ha-border: #d2d2d7;
-            --ha-radius: 16px;
-            --ha-radius-sm: 10px;
-            --ha-shadow: 0 2px 12px rgba(0, 0, 0, 0.09);
-            --ha-shadow-lg: 0 16px 48px rgba(0, 0, 0, 0.17);
-            --ha-ease: cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        /* --- Font toàn trang --- */
-        body,
-        input,
-        button,
-        select,
-        textarea,
-        h1,
-        h2,
-        h3,
-        h4 {
-            font-family: 'Inter', 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif !important;
-        }
-
-        /* ── SKELETON LOADING ─────────────────────────────────── */
-        @keyframes ha-shimmer {
-            0% {
-                background-position: -700px 0
-            }
-
-            100% {
-                background-position: 700px 0
-            }
-        }
-
-        .ha-skel {
-            background: linear-gradient(90deg, #ebebeb 25%, #f8f8f8 50%, #ebebeb 75%);
-            background-size: 700px 100%;
-            animation: ha-shimmer 1.5s infinite linear;
-            border-radius: 8px;
-        }
-
-        .ha-skel-card {
-            background: #fff;
-            border-radius: var(--ha-radius);
-            padding: 0;
-            overflow: hidden;
-            box-shadow: var(--ha-shadow);
-            display: flex;
-            flex-direction: column;
-        }
-
-        .ha-skel-img {
-            height: 175px;
-            border-radius: 0;
-        }
-
-        .ha-skel-body {
-            padding: 12px;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-
-        .ha-skel-line {
-            height: 13px;
-            border-radius: 6px;
-        }
-
-        .ha-skel-line.s60 {
-            width: 60%;
-        }
-
-        .ha-skel-line.s40 {
-            width: 40%;
-        }
-
-        .ha-skel-btn {
-            height: 36px;
-            border-radius: 8px;
-            margin-top: 4px;
-        }
-
-        /* ── PRODUCT GRID ─────────────────────────────────────── */
-        #product-list-container.listproduct {
-            display: grid !important;
-            grid-template-columns: repeat(auto-fill, minmax(168px, 1fr)) !important;
-            gap: 14px !important;
-            width: 96% !important;
-            max-width: 1300px !important;
-            margin: 0 auto 32px !important;
-            padding: 8px 0 !important;
-            height: auto !important;
-            max-height: none !important;
-            overflow: visible !important;
-        }
-
-        /* ── PRODUCT CARD ─────────────────────────────────────── */
-        #product-list-container .item {
-            background: var(--ha-white) !important;
-            border: 1.5px solid var(--ha-border) !important;
-            border-radius: var(--ha-radius) !important;
-            padding: 0 !important;
+        body {
             margin: 0 !important;
-            overflow: hidden !important;
-            display: flex !important;
-            flex-direction: column !important;
-            cursor: pointer !important;
-            position: relative !important;
-            transition: transform 0.28s var(--ha-ease),
-                box-shadow 0.28s var(--ha-ease),
-                border-color 0.28s var(--ha-ease) !important;
-            will-change: transform !important;
-        }
-
-        #product-list-container .item:hover {
-            transform: translateY(-7px) scale(1.025) !important;
-            box-shadow: var(--ha-shadow-lg) !important;
-            border-color: var(--ha-blue) !important;
-        }
-
-        /* Badge HOT */
-        #product-list-container .item .ha-badge {
-            position: absolute;
-            top: 10px;
-            left: 10px;
-            background: var(--ha-red);
-            color: #fff;
-            font-size: 9px;
-            font-weight: 800;
-            padding: 3px 9px;
-            border-radius: 20px;
-            letter-spacing: 0.8px;
-            text-transform: uppercase;
-            z-index: 3;
-            box-shadow: 0 2px 6px rgba(208, 2, 28, 0.4);
-        }
-
-        /* Vùng ảnh */
-        #product-list-container .item .item-img {
-            width: 100% !important;
-            height: 175px !important;
-            background: var(--ha-bg) !important;
-            display: flex !important;
-            align-items: center !important;
-            justify-content: center !important;
-            overflow: hidden !important;
-            flex-shrink: 0 !important;
-        }
-
-        #product-list-container .item .item-img img {
-            width: 100% !important;
-            height: 100% !important;
-            object-fit: contain !important;
-            padding: 14px !important;
-            transition: transform 0.45s var(--ha-ease) !important;
-        }
-
-        #product-list-container .item:hover .item-img img {
-            transform: scale(1.1) !important;
-        }
-
-        /* Thông tin sản phẩm */
-        #product-list-container .item .remain_quantity.main-contain {
-            padding: 10px 12px 6px !important;
-            flex: 1 !important;
-            display: flex !important;
-            flex-direction: column !important;
-            pointer-events: none !important;
-        }
-
-        #product-list-container .item h3 {
-            font-size: 12.5px !important;
-            font-weight: 600 !important;
-            color: var(--ha-text) !important;
-            line-height: 1.45 !important;
-            margin: 0 0 8px !important;
-            min-height: 36px !important;
-            display: -webkit-box !important;
-            -webkit-line-clamp: 2 !important;
-            -webkit-box-orient: vertical !important;
-            overflow: hidden !important;
-        }
-
-        #product-list-container .item strong.price {
-            font-size: 14.5px !important;
-            font-weight: 800 !important;
-            color: var(--ha-red) !important;
-            display: flex !important;
-            align-items: center !important;
-            gap: 6px !important;
-            flex-wrap: wrap !important;
-        }
-
-        #product-list-container .item .price-old.black {
-            font-size: 10px !important;
-            color: var(--ha-sub) !important;
-            font-weight: 400 !important;
-            text-decoration: none !important;
-        }
-
-        #product-list-container .item small {
-            background: #fff0f0 !important;
-            color: var(--ha-red) !important;
-            font-size: 10px !important;
-            font-weight: 700 !important;
-            padding: 1px 5px !important;
-            border-radius: 4px !important;
-        }
-
-        /* Nút Giỏ hàng */
-        #product-list-container .item .btn-buy {
-            padding: 8px 10px 10px !important;
-            pointer-events: auto !important;
-        }
-
-        #product-list-container .item .buy-now {
-            display: block !important;
-            text-align: center !important;
-            background: var(--ha-yellow) !important;
-            color: var(--ha-text) !important;
-            font-size: 12px !important;
-            font-weight: 700 !important;
-            padding: 9px 0 !important;
-            border-radius: 9px !important;
-            text-decoration: none !important;
-            transition: background 0.2s, box-shadow 0.2s, transform 0.2s !important;
-            letter-spacing: 0.2px !important;
-        }
-
-        #product-list-container .item .buy-now:hover {
-            background: #ffe500 !important;
-            box-shadow: 0 3px 12px rgba(255, 229, 0, 0.55) !important;
-            transform: translateY(-1px) !important;
-        }
-
-        /* ── MODAL CHI TIẾT SẢN PHẨM ─────────────────────────── */
-        .modal-overlay {
-            background: rgba(0, 0, 0, 0.65) !important;
-            backdrop-filter: blur(8px) !important;
-            -webkit-backdrop-filter: blur(8px) !important;
-        }
-
-        .modal-content {
-            border-radius: 22px !important;
             padding: 0 !important;
-            overflow: hidden !important;
-            box-shadow: 0 32px 80px rgba(0, 0, 0, 0.28) !important;
-            max-width: 780px !important;
-            width: 92% !important;
-            animation: ha-modal-in 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
         }
 
-        @keyframes ha-modal-in {
-            from {
-                transform: scale(0.88) translateY(30px);
-                opacity: 0;
-            }
-
-            to {
-                transform: scale(1) translateY(0);
-                opacity: 1;
-            }
+        /* CSS cho Cửa sổ chi tiết */
+        .modal-overlay {
+            display: none !important; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7); z-index: 99998; justify-content: center; align-items: center;
         }
+        .modal-overlay.show { display: flex !important; }
 
-        .modal-body {
-            display: flex !important;
-            flex-wrap: nowrap !important;
-            gap: 0 !important;
-            min-height: 380px;
+        /* Ép click xuyên qua <a> bên trong, đi thẳng lên .item */
+        .listproduct .item > a.remain_quantity { pointer-events: none; }
+        .listproduct .item > a.remain_quantity * { pointer-events: none; }
+        .listproduct .item .btn-buy,
+        .listproduct .item .btn-buy * { pointer-events: auto; }
+        .modal-content {
+            background: white; width: 90%; max-width: 700px; border-radius: 15px;
+            padding: 30px; position: relative; animation: popUp 0.3s ease;
         }
-
-        .modal-left {
-            flex: 0 0 46% !important;
-            background: var(--ha-bg) !important;
-            display: flex !important;
-            align-items: center !important;
-            justify-content: center !important;
-            padding: 30px !important;
-        }
-
-        .modal-left #modalImg {
-            max-width: 100% !important;
-            max-height: 310px !important;
-            object-fit: contain !important;
-            border-radius: 12px !important;
-            transition: transform 0.4s var(--ha-ease) !important;
-            width: 100% !important;
-        }
-
-        .modal-left #modalImg:hover {
-            transform: scale(1.05) !important;
-        }
-
-        .modal-right {
-            flex: 1 !important;
-            padding: 30px 28px 26px !important;
-            display: flex !important;
-            flex-direction: column !important;
-            background: var(--ha-white) !important;
-            overflow-y: auto !important;
-        }
-
-        #modalName {
-            font-size: 17px !important;
-            font-weight: 700 !important;
-            color: var(--ha-text) !important;
-            line-height: 1.4 !important;
-            margin: 0 0 10px !important;
-        }
-
-        /* Badges tự động thêm */
-        .ha-modal-badges {
-            display: flex;
-            gap: 6px;
-            flex-wrap: wrap;
-            margin-bottom: 14px;
-        }
-
-        .ha-modal-badge {
-            font-size: 11px;
-            font-weight: 600;
-            padding: 4px 10px;
-            border-radius: 20px;
-            background: #f0f7ff;
-            color: var(--ha-blue);
-            border: 1px solid #c5dfff;
-        }
-
-        #modalPrice {
-            font-size: 28px !important;
-            font-weight: 900 !important;
-            color: var(--ha-red) !important;
-            margin: 0 0 18px !important;
-            letter-spacing: -0.5px !important;
-        }
-
-        .modal-desc h4 {
-            font-size: 11px !important;
-            text-transform: uppercase !important;
-            letter-spacing: 0.8px !important;
-            color: var(--ha-sub) !important;
-            margin: 0 0 6px !important;
-            font-weight: 600 !important;
-        }
-
-        #modalDesc {
-            font-size: 13px !important;
-            color: #444 !important;
-            line-height: 1.75 !important;
-        }
-
-        #modalBuyBtn,
-        .modal-buy-btn {
-            margin-top: auto !important;
-            padding: 15px 22px !important;
-            background: var(--ha-yellow) !important;
-            border: none !important;
-            border-radius: 12px !important;
-            font-size: 14px !important;
-            font-weight: 800 !important;
-            cursor: pointer !important;
-            width: 100% !important;
-            transition: all 0.22s var(--ha-ease) !important;
-            letter-spacing: 0.2px !important;
-        }
-
-        #modalBuyBtn:hover,
-        .modal-buy-btn:hover {
-            background: #ffe500 !important;
-            box-shadow: 0 6px 20px rgba(255, 229, 0, 0.5) !important;
-            transform: translateY(-2px) !important;
-        }
-
+        @keyframes popUp { from {transform: scale(0.8); opacity: 0;} to {transform: scale(1); opacity: 1;} }
         .close-modal {
-            position: absolute !important;
-            top: 14px !important;
-            right: 16px !important;
-            width: 32px !important;
-            height: 32px !important;
-            background: rgba(0, 0, 0, 0.07) !important;
-            border-radius: 50% !important;
-            display: flex !important;
-            align-items: center !important;
-            justify-content: center !important;
-            font-size: 16px !important;
-            cursor: pointer !important;
-            z-index: 10 !important;
-            transition: background 0.2s !important;
-            color: var(--ha-text) !important;
+            position: absolute; top: 10px; right: 20px; font-size: 35px; cursor: pointer; color: #999;
         }
+        .modal-body { display: flex; gap: 25px; flex-wrap: wrap; }
+        .modal-left, .modal-right { flex: 1; min-width: 280px; }
 
-        .close-modal:hover {
-            background: rgba(0, 0, 0, 0.15) !important;
-        }
-
-        /* ── NÚT XEM THÊM ─────────────────────────────────────── */
-        #superBtn {
-            background: linear-gradient(135deg, var(--ha-blue), var(--ha-blue-dk)) !important;
-            color: #fff !important;
-            border: none !important;
-            border-radius: 30px !important;
-            padding: 14px 52px !important;
-            font-size: 15px !important;
-            font-weight: 700 !important;
-            cursor: pointer !important;
-            transition: all 0.25s var(--ha-ease) !important;
-            box-shadow: 0 4px 18px rgba(0, 113, 227, 0.35) !important;
-            letter-spacing: 0.3px !important;
-        }
-
-        #superBtn:hover {
-            transform: translateY(-3px) !important;
-            box-shadow: 0 10px 28px rgba(0, 113, 227, 0.5) !important;
-        }
-
-        /* ── CART MODAL ──────────────────────────────────────── */
-        .cart-modal-overlay {
-            backdrop-filter: blur(4px) !important;
-        }
-
-        .cart-modal {
-            border-radius: 20px 0 0 20px !important;
-            box-shadow: -10px 0 50px rgba(0, 0, 0, 0.18) !important;
-            font-family: 'Inter', sans-serif !important;
-        }
-
-        .btn-checkout {
-            background: linear-gradient(135deg, var(--ha-blue), var(--ha-blue-dk)) !important;
-            color: #fff !important;
-            border: none !important;
-            border-radius: 12px !important;
-            padding: 14px !important;
-            font-size: 15px !important;
-            font-weight: 700 !important;
-            cursor: pointer !important;
-            width: 100% !important;
-            margin-top: 16px !important;
-            transition: all 0.25s var(--ha-ease) !important;
-        }
-
-        .btn-checkout:hover {
-            transform: translateY(-2px) !important;
-            box-shadow: 0 8px 22px rgba(0, 113, 227, 0.45) !important;
-        }
-
-        /* ── TOAST ───────────────────────────────────────────── */
-        .toast-msg {
-            position: fixed !important;
-            bottom: 96px !important;
-            left: 50% !important;
-            transform: translateX(-50%) !important;
-            background: rgba(29, 29, 31, 0.9) !important;
-            color: #fff !important;
-            padding: 11px 24px !important;
-            border-radius: 30px !important;
-            font-size: 13.5px !important;
-            font-weight: 500 !important;
-            z-index: 999999 !important;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25) !important;
-            backdrop-filter: blur(10px) !important;
-            max-width: 88vw !important;
-            text-align: center !important;
-            pointer-events: none !important;
-        }
-
-        /* ── RESPONSIVE ──────────────────────────────────────── */
-        @media (max-width: 860px) {
-            .modal-body {
-                flex-direction: column !important;
-            }
-
-            .modal-left {
-                flex: none !important;
-                min-height: 220px !important;
-                padding: 22px !important;
-            }
-
-            .modal-right {
-                padding: 20px !important;
-            }
-
-            .modal-content {
-                max-width: 96vw !important;
-                border-radius: 18px !important;
-            }
-        }
-
-        @media (max-width: 680px) {
-            #product-list-container.listproduct {
-                grid-template-columns: repeat(2, 1fr) !important;
-                gap: 10px !important;
-                width: 98% !important;
-            }
-
-            #product-list-container .item .item-img {
-                height: 150px !important;
-            }
-        }
-
-        @media (max-width: 380px) {
-            #product-list-container .item h3 {
-                font-size: 11.5px !important;
-            }
-
-            #product-list-container .item strong.price {
-                font-size: 13px !important;
-            }
-        }
-    </style>
-
-    <style>
         /* Khung chứa dùng công thức Grid để chia đúng 6 cột */
         .listproduct {
             display: grid !important;
@@ -564,73 +64,28 @@
 
         /* Giao diện Thông báo hình chữ nhật */
         .custom-modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.6);
-            display: none;
-            /* Quan trọng: Mặc định phải ẩn */
-            align-items: center;
-            justify-content: center;
-            z-index: 99999;
-            font-family: sans-serif;
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6); 
+            display: none; /* Quan trọng: Mặc định phải ẩn */
+            align-items: center; justify-content: center;
+            z-index: 99999; font-family: sans-serif;
         }
-
         .custom-modal-box {
-            background: white;
-            padding: 25px;
-            border-radius: 12px;
-            width: 320px;
-            text-align: center;
-            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+            background: white; padding: 25px; border-radius: 12px; width: 320px;
+            text-align: center; box-shadow: 0 15px 35px rgba(0,0,0,0.3);
             animation: zoomIn 0.2s ease;
         }
-
-        .custom-modal-box h3 {
-            margin: 0 0 10px 0;
-            color: #333;
-        }
-
-        .custom-modal-box p {
-            color: #555;
-            margin-bottom: 20px;
-            font-size: 14px;
-        }
-
+        .custom-modal-box h3 { margin: 0 0 10px 0; color: #333; }
+        .custom-modal-box p { color: #555; margin-bottom: 20px; font-size: 14px; }
         .modal-btn-confirm {
-            background: #ffd400;
-            color: black;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 6px;
-            font-weight: bold;
-            cursor: pointer;
-            flex: 1;
+            background: #ffd400; color: black; border: none; padding: 10px 20px;
+            border-radius: 6px; font-weight: bold; cursor: pointer; flex: 1;
         }
-
         .modal-btn-cancel {
-            background: #f0f0f0;
-            color: #333;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 6px;
-            cursor: pointer;
-            flex: 1;
+            background: #f0f0f0; color: #333; border: none; padding: 10px 20px;
+            border-radius: 6px; cursor: pointer; flex: 1;
         }
-
-        @keyframes zoomIn {
-            from {
-                transform: scale(0.8);
-                opacity: 0;
-            }
-
-            to {
-                transform: scale(1);
-                opacity: 1;
-            }
-        }
+        @keyframes zoomIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 
         /* Định dạng từng ô sản phẩm */
         .listproduct .item {
@@ -1558,7 +1013,7 @@
 
         #popupbox.user-list>div>table td.check>b {
             color: #63bb02;
-            background: transparent url(../images/general/<span class="__cf_email__" data-cfemail="0b6268646568636e6860647e7f4b3973257b656c">[email&#160;protected]</span>) no-repeat left center;
+            background: transparent url(../images/general/iconcheckout@2x.png) no-repeat left center;
             background-size: 260px 50px;
             background-position: -165px -25px;
             display: inline-block;
@@ -3244,7 +2699,9 @@
         }
 
         [class^="iconlogo-"].visible,
-        [class*="iconlogo-"].visible .iconlogo-fashion {
+        [class*="iconlogo-"].visible
+
+        .iconlogo-fashion {
             background-position: -85px -29px
         }
 
@@ -7863,7 +7320,7 @@
 
         [class^="icon-"],
         [class*="icon-"] {
-            background-image: url(//cdnv2.tgdd.vn/webmwg/2024/ContentMwg/images/homev2/desk/<span class="__cf_email__" data-cfemail="325b515d5c6d515d5f5f5d5c72004a1c425c55">[email&#160;protected]</span>?v=2);
+            background-image: url(//cdnv2.tgdd.vn/webmwg/2024/ContentMwg/images/homev2/desk/icon_common@2x.png?v=2);
             background-repeat: no-repeat;
             display: inline-block;
             height: 30px;
@@ -12532,7 +11989,7 @@
 
         [class^="icondetail-"],
         [class*="icondetail-"] {
-            background-image: url(//cdnv2.tgdd.vn/webmwg/2024/ContentMwg/images/TGDD/Mobile/<span class="__cf_email__" data-cfemail="b6dfd5d9d8e9d5dedfc2dfd3c2f684ce9bdbdfd898c6d8d1">[email&#160;protected]</span>?v=2);
+            background-image: url(//cdnv2.tgdd.vn/webmwg/2024/ContentMwg/images/TGDD/Mobile/icon_chitiet@2x-min.png?v=2);
             background-repeat: no-repeat;
             display: inline-block;
             height: 30px;
@@ -21199,821 +20656,8 @@
             display: none !important;
         }
     </style>
-
-    <!-- ═══ HỒNG ANH SHOP ✦ UI PRO v2 ═══ -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700;800;900&display=swap"
-        rel="stylesheet">
-
-    <style id="ha-ui-pro">
-        /* ── Design Tokens ─────────────────────────────────────────── */
-        :root {
-            --ha-yellow: #FFD600;
-            --ha-yellow-dk: #F5C400;
-            --ha-red: #E53935;
-            --ha-blue: #1565C0;
-            --ha-blue-lt: #1976D2;
-            --ha-green: #2E7D32;
-            --ha-bg: #F4F6F9;
-            --ha-white: #FFFFFF;
-            --ha-text: #1A1A2E;
-            --ha-sub: #6B7280;
-            --ha-border: #E5E7EB;
-            --ha-radius: 14px;
-            --ha-radius-sm: 8px;
-            --ha-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
-            --ha-shadow-md: 0 6px 24px rgba(0, 0, 0, 0.12);
-            --ha-shadow-lg: 0 20px 60px rgba(0, 0, 0, 0.18);
-            --ha-ease: cubic-bezier(0.4, 0, 0.2, 1);
-            --ha-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
-        }
-
-        /* ── Font toàn trang ───────────────────────────────────────── */
-        *,
-        *::before,
-        *::after {
-            box-sizing: border-box;
-        }
-
-        body,
-        input,
-        button,
-        select,
-        textarea {
-            font-family: 'Be Vietnam Pro', 'Segoe UI', system-ui, sans-serif !important;
-        }
-
-        /* ── Skeleton Loading ──────────────────────────────────────── */
-        @keyframes ha-shimmer {
-            0% {
-                background-position: -800px 0;
-            }
-
-            100% {
-                background-position: 800px 0;
-            }
-        }
-
-        .ha-skel {
-            background: linear-gradient(90deg, #EBEBEB 25%, #F5F5F5 50%, #EBEBEB 75%);
-            background-size: 800px 100%;
-            animation: ha-shimmer 1.4s infinite linear;
-            border-radius: 8px;
-        }
-
-        .ha-skel-card {
-            background: var(--ha-white);
-            border-radius: var(--ha-radius);
-            overflow: hidden;
-            box-shadow: var(--ha-shadow);
-            display: flex !important;
-            flex-direction: column;
-            animation: ha-fade-in 0.3s ease both;
-        }
-
-        .ha-skel-img {
-            height: 180px;
-            border-radius: 0;
-            flex-shrink: 0;
-        }
-
-        .ha-skel-body {
-            padding: 12px 14px;
-            display: flex;
-            flex-direction: column;
-            gap: 9px;
-        }
-
-        .ha-skel-line {
-            height: 12px;
-        }
-
-        .ha-skel-line.w90 {
-            width: 90%;
-        }
-
-        .ha-skel-line.w60 {
-            width: 60%;
-        }
-
-        .ha-skel-line.w40 {
-            width: 40%;
-        }
-
-        .ha-skel-btn {
-            height: 38px;
-            border-radius: 10px;
-            margin-top: 6px;
-        }
-
-        @keyframes ha-fade-in {
-            from {
-                opacity: 0;
-                transform: translateY(8px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        /* ── Product Grid ──────────────────────────────────────────── */
-        #product-list-container.listproduct {
-            display: grid !important;
-            grid-template-columns: repeat(auto-fill, minmax(172px, 1fr)) !important;
-            gap: 16px !important;
-            width: 95% !important;
-            max-width: 1340px !important;
-            margin: 0 auto 40px !important;
-            padding: 10px 0 !important;
-            height: auto !important;
-            max-height: none !important;
-            overflow: visible !important;
-        }
-
-        /* ── Product Card ──────────────────────────────────────────── */
-        #product-list-container .item {
-            background: var(--ha-white) !important;
-            border: 1.5px solid var(--ha-border) !important;
-            border-radius: var(--ha-radius) !important;
-            padding: 0 !important;
-            margin: 0 !important;
-            overflow: hidden !important;
-            display: flex !important;
-            flex-direction: column !important;
-            cursor: pointer !important;
-            position: relative !important;
-            transition:
-                transform 0.30s var(--ha-spring),
-                box-shadow 0.30s var(--ha-ease),
-                border-color 0.25s var(--ha-ease) !important;
-            will-change: transform !important;
-            animation: ha-fade-in 0.4s ease both !important;
-        }
-
-        #product-list-container .item:hover {
-            transform: translateY(-8px) scale(1.022) !important;
-            box-shadow: var(--ha-shadow-lg) !important;
-            border-color: var(--ha-blue-lt) !important;
-            z-index: 2 !important;
-        }
-
-        /* Badge HOT / SALE */
-        #product-list-container .item .ha-badge {
-            position: absolute;
-            top: 10px;
-            left: 10px;
-            background: var(--ha-red);
-            color: #fff;
-            font-size: 9px;
-            font-weight: 800;
-            padding: 3px 8px;
-            border-radius: 20px;
-            letter-spacing: 0.8px;
-            text-transform: uppercase;
-            z-index: 3;
-            box-shadow: 0 2px 8px rgba(229, 57, 53, 0.45);
-        }
-
-        /* Ảnh sản phẩm */
-        #product-list-container .item .item-img {
-            width: 100% !important;
-            height: 180px !important;
-            background: var(--ha-bg) !important;
-            display: flex !important;
-            align-items: center !important;
-            justify-content: center !important;
-            overflow: hidden !important;
-            flex-shrink: 0 !important;
-            border-bottom: 1px solid var(--ha-border) !important;
-        }
-
-        #product-list-container .item .item-img img {
-            width: 100% !important;
-            height: 100% !important;
-            object-fit: contain !important;
-            padding: 12px !important;
-            transition: transform 0.45s var(--ha-ease) !important;
-        }
-
-        #product-list-container .item:hover .item-img img {
-            transform: scale(1.08) !important;
-        }
-
-        /* Nội dung card */
-        #product-list-container .item .remain_quantity.main-contain {
-            padding: 11px 13px 6px !important;
-            flex: 1 !important;
-            display: flex !important;
-            flex-direction: column !important;
-            pointer-events: none !important;
-            gap: 5px !important;
-        }
-
-        /* Tên sản phẩm — line-clamp 2 dòng */
-        #product-list-container .item h3 {
-            font-size: 12.5px !important;
-            font-weight: 600 !important;
-            color: var(--ha-text) !important;
-            line-height: 1.5 !important;
-            margin: 0 !important;
-            min-height: 38px !important;
-            /* ── line-clamp đầy đủ 3 thuộc tính bắt buộc ── */
-            display: -webkit-box !important;
-            -webkit-line-clamp: 2 !important;
-            -webkit-box-orient: vertical !important;
-            overflow: hidden !important;
-        }
-
-        /* Giá */
-        #product-list-container .item strong.price {
-            font-size: 14px !important;
-            font-weight: 800 !important;
-            color: var(--ha-red) !important;
-            display: flex !important;
-            align-items: center !important;
-            gap: 5px !important;
-            flex-wrap: wrap !important;
-            margin: 0 !important;
-        }
-
-        #product-list-container .item .price-old.black {
-            font-size: 10px !important;
-            color: var(--ha-sub) !important;
-            font-weight: 400 !important;
-        }
-
-        #product-list-container .item small {
-            background: #FFF0F0 !important;
-            color: var(--ha-red) !important;
-            font-size: 9.5px !important;
-            font-weight: 700 !important;
-            padding: 1px 5px !important;
-            border-radius: 4px !important;
-        }
-
-        /* Flash sale indicator */
-        #product-list-container .item .ha-flash {
-            display: flex;
-            align-items: center;
-            gap: 4px;
-            font-size: 10.5px;
-            color: #C62828;
-            font-weight: 600;
-            margin-top: 2px;
-        }
-
-        /* Nút mua */
-        #product-list-container .item .btn-buy {
-            padding: 8px 11px 11px !important;
-            pointer-events: auto !important;
-        }
-
-        #product-list-container .item .buy-now {
-            display: block !important;
-            text-align: center !important;
-            background: var(--ha-yellow) !important;
-            color: var(--ha-text) !important;
-            font-size: 12px !important;
-            font-weight: 700 !important;
-            padding: 9px 0 !important;
-            border-radius: 10px !important;
-            text-decoration: none !important;
-            transition: background 0.2s, box-shadow 0.2s, transform 0.2s !important;
-            letter-spacing: 0.1px !important;
-        }
-
-        #product-list-container .item .buy-now:hover {
-            background: var(--ha-yellow-dk) !important;
-            box-shadow: 0 4px 14px rgba(255, 214, 0, 0.6) !important;
-            transform: translateY(-1px) !important;
-        }
-
-        /* ── Modal Chi tiết ──────────────────────────────────────────── */
-        .modal-overlay {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 99998;
-            justify-content: center;
-            align-items: center;
-            background: rgba(15, 20, 40, 0.72) !important;
-            backdrop-filter: blur(10px) !important;
-            -webkit-backdrop-filter: blur(10px) !important;
-        }
-
-        .modal-overlay.show {
-            display: flex !important;
-        }
-
-        .modal-content {
-            background: var(--ha-white) !important;
-            border-radius: 22px !important;
-            padding: 0 !important;
-            position: relative !important;
-            max-width: 800px !important;
-            width: 92% !important;
-            max-height: 92vh !important;
-            overflow: hidden !important;
-            box-shadow: var(--ha-shadow-lg) !important;
-            animation: ha-modal-in 0.38s var(--ha-spring) !important;
-        }
-
-        @keyframes ha-modal-in {
-            from {
-                transform: scale(0.86) translateY(28px);
-                opacity: 0;
-            }
-
-            to {
-                transform: scale(1) translateY(0);
-                opacity: 1;
-            }
-        }
-
-        .modal-body {
-            display: flex !important;
-            flex-wrap: nowrap !important;
-            min-height: 400px !important;
-            max-height: 92vh !important;
-            overflow: hidden !important;
-        }
-
-        /* Cột trái: ảnh */
-        .modal-left {
-            flex: 0 0 44% !important;
-            background: var(--ha-bg) !important;
-            display: flex !important;
-            align-items: center !important;
-            justify-content: center !important;
-            padding: 32px !important;
-            position: relative !important;
-        }
-
-        .modal-left #modalImg {
-            max-width: 100% !important;
-            max-height: 320px !important;
-            object-fit: contain !important;
-            border-radius: 14px !important;
-            transition: transform 0.4s var(--ha-ease) !important;
-            width: 100% !important;
-            filter: drop-shadow(0 8px 24px rgba(0, 0, 0, 0.12)) !important;
-        }
-
-        .modal-left #modalImg:hover {
-            transform: scale(1.04) rotate(0.5deg) !important;
-        }
-
-        /* Cột phải: thông tin */
-        .modal-right {
-            flex: 1 !important;
-            padding: 32px 30px 28px !important;
-            display: flex !important;
-            flex-direction: column !important;
-            background: var(--ha-white) !important;
-            overflow-y: auto !important;
-            gap: 0 !important;
-        }
-
-        .modal-right::-webkit-scrollbar {
-            width: 4px;
-        }
-
-        .modal-right::-webkit-scrollbar-thumb {
-            background: #DDD;
-            border-radius: 4px;
-        }
-
-        /* Tên trong modal */
-        #modalName {
-            font-size: 18px !important;
-            font-weight: 800 !important;
-            color: var(--ha-text) !important;
-            line-height: 1.4 !important;
-            margin: 0 0 12px !important;
-        }
-
-        /* Badges tin tưởng */
-        .ha-trust-badges {
-            display: flex;
-            gap: 6px;
-            flex-wrap: wrap;
-            margin-bottom: 16px;
-        }
-
-        .ha-trust-badge {
-            font-size: 10.5px;
-            font-weight: 600;
-            padding: 4px 10px;
-            border-radius: 20px;
-            background: #EEF5FF;
-            color: var(--ha-blue);
-            border: 1px solid #C5DEFF;
-            white-space: nowrap;
-        }
-
-        .ha-trust-badge.green {
-            background: #E8F5E9;
-            color: var(--ha-green);
-            border-color: #A5D6A7;
-        }
-
-        .ha-trust-badge.red {
-            background: #FFEBEE;
-            color: var(--ha-red);
-            border-color: #FFCDD2;
-        }
-
-        /* Giá trong modal */
-        #modalPrice {
-            font-size: 30px !important;
-            font-weight: 900 !important;
-            color: var(--ha-red) !important;
-            margin: 0 0 18px !important;
-            letter-spacing: -1px !important;
-            line-height: 1 !important;
-        }
-
-        /* Divider */
-        .modal-divider {
-            width: 100%;
-            height: 1px;
-            background: var(--ha-border);
-            margin: 0 0 16px;
-        }
-
-        /* Mô tả */
-        .modal-desc h4 {
-            font-size: 10px !important;
-            text-transform: uppercase !important;
-            letter-spacing: 1px !important;
-            color: var(--ha-sub) !important;
-            margin: 0 0 8px !important;
-            font-weight: 700 !important;
-        }
-
-        #modalDesc {
-            font-size: 13px !important;
-            color: #4B5563 !important;
-            line-height: 1.8 !important;
-            margin: 0 0 20px !important;
-        }
-
-        /* Nút mua trong modal */
-        #modalBuyBtn,
-        .modal-buy-btn {
-            margin-top: auto !important;
-            padding: 15px 22px !important;
-            background: linear-gradient(135deg, var(--ha-yellow) 0%, var(--ha-yellow-dk) 100%) !important;
-            border: none !important;
-            border-radius: 12px !important;
-            font-size: 14px !important;
-            font-weight: 800 !important;
-            cursor: pointer !important;
-            width: 100% !important;
-            color: var(--ha-text) !important;
-            transition: all 0.25s var(--ha-spring) !important;
-            box-shadow: 0 4px 16px rgba(255, 214, 0, 0.40) !important;
-            letter-spacing: 0.2px !important;
-        }
-
-        #modalBuyBtn:hover,
-        .modal-buy-btn:hover {
-            transform: translateY(-2px) scale(1.01) !important;
-            box-shadow: 0 10px 28px rgba(255, 214, 0, 0.55) !important;
-        }
-
-        /* Nút đóng modal */
-        .close-modal {
-            position: absolute !important;
-            top: 14px !important;
-            right: 16px !important;
-            width: 34px !important;
-            height: 34px !important;
-            background: rgba(0, 0, 0, 0.06) !important;
-            border-radius: 50% !important;
-            display: flex !important;
-            align-items: center !important;
-            justify-content: center !important;
-            font-size: 15px !important;
-            cursor: pointer !important;
-            z-index: 10 !important;
-            transition: background 0.2s, transform 0.2s !important;
-            color: var(--ha-text) !important;
-            line-height: 1 !important;
-        }
-
-        .close-modal:hover {
-            background: rgba(0, 0, 0, 0.14) !important;
-            transform: rotate(90deg) !important;
-        }
-
-        /* ── Header & Menu ──────────────────────────────────────────── */
-        .header,
-        .header.v2024 {
-            background: linear-gradient(160deg, #0D1B2A 0%, #1B2A4A 55%, #0F3460 100%) !important;
-            box-shadow: 0 2px 24px rgba(0, 0, 0, 0.28) !important;
-        }
-
-        /* Thanh tìm kiếm */
-        .header .header__search input,
-        .header input[type="text"],
-        .header input[type="search"] {
-            border-radius: 30px !important;
-            border: none !important;
-            background: rgba(255, 255, 255, 0.13) !important;
-            color: #fff !important;
-            outline: none !important;
-            transition: background 0.25s !important;
-        }
-
-        .header .header__search input:focus,
-        .header input[type="text"]:focus {
-            background: rgba(255, 255, 255, 0.22) !important;
-        }
-
-        /* Menu items */
-        .main-menu>li>a,
-        .main-menu>li>span {
-            font-family: 'Be Vietnam Pro', sans-serif !important;
-            font-size: 13px !important;
-            font-weight: 600 !important;
-            position: relative !important;
-            transition: color 0.2s !important;
-        }
-
-        .main-menu>li>a::after {
-            content: '';
-            position: absolute;
-            bottom: -2px;
-            left: 50%;
-            right: 50%;
-            height: 2.5px;
-            background: var(--ha-yellow);
-            border-radius: 2px;
-            transition: left 0.28s var(--ha-ease), right 0.28s var(--ha-ease);
-        }
-
-        .main-menu>li:hover>a::after,
-        .main-menu>li.category-active>a::after {
-            left: 0;
-            right: 0;
-        }
-
-        /* Dropdown */
-        .main-menu .navmwg,
-        .main-menu .menu-dropdown {
-            border-radius: 16px !important;
-            box-shadow: 0 16px 48px rgba(0, 0, 0, 0.18) !important;
-            border: 1px solid rgba(0, 0, 0, 0.06) !important;
-            overflow: hidden !important;
-        }
-
-        /* Tab danh mục sản phẩm */
-        .products-tabs li a,
-        .products-tabs li span {
-            font-family: 'Be Vietnam Pro', sans-serif !important;
-            font-weight: 600 !important;
-            font-size: 13px !important;
-            border-radius: 30px !important;
-            transition: all 0.2s !important;
-        }
-
-        .products-tabs li.active-tab a,
-        .products-tabs li.active a {
-            background: var(--ha-blue-lt) !important;
-            color: #fff !important;
-        }
-
-        /* Cart badge */
-        .cart-number {
-            background: var(--ha-red) !important;
-            color: #fff !important;
-            font-family: 'Be Vietnam Pro', sans-serif !important;
-            font-weight: 800 !important;
-            font-size: 10px !important;
-            min-width: 18px !important;
-            height: 18px !important;
-            border-radius: 9px !important;
-            display: inline-flex !important;
-            align-items: center !important;
-            justify-content: center !important;
-            padding: 0 4px !important;
-        }
-
-        /* ── Cart Modal ─────────────────────────────────────────────── */
-        .cart-modal-overlay {
-            backdrop-filter: blur(6px) !important;
-        }
-
-        .cart-modal {
-            border-radius: 22px 0 0 22px !important;
-            box-shadow: -12px 0 60px rgba(0, 0, 0, 0.20) !important;
-            font-family: 'Be Vietnam Pro', sans-serif !important;
-        }
-
-        .btn-checkout {
-            background: linear-gradient(135deg, var(--ha-blue-lt), var(--ha-blue)) !important;
-            color: #fff !important;
-            border: none !important;
-            border-radius: 12px !important;
-            padding: 15px !important;
-            font-size: 15px !important;
-            font-weight: 700 !important;
-            cursor: pointer !important;
-            width: 100% !important;
-            margin-top: 16px !important;
-            transition: all 0.25s var(--ha-spring) !important;
-            box-shadow: 0 4px 16px rgba(21, 101, 192, 0.35) !important;
-        }
-
-        .btn-checkout:hover {
-            transform: translateY(-2px) !important;
-            box-shadow: 0 10px 28px rgba(21, 101, 192, 0.50) !important;
-        }
-
-        .btn-remove {
-            background: none !important;
-            border: 1px solid #FFCDD2 !important;
-            color: var(--ha-red) !important;
-            border-radius: 6px !important;
-            padding: 3px 8px !important;
-            cursor: pointer !important;
-            transition: background 0.2s !important;
-            font-size: 13px !important;
-        }
-
-        .btn-remove:hover {
-            background: #FFEBEE !important;
-        }
-
-        /* ── Toast ─────────────────────────────────────────────────── */
-        #toastMsg {
-            position: fixed !important;
-            bottom: 100px !important;
-            left: 50% !important;
-            transform: translateX(-50%) !important;
-            background: rgba(15, 20, 40, 0.92) !important;
-            color: #fff !important;
-            padding: 12px 26px !important;
-            border-radius: 30px !important;
-            font-size: 13.5px !important;
-            font-weight: 500 !important;
-            z-index: 999999 !important;
-            box-shadow: 0 6px 24px rgba(0, 0, 0, 0.28) !important;
-            backdrop-filter: blur(12px) !important;
-            max-width: 90vw !important;
-            text-align: center !important;
-            pointer-events: none !important;
-            white-space: nowrap !important;
-        }
-
-        /* ── Nút Xem thêm ───────────────────────────────────────────── */
-        #superBtn {
-            background: linear-gradient(135deg, var(--ha-blue-lt), var(--ha-blue)) !important;
-            color: #fff !important;
-            border: none !important;
-            border-radius: 30px !important;
-            padding: 14px 52px !important;
-            font-size: 15px !important;
-            font-weight: 700 !important;
-            cursor: pointer !important;
-            transition: all 0.28s var(--ha-spring) !important;
-            box-shadow: 0 4px 18px rgba(21, 101, 192, 0.38) !important;
-        }
-
-        #superBtn:hover {
-            transform: translateY(-3px) !important;
-            box-shadow: 0 12px 32px rgba(21, 101, 192, 0.55) !important;
-        }
-
-        /* ── Responsive ─────────────────────────────────────────────── */
-        @media (max-width: 860px) {
-            .modal-body {
-                flex-direction: column !important;
-                max-height: none !important;
-            }
-
-            .modal-left {
-                flex: none !important;
-                min-height: 230px !important;
-                padding: 24px !important;
-            }
-
-            .modal-right {
-                padding: 22px 20px 20px !important;
-            }
-
-            .modal-content {
-                max-width: 96vw !important;
-                border-radius: 20px !important;
-                max-height: 96vh !important;
-                overflow-y: auto !important;
-            }
-        }
-
-        @media (max-width: 640px) {
-            #product-list-container.listproduct {
-                grid-template-columns: repeat(2, 1fr) !important;
-                gap: 11px !important;
-                width: 98% !important;
-            }
-
-            #product-list-container .item .item-img {
-                height: 150px !important;
-            }
-
-            #product-list-container .item h3 {
-                font-size: 11.5px !important;
-                min-height: 34px !important;
-            }
-
-            #product-list-container .item strong.price {
-                font-size: 13px !important;
-            }
-
-            #modalPrice {
-                font-size: 24px !important;
-            }
-        }
-
-        @media (max-width: 380px) {
-            #product-list-container.listproduct {
-                grid-template-columns: repeat(2, 1fr) !important;
-                gap: 8px !important;
-            }
-        }
-
-        /* ── Pointer events cho grid cũ ─────────────────────────────── */
-        .listproduct .item>a.remain_quantity {
-            pointer-events: none;
-        }
-
-        .listproduct .item>a.remain_quantity * {
-            pointer-events: none;
-        }
-
-        .listproduct .item .btn-buy,
-        .listproduct .item .btn-buy * {
-            pointer-events: auto;
-        }
-    </style>
-
-    <style id="ha-polish">
-        html {
-            scroll-behavior: smooth;
-        }
-
-        /* Scrollbar global đẹp hơn */
-        ::-webkit-scrollbar {
-            width: 7px;
-            height: 7px;
-        }
-
-        ::-webkit-scrollbar-track {
-            background: transparent;
-        }
-
-        ::-webkit-scrollbar-thumb {
-            background: #CDD0D6;
-            border-radius: 6px;
-        }
-
-        ::-webkit-scrollbar-thumb:hover {
-            background: #A0A8B5;
-        }
-
-        /* Selection highlight màu vàng brand */
-        ::selection {
-            background: #FFD600;
-            color: #1A1A2E;
-        }
-
-        /* Input focus ring đẹp */
-        input:focus,
-        select:focus,
-        textarea:focus {
-            outline: 2px solid #FFD600 !important;
-            outline-offset: 1px !important;
-        }
-
-        /* Pointer mặc định cho tất cả button */
-        button {
-            cursor: pointer;
-        }
-
-        /* Smooth transition cho links */
-        a {
-            transition: opacity 0.2s;
-        }
-    </style>
 </head>
 <!-- End Floating Banners -->
-<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script>
 <script type="text/javascript">
     (function () {
         var z = "";
@@ -22067,8 +20711,7 @@
                     font-family: inherit;
                     transition: all 0.3s ease;
                 ">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="2.5"
-                        stroke-linecap="round" stroke-linejoin="round">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                         <line x1="8" y1="6" x2="21" y2="6"></line>
                         <line x1="8" y1="12" x2="21" y2="12"></line>
                         <line x1="8" y1="18" x2="21" y2="18"></line>
@@ -22077,8 +20720,7 @@
                         <line x1="3" y1="18" x2="3.01" y2="18"></line>
                     </svg>
 
-                    <span id="order-count-badge" style="font-size: 12px; font-weight: 600; color: #000000;">Đơn
-                        hàng</span>
+                    <span id="order-count-badge" style="font-size: 12px; font-weight: 600; color: #000000;">Đơn hàng</span>
                 </button>
             </div>
             <a href="/cart" class="header__cart menu-info" id="cart-box">
@@ -22093,7 +20735,7 @@
                 </div>
             </a>
             <div id="auth-header-dynamic" style="display: flex; align-items: center; gap: 10px; margin: 0 15px;">
-
+                
                 <div id="group-guest" style="display: flex; gap: 10px;">
                     <button onclick="window.location.href='/login'" style="
                         background: rgba(255, 255, 255, 0.1); 
@@ -22143,19 +20785,19 @@
                     if (confirm(message)) { if (onConfirm) onConfirm(); }
                     return;
                 }
-
+                
                 document.getElementById('modalTitle').innerText = title;
                 document.getElementById('modalMessage').innerText = message;
                 modal.style.display = 'flex'; // Hiện hộp
 
                 // Xử lý nút Đồng ý
-                document.getElementById('modalBtnOk').onclick = function () {
+                document.getElementById('modalBtnOk').onclick = function() {
                     modal.style.display = 'none';
                     if (onConfirm) onConfirm();
                 };
 
                 // Xử lý nút Bỏ qua
-                document.getElementById('modalBtnCancel').onclick = function () {
+                document.getElementById('modalBtnCancel').onclick = function() {
                     modal.style.display = 'none';
                 };
             }
@@ -22166,33 +20808,33 @@
                 const username = localStorage.getItem("username") || "Thành viên";
                 const guestZone = document.getElementById("group-guest");
                 const userZone = document.getElementById("group-user");
-                const nameLabel = document.getElementById("user-account-name");
+                const nameLabel = document.getElementById("user-account-name"); 
 
                 if (token && token !== "null") {
-                    if (guestZone) guestZone.style.display = "none";
-                    if (userZone) {
+                    if(guestZone) guestZone.style.display = "none";
+                    if(userZone) {
                         userZone.style.display = "flex";
-                        if (nameLabel) nameLabel.innerText = username;
+                        if(nameLabel) nameLabel.innerText = username;
                     }
                 } else {
-                    if (guestZone) guestZone.style.display = "flex";
-                    if (userZone) userZone.style.display = "none";
+                    if(guestZone) guestZone.style.display = "flex";
+                    if(userZone) userZone.style.display = "none";
                 }
             }
 
             // 3. Hàm đăng xuất dùng Modal
             function handleLogout() {
-                showCustomModal("Xác nhận", "Bạn có chắc chắn muốn đăng xuất không?", function () {
-                    localStorage.clear();
-                    window.location.href = "/login";
+                showCustomModal("Xác nhận", "Bạn có chắc chắn muốn đăng xuất không?", function() {
+                    localStorage.clear(); 
+                    window.location.href = "/login"; 
                 });
             }
 
             // 4. Hàm chốt đơn dùng Modal
-            window.handleFinalCheckout = function () {
+            window.handleFinalCheckout = function() {
                 const token = localStorage.getItem("access_token");
                 if (!token || token === "null") {
-                    showCustomModal("Yêu cầu", "Vui lòng đăng nhập để hệ thống ghi nhận đơn hàng nhé!", function () {
+                    showCustomModal("Yêu cầu", "Vui lòng đăng nhập để hệ thống ghi nhận đơn hàng nhé!", function() {
                         window.location.href = "/login";
                     });
                 } else {
@@ -22205,13 +20847,13 @@
             };
 
             // 5. TỰ ĐỘNG THAY THẾ CÁC NÚT MUA NGAY (Tránh bị hiện alert cũ)
-            document.addEventListener('click', function (e) {
+            document.addEventListener('click', function(e) {
                 // Tìm xem cái đang bấm có phải nút mua ngay không
-                if (e.target && (e.target.classList.contains('buy-now') || (e.target.innerText && e.target.innerText.includes('MUA NGAY')))) {
-                    if (!localStorage.getItem("access_token")) {
+                if(e.target && (e.target.classList.contains('buy-now') || (e.target.innerText && e.target.innerText.includes('MUA NGAY')))) {
+                    if(!localStorage.getItem("access_token")) {
                         e.preventDefault(); // Chặn hành động cũ
                         e.stopPropagation();
-                        showCustomModal("Thông báo", "Vui lòng đăng nhập để mua hàng bạn nhé!", function () {
+                        showCustomModal("Thông báo", "Vui lòng đăng nhập để mua hàng bạn nhé!", function() {
                             window.location.href = "/login";
                         });
                     }
@@ -22222,7 +20864,7 @@
             document.addEventListener("DOMContentLoaded", updateHeaderAuth);
         </script>
     </div>
-    <div class="header__main">
+        <div class="header__main">
         <div>
             <ul class="main-menu">
                 <li class="">
@@ -22979,8 +21621,7 @@
     <div class="close-bigBanner lazyload"></div>
     <button class="readmore-btn" style="cursor:pointer; border:none; background:none; padding:0; width:100%;">
         <img width='1200' height='260'
-            src="https://cdnv2.tgdd.vn/mwg-static/tgdd/Banner/3b/05/3b0530bcf8e6a5cef9d4af5f26e77685.jpg"
-            alt="Banner Big">
+            src="https://cdnv2.tgdd.vn/mwg-static/tgdd/Banner/3b/05/3b0530bcf8e6a5cef9d4af5f26e77685.jpg" alt="Banner Big">
     </button>
 </div>
 <!--End-->
@@ -22994,20 +21635,17 @@
         <ul class="products-tabs col9 ">
             <li class="active-tab fs-new-item" data-groupid="-1" data-id="flashsale" data-is-flashsale-tab=true>
                 <a href="javascript:;" class="fs-new-item-title">
-                    <img src="https://cdnv2.tgdd.vn/mwg-static/common/Campaign/0c/c4/0cc4e73a1b562f6c954f9bcabc6105a2.png"
-                        alt="FlashSale" />
+                    <img src="https://cdnv2.tgdd.vn/mwg-static/common/Campaign/0c/c4/0cc4e73a1b562f6c954f9bcabc6105a2.png" alt="FlashSale" />
                 </a>
             </li>
             <li class=" fs-new-item" data-groupid="10962" data-id="flashsaleCross">
                 <a href="javascript:;" class="fs-new-item-title">
-                    <img src="https://cdnv2.tgdd.vn/mwg-static/common/Campaign/3f/16/3f1607215d3087712b9749c27ca9c5f2.png"
-                        alt="Flashsale" />
+                    <img src="https://cdnv2.tgdd.vn/mwg-static/common/Campaign/3f/16/3f1607215d3087712b9749c27ca9c5f2.png" alt="Flashsale" />
                 </a>
             </li>
             <li class=" fs-new-item" data-groupid="9788" data-id="kmo">
                 <a href="javascript:;" class="fs-new-item-title">
-                    <img src="https://cdnv2.tgdd.vn/mwg-static/common/Campaign/7a/e0/7ae0723d3d978fd4c8a2c77f3bf4bd3a.png"
-                        alt="Online Only" />
+                    <img src="https://cdnv2.tgdd.vn/mwg-static/common/Campaign/7a/e0/7ae0723d3d978fd4c8a2c77f3bf4bd3a.png" alt="Online Only" />
                 </a>
             </li>
             <li class=" fs-new-item" data-groupid="9776" data-id="kmo">
@@ -23146,8 +21784,7 @@
                         </style>
                     </div>
                     <div class="box-scroll">
-                        <div id="product-list-container" class="listproduct slider-flashsale has-slick" data-size="20"
-                            data-colomn="">
+                        <div id="product-list-container" class="listproduct slider-flashsale has-slick" data-size="20" data-colomn="">
 
                         </div>
                         <div class="readmore" style="text-align: center; margin: 30px 0; clear: both; width: 100%;">
@@ -23169,8 +21806,7 @@
             href="https://www.thegioididong.com/dtdd/samsung-galaxy-s26-ultra-12gb-256gb?rg=1"
             onclick="jQuery.ajax({ url: '/bannertracking?bid=110136&r='+ (new Date).getTime(), async: true, cache: false });">
             <img width='600' height='180' loading="lazy" class="lazyload"
-                data-src="https://cdnv2.tgdd.vn/mwg-static/tgdd/Banner/fd/1b/fd1b0eed525953da499784ec5654f740.png"
-                alt="s26">
+                data-src="https://cdnv2.tgdd.vn/mwg-static/tgdd/Banner/fd/1b/fd1b0eed525953da499784ec5654f740.png" alt="s26">
         </a>
         <a aria-label="slide" data-cate="0" data-place="7866"
             href="https://www.thegioididong.com/chuong-trinh-tra-cham-apple"
@@ -23915,47 +22551,26 @@
 
     <div id="productModal" class="modal-overlay" onclick="if(event.target===this) closeModal()">
         <div class="modal-content" onclick="event.stopPropagation()">
-
-            <!-- Nút đóng -->
-            <span class="close-modal" onclick="closeModal()" title="Đóng">&#10005;</span>
-
+            <span class="close-modal" onclick="closeModal()">&times;</span>
             <div class="modal-body">
-                <!-- Cột trái: ảnh -->
                 <div class="modal-left">
-                    <img id="modalImg" src="" alt="Ảnh sản phẩm">
+                    <img id="modalImg" src="" alt="Ảnh sản phẩm" style="width:100%; border-radius:8px;">
                 </div>
-
-                <!-- Cột phải: thông tin -->
                 <div class="modal-right">
-                    <h2 id="modalName"></h2>
-
-                    <!-- Badges tin tưởng -->
-                    <div class="ha-trust-badges">
-                        <span class="ha-trust-badge green">✅ Chính hãng 100%</span>
-                        <span class="ha-trust-badge">🛡️ BH 12 tháng</span>
-                        <span class="ha-trust-badge red">🔄 Đổi trả 30 ngày</span>
-                    </div>
-
-                    <!-- Giá -->
-                    <div id="modalPrice"></div>
-
-                    <div class="modal-divider"></div>
-
-                    <!-- Mô tả -->
+                    <h2 id="modalName" style="margin-top:0;"></h2>
+                    <p class="modal-price" id="modalPrice" style="color:red; font-size:24px; font-weight:bold;"></p>
+                    <hr>
                     <div class="modal-desc">
-                        <h4>Mô tả sản phẩm</h4>
-                        <p id="modalDesc"></p>
+                        <h4 style="margin-bottom:10px;">Mô tả chi tiết:</h4>
+                        <p id="modalDesc" style="color:#555; line-height:1.6;"></p>
                     </div>
-
-                    <!-- Nút mua -->
-                    <button class="modal-buy-btn" id="modalBuyBtn">
-                        🛒&nbsp; Thêm vào giỏ hàng
+                    <button class="modal-buy-btn" id="modalBuyBtn" 
+                        style="width:100%; padding:15px; background:#ffed00; border:none; border-radius:8px; font-weight:bold; cursor:pointer; margin-top:20px;">
+                        Cảm ơn bạn đã xem 
                     </button>
                 </div>
             </div>
-
         </div>
-    </div>
     </div>
 
     <script>
@@ -23996,17 +22611,17 @@
 
             function addToCart(id, name, price, img) {
                 var found = false;
-                for (var i = 0; i < cart.length; i++) {
-                    if (cart[i].name === name) {
-                        cart[i].qty++;
-                        found = true;
-                        break;
-                    }
+                for (var i = 0; i < cart.length; i++) { 
+                    if (cart[i].name === name) { 
+                        cart[i].qty++; 
+                        found = true; 
+                        break; 
+                    } 
                 }
                 if (!found) cart.push({ id: id, name: name, price: price, img: img, qty: 1 });
 
                 // --- DÒNG CẦN THÊM VÀO ĐÂY ---
-                localStorage.setItem('cart', JSON.stringify(cart));
+                localStorage.setItem('cart', JSON.stringify(cart)); 
                 // ----------------------------
 
                 updateCartCount();
@@ -24021,7 +22636,7 @@
             var VOUCHERS = {
                 'GIAM10': { label: 'Giảm 10%', type: 'percent', value: 10 },
                 'SALE20': { label: 'Giảm 20%', type: 'percent', value: 20 },
-                'VIP30': { label: 'Giảm 30%', type: 'percent', value: 30 },
+                'VIP30':  { label: 'Giảm 30%', type: 'percent', value: 30 },
                 'FREESHIP': { label: 'Miễn phí vận chuyển 30.000đ', type: 'fixed', value: 30000 },
                 'NEWUSER': { label: 'Tặng 50.000đ cho khách mới', type: 'fixed', value: 50000 },
             };
@@ -24044,14 +22659,14 @@
             function getSelectedIndices() {
                 var checks = document.querySelectorAll('.cart-item-check');
                 var selected = [];
-                checks.forEach(function (cb) { if (cb.checked) selected.push(parseInt(cb.dataset.idx)); });
+                checks.forEach(function(cb) { if (cb.checked) selected.push(parseInt(cb.dataset.idx)); });
                 return selected;
             }
 
             function updateCartSummary() {
                 var selected = getSelectedIndices();
                 var rawTotal = 0;
-                selected.forEach(function (i) {
+                selected.forEach(function(i) {
                     if (!cart[i]) return;
                     rawTotal += (parseFloat(cart[i].price) || 0) * (parseInt(cart[i].qty) || 1);
                 });
@@ -24130,7 +22745,7 @@
                 html += '<input type="tel" id="coPhone" placeholder="Số điện thoại" required style="padding:10px;border:1px solid #ddd;border-radius:4px">';
                 html += '<select id="coCity" style="padding:10px; border:1px solid #ddd; border-radius:4px;">';
                 html += '<option value="">-- Chọn Tỉnh / Thành phố --</option>';
-                ['An Giang', 'Bà Rịa – Vũng Tàu', 'Bạc Liêu', 'Bắc Kạn', 'Bắc Giang', 'Bắc Ninh', 'Bến Tre', 'Bình Dương', 'Bình Định', 'Bình Phước', 'Bình Thuận', 'Cà Mau', 'Cao Bằng', 'Cần Thơ', 'Đà Nẵng', 'Đắk Lắk', 'Đắk Nông', 'Điện Biên', 'Đồng Nai', 'Đồng Tháp', 'Gia Lai', 'Hà Giang', 'Hà Nam', 'Hà Nội', 'Hà Tây', 'Hà Tĩnh', 'Hải Dương', 'Hải Phòng', 'Hậu Giang', 'Hòa Bình', 'Hưng Yên', 'TP. Hồ Chí Minh', 'Khánh Hòa', 'Kiên Giang', 'Kon Tum', 'Lai Châu', 'Lạng Sơn', 'Lào Cai', 'Lâm Đồng', 'Long An', 'Nam Định', 'Nghệ An', 'Ninh Bình', 'Ninh Thuận', 'Phú Thọ', 'Phú Yên', 'Quảng Bình', 'Quảng Nam', 'Quảng Ngãi', 'Quảng Ninh', 'Quảng Trị', 'Sóc Trăng', 'Sơn La', 'Tây Ninh', 'Thái Bình', 'Thái Nguyên', 'Thanh Hóa', 'Thừa Thiên Huế', 'Tiền Giang', 'Trà Vinh', 'Tuyên Quang', 'Vĩnh Long', 'Vĩnh Phúc', 'Yên Bái'].forEach(function (c) { html += '<option value="' + c + '">' + c + '</option>'; });
+                ['An Giang','Bà Rịa – Vũng Tàu','Bạc Liêu','Bắc Kạn','Bắc Giang','Bắc Ninh','Bến Tre','Bình Dương','Bình Định','Bình Phước','Bình Thuận','Cà Mau','Cao Bằng','Cần Thơ','Đà Nẵng','Đắk Lắk','Đắk Nông','Điện Biên','Đồng Nai','Đồng Tháp','Gia Lai','Hà Giang','Hà Nam','Hà Nội','Hà Tây','Hà Tĩnh','Hải Dương','Hải Phòng','Hậu Giang','Hòa Bình','Hưng Yên','TP. Hồ Chí Minh','Khánh Hòa','Kiên Giang','Kon Tum','Lai Châu','Lạng Sơn','Lào Cai','Lâm Đồng','Long An','Nam Định','Nghệ An','Ninh Bình','Ninh Thuận','Phú Thọ','Phú Yên','Quảng Bình','Quảng Nam','Quảng Ngãi','Quảng Ninh','Quảng Trị','Sóc Trăng','Sơn La','Tây Ninh','Thái Bình','Thái Nguyên','Thanh Hóa','Thừa Thiên Huế','Tiền Giang','Trà Vinh','Tuyên Quang','Vĩnh Long','Vĩnh Phúc','Yên Bái'].forEach(function(c){ html += '<option value="'+c+'">'+c+'</option>'; });
                 html += '</select>';
                 html += '<input type="text" id="coDistrict" placeholder="Nhập Quận / Huyện" required style="padding:10px; border:1px solid #ddd; border-radius:4px;">';
                 html += '<input type="text" id="coWard" placeholder="Nhập Phường / Xã" required style="padding:10px; border:1px solid #ddd; border-radius:4px;">';
@@ -24147,9 +22762,9 @@
 
                 el.innerHTML = html;
                 // Sau khi render xong thì cập nhật tổng
-                window._onCheckChange = function () { updateCartSummary(); };
-                window._toggleAll = function (checked) {
-                    document.querySelectorAll('.cart-item-check').forEach(function (cb) { cb.checked = checked; });
+                window._onCheckChange = function() { updateCartSummary(); };
+                window._toggleAll = function(checked) {
+                    document.querySelectorAll('.cart-item-check').forEach(function(cb){ cb.checked = checked; });
                     updateCartSummary();
                 };
                 window._applyVoucher = applyVoucher;
@@ -24213,7 +22828,7 @@
                         headers: { 'Authorization': 'Bearer ' + token }
                     });
                     productList = await pRes.json();
-                } catch (e) {
+                } catch(e) {
                     alert("Không thể kết nối server để xác thực giỏ hàng!");
                     return;
                 }
@@ -24258,7 +22873,7 @@
                     phone_number: phone.trim(),
                     customer_name: name.trim()
                 };
-
+                
                 try {
                     const res = await fetch('/orders', {
                         method: 'POST',
@@ -24275,11 +22890,11 @@
                         // Chỉ xóa các sản phẩm đã đặt khỏi giỏ
                         const remainCart = cart.filter((_, i) => !selectedIdx.includes(i));
                         cart.length = 0;
-                        remainCart.forEach(function (x) { cart.push(x); });
+                        remainCart.forEach(function(x){ cart.push(x); });
                         localStorage.setItem('cart', JSON.stringify(cart));
                         appliedVoucher = null;
                         updateCartCount();
-
+                        
                         const contentEl = document.getElementById('cartContent');
                         if (contentEl) {
                             contentEl.innerHTML = `
@@ -24310,11 +22925,6 @@
             };
             window.closeCartModal = function () { var o = document.getElementById('cartOverlay'); if (o) o.classList.remove('active'); };
             function openCartModal() { renderCart(); var o = document.getElementById('cartOverlay'); if (o) o.classList.add('active'); }
-            // === EXPOSE sang window để các script khác dùng được ===
-            window._cart = cart;
-            window._openCartModal = openCartModal;
-            window._updateCartCount = updateCartCount;
-            window._showToast = showToast;
 
             function extractProductFromItem(itemEl) {
                 if (!itemEl) return null;
@@ -24787,8 +23397,8 @@
             let badge = document.getElementById('order-count-badge');
             if (badge) {
                 // Nếu có đơn thì hiện số màu đỏ, không thì hiện chữ bình thường
-                badge.innerHTML = orders.length > 0
-                    ? `Đơn hàng <b style="background:red; padding:1px 5px; border-radius:50%; margin-left:3px;">${orders.length}</b>`
+                badge.innerHTML = orders.length > 0 
+                    ? `Đơn hàng <b style="background:red; padding:1px 5px; border-radius:50%; margin-left:3px;">${orders.length}</b>` 
                     : `Đơn hàng`;
             }
         }
@@ -24796,67 +23406,67 @@
         document.addEventListener('DOMContentLoaded', updateOrderBadge);
     </script>
     <script>
-        // 1. Hàm gửi đơn hàng lên Server (Render)
-        async function orderNow(id) {
-            const token = localStorage.getItem("access_token");
-            if (!token) {
-                alert("Bạn chưa đăng nhập! Đang chuyển hướng...");
-                window.location.href = "/login";
-                return;
-            }
-
-            try {
-                const response = await fetch('/orders', {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        "items": [{ "product_id": parseInt(id), "quantity": 1 }]
-                    })
-                });
-
-                if (response.ok) {
-                    alert("✅ ĐÃ ĐẶT HÀNG THÀNH CÔNG!\nSản phẩm ID: " + id);
-                    if (typeof updateOrderBadge === 'function') updateOrderBadge();
-                } else {
-                    const err = await response.json();
-                    alert("❌ Lỗi: " + (err.detail || "Không thể đặt hàng"));
-                }
-            } catch (e) {
-                alert("Lỗi kết nối Server! Kiểm tra lại Render nhé.");
-            }
+    // 1. Hàm gửi đơn hàng lên Server (Render)
+    async function orderNow(id) {
+        const token = localStorage.getItem("access_token");
+        if (!token) {
+            alert("Bạn chưa đăng nhập! Đang chuyển hướng...");
+            window.location.href = "/login";
+            return;
         }
 
-        // 2. Hàm tự động quét và gắn lệnh cho toàn bộ sản phẩm trên trang
-        function activateShopButtons() {
-            // Tìm tất cả các ô sản phẩm (class .item)
-            const allProductCards = document.querySelectorAll('.item');
-
-            allProductCards.forEach((card, index) => {
-                // Lấy ID thật từ data-id, nếu không có thì tự đánh số từ 1 đến 140
-                let productId = card.getAttribute('data-id') || (index + 1);
-
-                // Tìm nút bấm trong ô đó
-                const buyButton = card.querySelector('.buy-now') || card.querySelector('.btn-buy') || card.querySelector('a');
-
-                if (buyButton) {
-                    buyButton.href = "javascript:void(0)"; // Chặn nhảy trang lung tung
-                    buyButton.style.backgroundColor = "#ff9800"; // Đổi màu cam cho dễ nhìn
-                    buyButton.innerText = "MUA NGAY";
-
-                    // Gán lệnh mua hàng khi click
-                    buyButton.onclick = function (e) {
-                        e.preventDefault();
-                        orderNow(productId);
-                    };
-                }
+        try {
+            const response = await fetch('/orders', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    "items": [{ "product_id": parseInt(id), "quantity": 1 }]
+                })
             });
-        }
 
-        // Chạy ngay khi mở trang
-        document.addEventListener('DOMContentLoaded', activateShopButtons);
+            if (response.ok) {
+                alert("✅ ĐÃ ĐẶT HÀNG THÀNH CÔNG!\nSản phẩm ID: " + id);
+                if (typeof updateOrderBadge === 'function') updateOrderBadge();
+            } else {
+                const err = await response.json();
+                alert("❌ Lỗi: " + (err.detail || "Không thể đặt hàng"));
+            }
+        } catch (e) {
+            alert("Lỗi kết nối Server! Kiểm tra lại Render nhé.");
+        }
+    }
+
+    // 2. Hàm tự động quét và gắn lệnh cho toàn bộ sản phẩm trên trang
+    function activateShopButtons() {
+        // Tìm tất cả các ô sản phẩm (class .item)
+        const allProductCards = document.querySelectorAll('.item');
+        
+        allProductCards.forEach((card, index) => {
+            // Lấy ID thật từ data-id, nếu không có thì tự đánh số từ 1 đến 140
+            let productId = card.getAttribute('data-id') || (index + 1);
+
+            // Tìm nút bấm trong ô đó
+            const buyButton = card.querySelector('.buy-now') || card.querySelector('.btn-buy') || card.querySelector('a');
+
+            if (buyButton) {
+                buyButton.href = "javascript:void(0)"; // Chặn nhảy trang lung tung
+                buyButton.style.backgroundColor = "#ff9800"; // Đổi màu cam cho dễ nhìn
+                buyButton.innerText = "MUA NGAY";
+                
+                // Gán lệnh mua hàng khi click
+                buyButton.onclick = function(e) {
+                    e.preventDefault();
+                    orderNow(productId);
+                };
+            }
+        });
+    }
+
+    // Chạy ngay khi mở trang
+    document.addEventListener('DOMContentLoaded', activateShopButtons);
     </script>
     <script>
         // 1. Hàm dọn dẹp giá tiền - hiển thị đúng giá từ DB
@@ -24867,41 +23477,20 @@
         }
 
         // 2. Hàm chính: Lấy dữ liệu từ Database và đổ vào HTML
-        function showSkeletons(container, n) {
-            container.innerHTML = '';
-            for (let i = 0; i < n; i++) {
-                container.innerHTML += `
-                  <div class="ha-skel-card">
-                    <div class="ha-skel ha-skel-img"></div>
-                    <div class="ha-skel-body">
-                      <div class="ha-skel ha-skel-line w90"></div>
-                      <div class="ha-skel ha-skel-line w60"></div>
-                      <div class="ha-skel ha-skel-line w40"></div>
-                      <div class="ha-skel ha-skel-btn"></div>
-                    </div>
-                  </div>`;
-            }
-        }
-
         async function displayProducts() {
-            const container = document.getElementById('product-list-container');
-            if (!container) return;
-
-            // Hiện skeleton khi đang tải
-            showSkeletons(container, 12);
-
             try {
                 const response = await fetch('https://shop-truong-hong-anh.onrender.com/products');
                 const products = await response.json();
+                const container = document.getElementById('product-list-container');
+                
+                if (!container) return;
+                container.innerHTML = ""; 
 
-                container.innerHTML = '';
-
-                products.forEach((p, idx) => {
+                products.forEach(p => {
                     const imgUrl = p.image_url || "https://via.placeholder.com/200x200?text=No+Image";
                     const displayPrice = cleanPrice(p.price);
-                    const isHot = p.price >= 10000000;
-                    const isSale = p.price < 3000000;
 
+                    // Tạo thẻ div sản phẩm
                     const itemDiv = document.createElement('div');
                     itemDiv.className = "item";
                     itemDiv.setAttribute('data-pname', p.name);
@@ -24910,40 +23499,31 @@
                     itemDiv.setAttribute('data-pdesc', p.description || '');
                     itemDiv.setAttribute('data-pid', p.id);
                     itemDiv.style.cursor = 'pointer';
-                    itemDiv.style.animationDelay = (idx % 12 * 0.04) + 's';
 
-                    const badge = isHot
-                        ? '<span class="ha-badge">HOT</span>'
-                        : isSale ? '<span class="ha-badge" style="background:#1565C0">SALE</span>' : '';
-
-                    // Tên sản phẩm — escape để tránh XSS
-                    const safeName = p.name.replace(/'/g, "\'").replace(/"/g, '&quot;');
-
+                    // Vẽ nội dung bên trong
                     itemDiv.innerHTML = `
-                        \${badge}
                         <a href="javascript:void(0)" class="remain_quantity main-contain">
                             <div class="item-img">
-                                <img src="\${imgUrl}" alt="\${p.name}" loading="lazy"
-                                     onerror="this.src='https://via.placeholder.com/200x200?text=No+Image'">
+                                <img src="${imgUrl}" alt="${p.name}" width="207" height="207">
                             </div>
-                            <h3>\${p.name}</h3>
+                            <h3>${p.name}</h3>
                             <strong class="price">
-                                \${displayPrice} ₫
+                                ${displayPrice} ₫
                                 <span class="price-and-discount">
                                     <label class="price-old black">Giá tốt</label>
                                     <small>-30%</small>
                                 </span>
                             </strong>
-                            <div class="ha-flash">
-                                <svg width="11" height="11" viewBox="0 0 24 24" fill="#C62828"><path d="M13.5.67s.74 2.65.74 4.8c0 2.06-1.35 3.73-3.41 3.73-2.07 0-3.63-1.67-3.63-3.73l.03-.36C5.21 7.51 4 10.62 4 14c0 4.42 3.58 8 8 8s8-3.58 8-8C20 8.61 17.41 3.8 13.5.67z"/></svg>
-                                Flash Sale · Còn 7 suất
+                            <div class="fs-contain">
+                                <img width="15" height="15" src="https://cdnv2.tgdd.vn/webmwg/2024/ContentMwg/images/homev2/flash-sale.png" />
+                                <span class="rq_count fscount">
+                                    <i style="width:70%;" class="fs-iconfire"></i>
+                                    <b>Còn 7/10 suất</b>
+                                </span>
                             </div>
                         </a>
                         <div class="btn-buy">
-                            <a href="javascript:void(0)" class="buy-now"
-                               onclick="event.stopPropagation(); buyNow(\${p.id}, '\${safeName}', \${p.price}, '\${imgUrl}')">
-                               🛒 Mua ngay
-                            </a>
+                            <a href="javascript:void(0)" class="buy-now" onclick="event.stopPropagation(); buyNow(${p.id}, '${p.name}', ${p.price}, '${imgUrl}')">🛒 Giỏ hàng</a>
                         </div>
                     `;
                     container.appendChild(itemDiv);
@@ -24951,22 +23531,32 @@
                 console.log("Đã nạp thành công " + products.length + " sản phẩm!");
             } catch (error) {
                 console.error("Lỗi khi kết nối API:", error);
-                // Hiện thông báo lỗi thân thiện
-                if (container) container.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:#888;font-size:14px">⚠️ Không thể tải sản phẩm. Vui lòng thử lại!</div>';
             }
         }
 
         function showProductModal(name, price, img, desc, id) {
+            // 1. Đổ dữ liệu vào Modal (Ảnh, Tên, Giá, Mô tả)
             document.getElementById('modalImg').src = img;
             document.getElementById('modalName').innerText = name;
             document.getElementById('modalPrice').innerText = new Intl.NumberFormat('vi-VN').format(price) + " ₫";
+            
             const moTaChung = "Sản phẩm chính hãng tại hệ thống Hồng Anh. Bảo hành 12 tháng, lỗi 1 đổi 1 trong 30 ngày. Cam kết chất lượng và giá tốt nhất thị trường.";
             document.getElementById('modalDesc').innerText = desc || moTaChung;
+
+            // 2. Thay đổi nút bấm thành chức năng "MUA NGAY"
+            // (Giống hệt nút Mua ngay ở danh sách sản phẩm bên ngoài)
             document.getElementById('modalBuyBtn').onclick = function(ev) {
-                if (ev) ev.stopPropagation();
+                if (ev) ev.stopPropagation(); // Ngăn click lan ra ngoài
+
+                // Bước A: Đóng bảng chi tiết sản phẩm lại cho đỡ vướng
                 closeModal();
+
+                // Bước B: Gọi hàm buyNow (Hàm này bạn đã có sẵn ở dưới rồi)
+                // Nó sẽ tự động: Thêm vào giỏ -> Hiện thông báo xanh -> Mở giỏ hàng -> Cuộn tới Form nhập tên
                 buyNow(id, name, price, img);
             };
+
+            // 3. Hiển thị Modal
             document.getElementById('productModal').classList.add('show');
         }
 
@@ -24975,25 +23565,27 @@
         }
 
         function buyNow(id, name, price, img) {
-            // Dùng window._cart để tránh lỗi scope
-            var c = window._cart;
-            if (!c) { console.error('Cart chưa khởi tạo!'); return; }
+            // Thêm vào giỏ
             var found = false;
-            for (var i = 0; i < c.length; i++) {
-                if (c[i].id === id || c[i].name === name) { c[i].qty++; found = true; break; }
-            }
-            if (!found) c.push({ id: id, name: name, price: price, img: img, qty: 1 });
-            localStorage.setItem('cart', JSON.stringify(c));
-            if (window._updateCartCount) window._updateCartCount();
-            if (window._showToast) window._showToast('✅ Đã thêm "' + name.substring(0,28) + '" vào giỏ!');
-            if (window._openCartModal) window._openCartModal();
+            for (var i = 0; i < cart.length; i++) { if (cart[i].id === id || cart[i].name === name) { cart[i].qty++; found = true; break; } }
+            if (!found) cart.push({ id: id, name: name, price: price, img: img, qty: 1 });
+            localStorage.setItem('cart', JSON.stringify(cart));
+            updateCartCount();
+            // Mở cart modal và cuộn xuống form thanh toán
+            openCartModal();
+            // Cuộn xuống form nhập thông tin ngay sau khi render
             setTimeout(function() {
                 var form = document.getElementById('coName');
-                if (form) { form.scrollIntoView({ behavior: 'smooth', block: 'center' }); form.focus(); }
-                else setTimeout(function() {
-                    var f2 = document.getElementById('coName');
-                    if (f2) { f2.scrollIntoView({ behavior: 'smooth', block: 'center' }); f2.focus(); }
-                }, 300);
+                if (form) { 
+                    form.scrollIntoView({ behavior: 'smooth', block: 'center' }); 
+                    form.focus(); 
+                } else {
+                    // Nếu form chưa render, thử lại sau 300ms
+                    setTimeout(function() {
+                        var f2 = document.getElementById('coName');
+                        if (f2) { f2.scrollIntoView({ behavior: 'smooth', block: 'center' }); f2.focus(); }
+                    }, 300);
+                }
             }, 250);
         }
 
@@ -25001,502 +23593,130 @@
         document.addEventListener('DOMContentLoaded', displayProducts);
     </script>
 
-    <!-- ════════════════════════════════════════════════════════
-     HỒNG ANH SHOP ✦ PRO UI JAVASCRIPT
-════════════════════════════════════════════════════════ -->
-    <script>
-(function() {
-  'use strict';
-
-  /* ── 1. SKELETON LOADING ──────────────────────────────
-     Hiện 12 card xám nhấp nháy ngay lúc trang mở,
-     trước khi API trả về dữ liệu sản phẩm              */
-  function renderSkeletons() {
-    var c = document.getElementById('product-list-container');
-    if (!c) return;
-    // Chỉ show skeleton nếu container đang trống
-    if (c.querySelector('.item')) return;
-    var html = '';
-    for (var i = 0; i < 12; i++) {
-      html +=
-        '<div class="ha-skel-card">' +
-          '<div class="ha-skel ha-skel-img"></div>' +
-          '<div class="ha-skel-body">' +
-            '<div class="ha-skel ha-skel-line"></div>' +
-            '<div class="ha-skel ha-skel-line s60"></div>' +
-            '<div class="ha-skel ha-skel-line s40"></div>' +
-            '<div class="ha-skel ha-skel-btn"></div>' +
-          '</div>' +
-        '</div>';
-    }
-    c.innerHTML = html;
+<!-- ============ HỒNG ANH AI CHATBOT ============ -->
+<style>
+  #ha-fab {
+    position:fixed;bottom:28px;right:28px;width:58px;height:58px;
+    background:#ffed00;border-radius:50%;border:none;cursor:pointer;
+    box-shadow:0 4px 20px rgba(0,0,0,0.22);
+    display:flex;align-items:center;justify-content:center;
+    z-index:99990;transition:transform 0.25s cubic-bezier(.34,1.56,.64,1),box-shadow 0.2s;
   }
-
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', renderSkeletons);
-  } else {
-    renderSkeletons();
+  #ha-fab:hover{transform:scale(1.12);box-shadow:0 6px 28px rgba(0,0,0,0.28);}
+  #ha-fab svg{width:28px;height:28px;}
+  #ha-fab-badge{
+    position:absolute;top:-2px;right:-2px;background:#e53e3e;color:#fff;
+    font-size:10px;font-weight:700;width:18px;height:18px;border-radius:50%;
+    display:none;align-items:center;justify-content:center;border:2px solid #fff;
   }
-
-  /* ── 2. BADGE "HOT" + TITLE khi card được thêm vào DOM */
-  var HOT_PRICE = 5e6; // >= 5 triệu → HOT
-  var itemObserver = new MutationObserver(function(mutations) {
-    mutations.forEach(function(m) {
-      m.addedNodes.forEach(function(node) {
-        if (node.nodeType !== 1) return;
-        if (node.classList.contains('item')) {
-          // Thêm badge HOT
-          var price = parseFloat(node.getAttribute('data-pprice') || 0);
-          if (price >= HOT_PRICE && !node.querySelector('.ha-badge')) {
-            var b = document.createElement('span');
-            b.className = 'ha-badge';
-            b.textContent = 'HOT';
-            node.appendChild(b);
-          }
-          node.title = 'Nhấn để xem chi tiết';
-        }
-      });
-    });
-  });
-
-  document.addEventListener('DOMContentLoaded', function() {
-    var c = document.getElementById('product-list-container');
-    if (c) itemObserver.observe(c, { childList: true });
-  });
-
-  /* ── 3. NÂNG CẤP MODAL — thêm badges tự động ─────────
-     Dùng MutationObserver theo dõi class .show trên modal */
-  var modalEl = null;
-  var badgesInjected = false;
-
-  function watchModal() {
-    modalEl = document.getElementById('productModal');
-    if (!modalEl) return;
-
-    var mo = new MutationObserver(function() {
-      if (modalEl.classList.contains('show')) {
-        // Modal vừa mở
-        badgesInjected = false;
-        setTimeout(injectModalBadges, 60);
-      } else {
-        // Modal đóng → reset để lần sau inject lại
-        badgesInjected = false;
-        var old = modalEl.querySelector('.ha-modal-badges');
-        if (old) old.remove();
-      }
-    });
-    mo.observe(modalEl, { attributes: true, attributeFilter: ['class'] });
+  #ha-win{
+    position:fixed;bottom:100px;right:28px;width:360px;max-width:calc(100vw - 40px);
+    height:520px;max-height:calc(100vh - 120px);background:#fff;border-radius:20px;
+    box-shadow:0 12px 48px rgba(0,0,0,0.18);
+    display:flex;flex-direction:column;overflow:hidden;z-index:99989;
+    transform:scale(0.85) translateY(20px);opacity:0;pointer-events:none;
+    transition:transform 0.28s cubic-bezier(.34,1.56,.64,1),opacity 0.22s;
+    transform-origin:bottom right;
   }
-
-  function injectModalBadges() {
-    if (badgesInjected || !modalEl) return;
-    var nameEl = modalEl.querySelector('#modalName');
-    if (!nameEl) return;
-    badgesInjected = true;
-
-    var div = document.createElement('div');
-    div.className = 'ha-modal-badges';
-    div.innerHTML =
-      '<span class="ha-modal-badge">✅ Chính hãng</span>' +
-      '<span class="ha-modal-badge">🛡️ BH 12 tháng</span>' +
-      '<span class="ha-modal-badge">🔄 Đổi trả 30 ngày</span>' +
-      '<span class="ha-modal-badge">🚚 Ship toàn quốc</span>';
-
-    // Chèn ngay sau tên sản phẩm
-    if (nameEl.nextSibling) {
-      nameEl.parentNode.insertBefore(div, nameEl.nextSibling);
-    } else {
-      nameEl.parentNode.appendChild(div);
-    }
-
-    // Đổi text nút mua ngay
-    var btn = modalEl.querySelector('#modalBuyBtn');
-    if (btn) btn.innerHTML = '🛒 Mua ngay';
+  #ha-win.open{transform:scale(1) translateY(0);opacity:1;pointer-events:all;}
+  #ha-hdr{
+    background:linear-gradient(135deg,#1a1a2e,#16213e);
+    padding:14px 18px;display:flex;align-items:center;gap:12px;flex-shrink:0;
   }
+  #ha-av{width:40px;height:40px;background:#ffed00;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  #ha-av svg{width:22px;height:22px;}
+  #ha-hdr-info{flex:1;min-width:0;}
+  #ha-hdr-name{color:#fff;font-size:14px;font-weight:700;font-family:-apple-system,sans-serif;}
+  #ha-hdr-status{color:#4ade80;font-size:11px;margin-top:1px;font-family:-apple-system,sans-serif;}
+  #ha-x{background:rgba(255,255,255,0.1);border:none;color:#fff;width:30px;height:30px;
+    border-radius:50%;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;
+    transition:background 0.2s;flex-shrink:0;}
+  #ha-x:hover{background:rgba(255,255,255,0.2);}
+  #ha-msgs{
+    flex:1;overflow-y:auto;padding:16px 14px;display:flex;flex-direction:column;
+    gap:10px;background:#f7f8fc;scroll-behavior:smooth;
+  }
+  #ha-msgs::-webkit-scrollbar{width:4px;}
+  #ha-msgs::-webkit-scrollbar-thumb{background:#d0d0d0;border-radius:4px;}
+  .ha-b{
+    max-width:82%;padding:10px 14px;border-radius:18px;font-size:13.5px;
+    line-height:1.55;word-break:break-word;
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+    animation:ha-pop 0.2s cubic-bezier(.34,1.56,.64,1);
+  }
+  @keyframes ha-pop{from{transform:scale(0.88);opacity:0}to{transform:scale(1);opacity:1}}
+  .ha-b.bot{background:#fff;color:#1a1a2e;align-self:flex-start;border-bottom-left-radius:6px;box-shadow:0 1px 4px rgba(0,0,0,0.08);}
+  .ha-b.usr{background:#1a1a2e;color:#fff;align-self:flex-end;border-bottom-right-radius:6px;}
+  .ha-b.err{background:#fff3cd;color:#856404;align-self:flex-start;border-bottom-left-radius:6px;border-left:3px solid #ffc107;}
+  .ha-dots{display:flex;gap:5px;align-items:center;padding:12px 16px;background:#fff;
+    border-radius:18px;border-bottom-left-radius:6px;align-self:flex-start;
+    box-shadow:0 1px 4px rgba(0,0,0,0.08);}
+  .ha-dots span{width:7px;height:7px;background:#aaa;border-radius:50%;animation:ha-bounce 1.2s infinite;}
+  .ha-dots span:nth-child(2){animation-delay:.2s;}.ha-dots span:nth-child(3){animation-delay:.4s;}
+  @keyframes ha-bounce{0%,60%,100%{transform:translateY(0);background:#bbb}30%{transform:translateY(-6px);background:#ffed00}}
+  #ha-chips{display:flex;gap:6px;flex-wrap:wrap;padding:0 14px 10px;background:#f7f8fc;flex-shrink:0;}
+  .ha-chip{padding:5px 12px;background:#fff;border:1.5px solid #e2e8f0;border-radius:20px;
+    font-size:12px;cursor:pointer;color:#1a1a2e;font-weight:500;transition:all .18s;
+    white-space:nowrap;font-family:-apple-system,sans-serif;}
+  .ha-chip:hover{background:#ffed00;border-color:#ffed00;}
+  #ha-inp-area{display:flex;align-items:center;gap:8px;padding:12px 14px;background:#fff;border-top:1px solid #eee;flex-shrink:0;}
+  #ha-inp{flex:1;padding:10px 14px;border:1.5px solid #e2e8f0;border-radius:24px;
+    font-size:13.5px;outline:none;resize:none;font-family:-apple-system,sans-serif;
+    transition:border-color .2s;max-height:80px;line-height:1.4;}
+  #ha-inp:focus{border-color:#ffed00;}
+  #ha-send{width:40px;height:40px;background:#ffed00;border:none;border-radius:50%;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;flex-shrink:0;
+    transition:transform .2s,box-shadow .2s;}
+  #ha-send:hover{transform:scale(1.08);box-shadow:0 2px 8px rgba(0,0,0,0.15);}
+  #ha-send svg{width:18px;height:18px;}
+</style>
 
-  document.addEventListener('DOMContentLoaded', watchModal);
+<button id="ha-fab" onclick="haChatToggle()" title="Chat với Hồng Anh AI">
+  <svg viewBox="0 0 24 24" fill="none" stroke="#1a1a2e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="3" y="3" width="18" height="14" rx="3"/>
+    <circle cx="8.5" cy="10" r="1.2" fill="#1a1a2e" stroke="none"/>
+    <circle cx="12" cy="10" r="1.2" fill="#1a1a2e" stroke="none"/>
+    <circle cx="15.5" cy="10" r="1.2" fill="#1a1a2e" stroke="none"/>
+    <path d="M8 17l2 4 2-4"/>
+  </svg>
+  <span id="ha-fab-badge"></span>
+</button>
 
-})();
-    </script>
-
-    <!-- ════ HỒNG ANH AI CHATBOT ════ -->
-    <style>
-        #ha-fab {
-            position: fixed;
-            bottom: 28px;
-            right: 28px;
-            width: 58px;
-            height: 58px;
-            background: #ffed00;
-            border-radius: 50%;
-            border: none;
-            cursor: pointer;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.22);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 99990;
-            transition: transform 0.25s cubic-bezier(.34, 1.56, .64, 1), box-shadow 0.2s;
-        }
-
-        #ha-fab:hover {
-            transform: scale(1.12);
-            box-shadow: 0 6px 28px rgba(0, 0, 0, 0.28);
-        }
-
-        #ha-fab svg {
-            width: 28px;
-            height: 28px;
-        }
-
-        #ha-fab-badge {
-            position: absolute;
-            top: -2px;
-            right: -2px;
-            background: #e53e3e;
-            color: #fff;
-            font-size: 10px;
-            font-weight: 700;
-            width: 18px;
-            height: 18px;
-            border-radius: 50%;
-            display: none;
-            align-items: center;
-            justify-content: center;
-            border: 2px solid #fff;
-        }
-
-        #ha-win {
-            position: fixed;
-            bottom: 100px;
-            right: 28px;
-            width: 360px;
-            max-width: calc(100vw - 40px);
-            height: 520px;
-            max-height: calc(100vh - 120px);
-            background: #fff;
-            border-radius: 20px;
-            box-shadow: 0 12px 48px rgba(0, 0, 0, 0.18);
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-            z-index: 99989;
-            transform: scale(0.85) translateY(20px);
-            opacity: 0;
-            pointer-events: none;
-            transition: transform 0.28s cubic-bezier(.34, 1.56, .64, 1), opacity 0.22s;
-            transform-origin: bottom right;
-        }
-
-        #ha-win.open {
-            transform: scale(1) translateY(0);
-            opacity: 1;
-            pointer-events: all;
-        }
-
-        #ha-hdr {
-            background: linear-gradient(135deg, #1a1a2e, #16213e);
-            padding: 14px 18px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            flex-shrink: 0;
-        }
-
-        #ha-av {
-            width: 40px;
-            height: 40px;
-            background: #ffed00;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-        }
-
-        #ha-av svg {
-            width: 22px;
-            height: 22px;
-        }
-
-        #ha-hdr-info {
-            flex: 1;
-            min-width: 0;
-        }
-
-        #ha-hdr-name {
-            color: #fff;
-            font-size: 14px;
-            font-weight: 700;
-            font-family: -apple-system, sans-serif;
-        }
-
-        #ha-hdr-status {
-            color: #4ade80;
-            font-size: 11px;
-            margin-top: 1px;
-            font-family: -apple-system, sans-serif;
-        }
-
-        #ha-x {
-            background: rgba(255, 255, 255, 0.1);
-            border: none;
-            color: #fff;
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            cursor: pointer;
-            font-size: 16px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: background 0.2s;
-            flex-shrink: 0;
-        }
-
-        #ha-x:hover {
-            background: rgba(255, 255, 255, 0.2);
-        }
-
-        #ha-msgs {
-            flex: 1;
-            overflow-y: auto;
-            padding: 16px 14px;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            background: #f7f8fc;
-            scroll-behavior: smooth;
-        }
-
-        #ha-msgs::-webkit-scrollbar {
-            width: 4px;
-        }
-
-        #ha-msgs::-webkit-scrollbar-thumb {
-            background: #d0d0d0;
-            border-radius: 4px;
-        }
-
-        .ha-b {
-            max-width: 82%;
-            padding: 10px 14px;
-            border-radius: 18px;
-            font-size: 13.5px;
-            line-height: 1.55;
-            word-break: break-word;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            animation: ha-pop 0.2s cubic-bezier(.34, 1.56, .64, 1);
-        }
-
-        @keyframes ha-pop {
-            from {
-                transform: scale(0.88);
-                opacity: 0
-            }
-
-            to {
-                transform: scale(1);
-                opacity: 1
-            }
-        }
-
-        .ha-b.bot {
-            background: #fff;
-            color: #1a1a2e;
-            align-self: flex-start;
-            border-bottom-left-radius: 6px;
-            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
-        }
-
-        .ha-b.usr {
-            background: #1a1a2e;
-            color: #fff;
-            align-self: flex-end;
-            border-bottom-right-radius: 6px;
-        }
-
-        .ha-b.err {
-            background: #fff3cd;
-            color: #856404;
-            align-self: flex-start;
-            border-bottom-left-radius: 6px;
-            border-left: 3px solid #ffc107;
-        }
-
-        .ha-dots {
-            display: flex;
-            gap: 5px;
-            align-items: center;
-            padding: 12px 16px;
-            background: #fff;
-            border-radius: 18px;
-            border-bottom-left-radius: 6px;
-            align-self: flex-start;
-            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
-        }
-
-        .ha-dots span {
-            width: 7px;
-            height: 7px;
-            background: #aaa;
-            border-radius: 50%;
-            animation: ha-bounce 1.2s infinite;
-        }
-
-        .ha-dots span:nth-child(2) {
-            animation-delay: .2s;
-        }
-
-        .ha-dots span:nth-child(3) {
-            animation-delay: .4s;
-        }
-
-        @keyframes ha-bounce {
-
-            0%,
-            60%,
-            100% {
-                transform: translateY(0);
-                background: #bbb
-            }
-
-            30% {
-                transform: translateY(-6px);
-                background: #ffed00
-            }
-        }
-
-        #ha-chips {
-            display: flex;
-            gap: 6px;
-            flex-wrap: wrap;
-            padding: 0 14px 10px;
-            background: #f7f8fc;
-            flex-shrink: 0;
-        }
-
-        .ha-chip {
-            padding: 5px 12px;
-            background: #fff;
-            border: 1.5px solid #e2e8f0;
-            border-radius: 20px;
-            font-size: 12px;
-            cursor: pointer;
-            color: #1a1a2e;
-            font-weight: 500;
-            transition: all .18s;
-            white-space: nowrap;
-            font-family: -apple-system, sans-serif;
-        }
-
-        .ha-chip:hover {
-            background: #ffed00;
-            border-color: #ffed00;
-        }
-
-        #ha-inp-area {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 12px 14px;
-            background: #fff;
-            border-top: 1px solid #eee;
-            flex-shrink: 0;
-        }
-
-        #ha-inp {
-            flex: 1;
-            padding: 10px 14px;
-            border: 1.5px solid #e2e8f0;
-            border-radius: 24px;
-            font-size: 13.5px;
-            outline: none;
-            resize: none;
-            font-family: -apple-system, sans-serif;
-            transition: border-color .2s;
-            max-height: 80px;
-            line-height: 1.4;
-        }
-
-        #ha-inp:focus {
-            border-color: #ffed00;
-        }
-
-        #ha-send {
-            width: 40px;
-            height: 40px;
-            background: #ffed00;
-            border: none;
-            border-radius: 50%;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-            transition: transform .2s, box-shadow .2s;
-        }
-
-        #ha-send:hover {
-            transform: scale(1.08);
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-        }
-
-        #ha-send svg {
-            width: 18px;
-            height: 18px;
-        }
-    </style>
-
-    <button id="ha-fab" onclick="haChatToggle()" title="Chat với Hồng Anh AI">
-        <svg viewBox="0 0 24 24" fill="none" stroke="#1a1a2e" stroke-width="2" stroke-linecap="round"
-            stroke-linejoin="round">
-            <rect x="3" y="3" width="18" height="14" rx="3" />
-            <circle cx="8.5" cy="10" r="1.2" fill="#1a1a2e" stroke="none" />
-            <circle cx="12" cy="10" r="1.2" fill="#1a1a2e" stroke="none" />
-            <circle cx="15.5" cy="10" r="1.2" fill="#1a1a2e" stroke="none" />
-            <path d="M8 17l2 4 2-4" />
-        </svg>
-        <span id="ha-fab-badge"></span>
-    </button>
-
-    <div id="ha-win">
-        <div id="ha-hdr">
-            <div id="ha-av">
-                <svg viewBox="0 0 24 24" fill="none" stroke="#1a1a2e" stroke-width="2.2" stroke-linecap="round"
-                    stroke-linejoin="round">
-                    <rect x="3" y="3" width="18" height="14" rx="3" />
-                    <circle cx="8.5" cy="10" r="1.2" fill="#1a1a2e" stroke="none" />
-                    <circle cx="12" cy="10" r="1.2" fill="#1a1a2e" stroke="none" />
-                    <circle cx="15.5" cy="10" r="1.2" fill="#1a1a2e" stroke="none" />
-                    <path d="M8 17l2 4 2-4" />
-                </svg>
-            </div>
-            <div id="ha-hdr-info">
-                <div id="ha-hdr-name">Hồng Anh AI</div>
-                <div id="ha-hdr-status">● Đang hoạt động</div>
-            </div>
-            <button id="ha-x" onclick="haChatToggle()">✕</button>
-        </div>
-        <div id="ha-msgs"></div>
-        <div id="ha-chips">
-            <button class="ha-chip" onclick="haQ('Tư vấn iPhone')">📱 iPhone</button>
-            <button class="ha-chip" onclick="haQ('Giá tốt nhất hôm nay')">💰 Giá tốt</button>
-            <button class="ha-chip" onclick="haQ('Có phụ kiện gì?')">🎧 Phụ kiện</button>
-            <button class="ha-chip" onclick="haQ('Chính sách bảo hành')">🛡️ Bảo hành</button>
-        </div>
-        <div id="ha-inp-area">
-            <textarea id="ha-inp" rows="1" placeholder="Nhập câu hỏi..."></textarea>
-            <button id="ha-send" onclick="haSend()">
-                <svg viewBox="0 0 24 24" fill="none" stroke="#1a1a2e" stroke-width="2.5" stroke-linecap="round"
-                    stroke-linejoin="round">
-                    <polygon points="22 2 15 22 11 13 2 9 22 2" fill="#1a1a2e" stroke="none" />
-                </svg>
-            </button>
-        </div>
+<div id="ha-win">
+  <div id="ha-hdr">
+    <div id="ha-av">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#1a1a2e" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="3" y="3" width="18" height="14" rx="3"/>
+        <circle cx="8.5" cy="10" r="1.2" fill="#1a1a2e" stroke="none"/>
+        <circle cx="12" cy="10" r="1.2" fill="#1a1a2e" stroke="none"/>
+        <circle cx="15.5" cy="10" r="1.2" fill="#1a1a2e" stroke="none"/>
+        <path d="M8 17l2 4 2-4"/>
+      </svg>
     </div>
+    <div id="ha-hdr-info">
+      <div id="ha-hdr-name">Hồng Anh AI</div>
+      <div id="ha-hdr-status">● Đang hoạt động</div>
+    </div>
+    <button id="ha-x" onclick="haChatToggle()">✕</button>
+  </div>
+  <div id="ha-msgs"></div>
+  <div id="ha-chips">
+    <button class="ha-chip" onclick="haQ('Tư vấn iPhone')">📱 iPhone</button>
+    <button class="ha-chip" onclick="haQ('Giá tốt nhất hôm nay')">💰 Giá tốt</button>
+    <button class="ha-chip" onclick="haQ('Có phụ kiện gì?')">🎧 Phụ kiện</button>
+    <button class="ha-chip" onclick="haQ('Chính sách bảo hành')">🛡️ Bảo hành</button>
+  </div>
+  <div id="ha-inp-area">
+    <textarea id="ha-inp" rows="1" placeholder="Nhập câu hỏi..."></textarea>
+    <button id="ha-send" onclick="haSend()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#1a1a2e" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <polygon points="22 2 15 22 11 13 2 9 22 2" fill="#1a1a2e" stroke="none"/>
+      </svg>
+    </button>
+  </div>
+</div>
 
-    <script>
+<script>
 (function(){
   // ============================================================
   // HỒNG ANH AI — Dùng Groq API (Miễn phí, không cần thẻ)
@@ -25619,21 +23839,19 @@
       .replace(/\n/g,'<br>');
   }
 
-    document.addEventListener('DOMContentLoaded', function(){
-    var inp = el('ha-inp');
-    if(!inp) return;
+  document.addEventListener('DOMContentLoaded', function(){
+    var inp=el('ha-inp'); if(!inp) return;
     inp.addEventListener('keydown', function(e){
-      if(e.key === 'Enter' && !e.shiftKey){ e.preventDefault(); haSend(); }
+      if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); haSend(); }
     });
     inp.addEventListener('input', function(){
-      this.style.height = 'auto';
-      this.style.height = Math.min(this.scrollHeight, 80) + 'px';
+      this.style.height='auto';
+      this.style.height=Math.min(this.scrollHeight,80)+'px';
     });
   });
-
 })();
-    </script>
-    <!-- ════ END CHATBOT ════ -->
+</script>
+<!-- ============ END CHATBOT ============ -->
     </body>
 
 </html>
