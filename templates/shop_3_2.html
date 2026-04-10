@@ -24928,15 +24928,15 @@
                     const safeName = p.name.replace(/'/g, "\'").replace(/"/g, '&quot;');
 
                     itemDiv.innerHTML = `
-                        \${badge}
+                        ${badge}
                         <a href="javascript:void(0)" class="remain_quantity main-contain">
                             <div class="item-img">
-                                <img src="\${imgUrl}" alt="\${p.name}"
+                                <img src="${imgUrl}" alt="${p.name}"
                                      onerror="this.onerror=null;this.src='https://placehold.co/200x200?text=No+Image'">
                             </div>
-                            <h3>\${p.name}</h3>
+                            <h3>${p.name}</h3>
                             <strong class="price">
-                                \${displayPrice} ₫
+                                ${displayPrice} ₫
                                 <span class="price-and-discount">
                                     <label class="price-old black">Giá tốt</label>
                                     <small>-30%</small>
@@ -24949,7 +24949,7 @@
                         </a>
                         <div class="btn-buy">
                             <a href="javascript:void(0)" class="buy-now"
-                               onclick="event.stopPropagation(); buyNow(\${p.id}, '\${safeName}', \${p.price}, '\${imgUrl}')">
+                               onclick="event.stopPropagation(); buyNow(${p.id}, '${safeName}', ${p.price}, '${imgUrl}')">
                                🛒 Mua ngay
                             </a>
                         </div>
