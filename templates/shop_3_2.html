@@ -176,17 +176,11 @@
             flex-shrink: 0 !important;
         }
 
-        /* Fix: override .listproduct .item-img img { height: auto } từ CSS gốc */
-        #product-list-container .item .item-img img,
-        #product-list-container.listproduct .item .item-img img,
-        #product-list-container.slider-flashsale .item .item-img img {
+        #product-list-container .item .item-img img {
             width: 100% !important;
             height: 100% !important;
-            max-width: 100% !important;
             object-fit: contain !important;
-            padding: 12px !important;
-            margin: 0 !important;          /* reset margin từ .listproduct .item-img img */
-            display: block !important;     /* đảm bảo không bị display:none từ slick */
+            padding: 14px !important;
             transition: transform 0.45s var(--ha-ease) !important;
         }
 
@@ -246,15 +240,10 @@
         #product-list-container .item .btn-buy {
             padding: 8px 10px 10px !important;
             pointer-events: auto !important;
-            display: block !important;
-            width: 100% !important;
-            box-sizing: border-box !important;
         }
 
         #product-list-container .item .buy-now {
             display: block !important;
-            width: 100% !important;
-            box-sizing: border-box !important;
             text-align: center !important;
             background: var(--ha-yellow) !important;
             color: var(--ha-text) !important;
@@ -265,8 +254,6 @@
             text-decoration: none !important;
             transition: background 0.2s, box-shadow 0.2s, transform 0.2s !important;
             letter-spacing: 0.2px !important;
-            margin: 0 !important;
-            float: none !important;
         }
 
         #product-list-container .item .buy-now:hover {
@@ -12367,7 +12354,6 @@
         .listproduct .item-img img {
             height: auto;
             display: block;
-            /* height:auto được override bởi #product-list-container rule ở trên */
             margin: 0 auto
         }
 
@@ -21482,15 +21468,10 @@
         #product-list-container .item .btn-buy {
             padding: 8px 11px 11px !important;
             pointer-events: auto !important;
-            display: block !important;
-            width: 100% !important;
-            box-sizing: border-box !important;
         }
 
         #product-list-container .item .buy-now {
             display: block !important;
-            width: 100% !important;
-            box-sizing: border-box !important;
             text-align: center !important;
             background: var(--ha-yellow) !important;
             color: var(--ha-text) !important;
@@ -21501,8 +21482,6 @@
             text-decoration: none !important;
             transition: background 0.2s, box-shadow 0.2s, transform 0.2s !important;
             letter-spacing: 0.1px !important;
-            margin: 0 !important;
-            float: none !important;
         }
 
         #product-list-container .item .buy-now:hover {
@@ -23943,8 +23922,7 @@
             <div class="modal-body">
                 <!-- Cột trái: ảnh -->
                 <div class="modal-left">
-                    <img id="modalImg" src="" alt="Ảnh sản phẩm"
-                         onerror="this.onerror=null;this.src='https://placehold.co/300x300?text=No+Image'">
+                    <img id="modalImg" src="" alt="Ảnh sản phẩm">
                 </div>
 
                 <!-- Cột phải: thông tin -->
@@ -24919,7 +24897,7 @@
                 container.innerHTML = '';
 
                 products.forEach((p, idx) => {
-                    const imgUrl = p.image_url || "https://placehold.co/200x200?text=No+Image";
+                    const imgUrl = p.image_url || "https://via.placeholder.com/200x200?text=No+Image";
                     const displayPrice = cleanPrice(p.price);
                     const isHot = p.price >= 10000000;
                     const isSale = p.price < 3000000;
@@ -24942,15 +24920,15 @@
                     const safeName = p.name.replace(/'/g, "\'").replace(/"/g, '&quot;');
 
                     itemDiv.innerHTML = `
-                        ${badge}
+                        \${badge}
                         <a href="javascript:void(0)" class="remain_quantity main-contain">
                             <div class="item-img">
-                                <img src="${imgUrl}" alt="${p.name}"
-                                     onerror="this.onerror=null;this.src='https://placehold.co/200x200?text=No+Image'">
+                                <img src="\${imgUrl}" alt="\${p.name}" loading="lazy"
+                                     onerror="this.src='https://via.placeholder.com/200x200?text=No+Image'">
                             </div>
-                            <h3>${p.name}</h3>
+                            <h3>\${p.name}</h3>
                             <strong class="price">
-                                ${displayPrice} ₫
+                                \${displayPrice} ₫
                                 <span class="price-and-discount">
                                     <label class="price-old black">Giá tốt</label>
                                     <small>-30%</small>
@@ -24962,7 +24940,10 @@
                             </div>
                         </a>
                         <div class="btn-buy">
-                            <a href="javascript:void(0)" class="buy-now" onclick="event.stopPropagation(); buyNow(${p.id}, '${safeName}', ${p.price}, '${imgUrl}')">🛒 Mua ngay</a>
+                            <a href="javascript:void(0)" class="buy-now"
+                               onclick="event.stopPropagation(); buyNow(\${p.id}, '\${safeName}', \${p.price}, '\${imgUrl}')">
+                               🛒 Mua ngay
+                            </a>
                         </div>
                     `;
                     container.appendChild(itemDiv);
