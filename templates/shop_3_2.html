@@ -130,7 +130,7 @@
             border-radius: var(--ha-radius) !important;
             padding: 0 !important;
             margin: 0 !important;
-            overflow: hidden !important;   /* hidden để bo góc card đẹp */
+            overflow: hidden !important;
             display: flex !important;
             flex-direction: column !important;
             cursor: pointer !important;
@@ -194,9 +194,10 @@
             transform: scale(1.1) !important;
         }
 
-        /* Nội dung card — không dùng flex:1 để không đẩy nút ra ngoài */
+        /* Thông tin sản phẩm */
         #product-list-container .item .remain_quantity.main-contain {
-            padding: 10px 12px 8px !important;
+            padding: 10px 12px 6px !important;
+            flex: 1 !important;
             display: flex !important;
             flex-direction: column !important;
             pointer-events: none !important;
@@ -241,35 +242,37 @@
             border-radius: 4px !important;
         }
 
-        /* ── NÚT MUA NGAY — luôn hiển thị dưới giá, không bị che ── */
+        /* Nút Giỏ hàng */
         #product-list-container .item .btn-buy {
-            padding: 0 10px 10px !important;
+            padding: 8px 10px 10px !important;
             pointer-events: auto !important;
-            flex-shrink: 0 !important;
-            background: transparent !important;
             display: block !important;
-        }
-
-        #product-list-container .item .buy-now {
-            display: block !important;
-            text-align: center !important;
-            background: #ffed00 !important;
-            color: #1d1d1f !important;
-            font-size: 13px !important;
-            font-weight: 700 !important;
-            padding: 10px 0 !important;
-            border-radius: 10px !important;
-            text-decoration: none !important;
-            border: none !important;
-            cursor: pointer !important;
-            transition: background 0.2s, box-shadow 0.2s !important;
             width: 100% !important;
             box-sizing: border-box !important;
         }
 
+        #product-list-container .item .buy-now {
+            display: block !important;
+            width: 100% !important;
+            box-sizing: border-box !important;
+            text-align: center !important;
+            background: var(--ha-yellow) !important;
+            color: var(--ha-text) !important;
+            font-size: 12px !important;
+            font-weight: 700 !important;
+            padding: 9px 0 !important;
+            border-radius: 9px !important;
+            text-decoration: none !important;
+            transition: background 0.2s, box-shadow 0.2s, transform 0.2s !important;
+            letter-spacing: 0.2px !important;
+            margin: 0 !important;
+            float: none !important;
+        }
+
         #product-list-container .item .buy-now:hover {
             background: #ffe500 !important;
-            box-shadow: 0 3px 12px rgba(255,229,0,0.55) !important;
+            box-shadow: 0 3px 12px rgba(255, 229, 0, 0.55) !important;
+            transform: translateY(-1px) !important;
         }
 
         /* ── MODAL CHI TIẾT SẢN PHẨM ─────────────────────────── */
@@ -644,13 +647,13 @@
 
         /* Định dạng từng ô sản phẩm */
         .listproduct .item {
-            display: flex;  /* ĐÃ SỬA: từ display:none → flex để sản phẩm hiện ra */
-            flex-direction: column;
+            display: none;
             width: 100% !important;
             box-sizing: border-box !important;
             border: 1px solid #f1f1f1;
             border-radius: 8px;
-            padding: 0 !important;
+            /* Thêm bo góc cho sản phẩm trông hiện đại hơn */
+            padding: 10px !important;
             background: #fff;
             list-style: none;
             margin: 0 !important;
@@ -21479,10 +21482,15 @@
         #product-list-container .item .btn-buy {
             padding: 8px 11px 11px !important;
             pointer-events: auto !important;
+            display: block !important;
+            width: 100% !important;
+            box-sizing: border-box !important;
         }
 
         #product-list-container .item .buy-now {
             display: block !important;
+            width: 100% !important;
+            box-sizing: border-box !important;
             text-align: center !important;
             background: var(--ha-yellow) !important;
             color: var(--ha-text) !important;
@@ -21493,6 +21501,8 @@
             text-decoration: none !important;
             transition: background 0.2s, box-shadow 0.2s, transform 0.2s !important;
             letter-spacing: 0.1px !important;
+            margin: 0 !important;
+            float: none !important;
         }
 
         #product-list-container .item .buy-now:hover {
@@ -24458,14 +24468,16 @@
 
             // ===== CATEGORY FILTER MAP =====
             var hrefToCate = {
-                '/dtdd': ['điện thoại', 'iphone', 'samsung', 'oppo', 'xiaomi', 'vivo', 'realme', 'nokia', 'galaxy', 'asus rog phone', 'redmi', 'huawei'],
-                '/laptop': ['laptop', 'macbook', 'dell', 'hp', 'asus', 'lenovo', 'acer', 'surface', 'msi', 'msi katana', 'spectre', 'zenbook', 'legion', 'predator', 'xps'],
-                '/phu-kien': ['phụ kiện', 'tai nghe', 'loa', 'chuột', 'bàn phím', 'sạc dự phòng', 'sạc', 'cáp', 'camera', 'ốp lưng', 'hub', 'gimbal', 'flycam', 'airpods', 'webcam', 'microphone', 'túi chống sốc'],
-                '/dong-ho-thong-minh-ldp': ['smartwatch', 'apple watch', 'galaxy watch', 'oppo watch', 'xiaomi watch'],
-                '/dong-ho': ['đồng hồ', 'casio', 'watch'],
-                '/may-tinh-bang': ['tablet', 'máy tính bảng', 'ipad', 'galaxy tab', 'huawei matepad', 'nokia t'],
-                '/may-doi-tra': ['máy cũ', 'thu cũ', 'cũ'],
-                '/pc-may-in': ['màn hình', 'máy in', 'pc', 'máy tính để bàn', 'máy chơi game', 'monitor']
+                '/dtdd': ['Điện thoại', 'iPhone', 'Samsung', 'Oppo', 'Xiaomi', 'Vivo', 'Realme'],
+                '/laptop': ['Laptop', 'MacBook', 'Dell', 'HP', 'Asus', 'Lenovo', 'Acer'],
+                '/phu-kien': ['Phụ kiện', 'Tai nghe', 'Loa', 'Chuột', 'Bàn phím', 'Sạc dự phòng', 'Sạc, cáp', 'Camera', 'Ốp lưng', 'Hub', 'Gimbal', 'Flycam'],
+                '/dong-ho-thong-minh-ldp': ['Smartwatch', 'Đồng hồ thông minh', 'Apple Watch'],
+                '/dong-ho': ['Đồng hồ'],
+                '/may-tinh-bang': ['Tablet', 'Máy tính bảng', 'iPad'],
+                '/may-doi-tra': ['Máy cũ', 'Thu cũ'],
+                '/pc-may-in': ['Màn hình', 'Máy in', 'PC', 'Máy tính để bàn', 'Máy chơi game'],
+                '/sim-so-dep': ['Sim', 'Thẻ cào'],
+                '/tien-ich/thanh-toan-tra-gop': ['Dịch vụ', 'Tiện ích']
             };
 
             // Build sub-item keyword map from navmwg h3 text → parent category href
@@ -24483,14 +24495,6 @@
             var activeSubItemKeyword = '';
 
             function getAllProductItems() {
-                // Ưu tiên lấy từ #product-list-container (sản phẩm từ API)
-                var apiItems = document.querySelectorAll('#product-list-container .item[data-pname]');
-                if (apiItems.length > 0) {
-                    var all = [], seen = new Set();
-                    apiItems.forEach(function (el) { if (!seen.has(el)) { seen.add(el); all.push(el); } });
-                    return all;
-                }
-                // Fallback: lấy từ các container khác
                 var items = document.querySelectorAll('.hot-promotion .item, .box-common .item, .homeproducts-block .item, .item[data-id]');
                 var all = [], seen = new Set();
                 items.forEach(function (el) { if (!seen.has(el)) { seen.add(el); all.push(el); } });
@@ -24498,14 +24502,14 @@
             }
 
             function getItemText(item) {
-                // data-pname, data-pdesc từ API
-                var pname = (item.getAttribute('data-pname') || '').toLowerCase();
-                var pdesc = (item.getAttribute('data-pdesc') || '').toLowerCase();
                 var ml = item.querySelector('.main-contain');
+                var dn = ml ? (ml.getAttribute('data-name') || '').toLowerCase() : '';
+                var dc = ml ? (ml.getAttribute('data-cate') || '').toLowerCase() : '';
+                var ih = ml ? (ml.getAttribute('href') || '').toLowerCase() : '';
                 var h3 = item.querySelector('h3');
                 var h3t = h3 ? h3.textContent.toLowerCase() : '';
-                var full = (pname + ' ' + h3t + ' ' + pdesc).toLowerCase();
-                return { dataName: pname, h3: h3t, full: full };
+                var full = item.textContent.toLowerCase();
+                return { dataName: dn, dataCate: dc, href: ih, h3: h3t, full: full };
             }
 
             function applyFilters() {
@@ -24517,37 +24521,42 @@
                     var show = true;
                     var t = getItemText(item);
 
-                    // ── Lọc theo danh mục ─────────────────────────────
+                    // Category filter
                     if (activeCateHref) {
                         var matchCates = hrefToCate[activeCateHref];
                         var catMatch = false;
                         if (matchCates) {
                             for (var k = 0; k < matchCates.length; k++) {
                                 var mc = matchCates[k].toLowerCase();
-                                // So sánh keyword của category với tên/h3 của sản phẩm
-                                if (t.full.indexOf(mc) > -1 || t.dataName.indexOf(mc) > -1 || t.h3.indexOf(mc) > -1) {
-                                    catMatch = true; break;
-                                }
+                                if (t.dataCate.indexOf(mc) > -1 || t.href.indexOf(activeCateHref.replace('/', '')) > -1 || t.dataName.indexOf(mc) > -1 || t.h3.indexOf(mc) > -1) { catMatch = true; break; }
                             }
+                        } else {
+                            var seg = activeCateHref.replace(/^\//, '').split('/')[0].split('?')[0];
+                            if (t.href.indexOf(seg) > -1 || t.dataCate.indexOf(seg) > -1 || t.full.indexOf(seg) > -1) catMatch = true;
                         }
                         if (!catMatch) show = false;
                     }
 
-                    // ── Lọc theo sub-item dropdown ────────────────────
+                    // Sub-item filter (from dropdown menu click)
                     if (show && activeSubItemKeyword) {
-                        var sk = activeSubItemKeyword.toLowerCase();
-                        if (t.full.indexOf(sk) === -1 && t.dataName.indexOf(sk) === -1 && t.h3.indexOf(sk) === -1) show = false;
+                        var sk = activeSubItemKeyword;
+                        if (t.full.indexOf(sk) === -1 && t.dataName.indexOf(sk) === -1 && t.h3.indexOf(sk) === -1 && t.dataCate.indexOf(sk) === -1) show = false;
                     }
 
-                    // ── Tìm kiếm theo từ khoá ─────────────────────────
+                    // Search filter
                     if (show && keyword) {
-                        var kw = keyword.toLowerCase();
-                        if (t.full.indexOf(kw) === -1 && t.dataName.indexOf(kw) === -1 && t.h3.indexOf(kw) === -1) show = false;
+                        if (t.full.indexOf(keyword) === -1 && t.dataName.indexOf(keyword) === -1 && t.h3.indexOf(keyword) === -1) show = false;
                     }
 
                     item.style.display = show ? '' : 'none';
                     if (show) visibleCount++;
                 });
+
+                // Auto-create product if filtering yields 0 results and we have a sub-item keyword
+                if (visibleCount === 0 && activeSubItemKeyword && !keyword) {
+                    createSampleProduct(activeSubItemKeyword);
+                    visibleCount = 1;
+                }
 
                 noResultsEl.style.display = (keyword || activeCateHref || activeSubItemKeyword) && visibleCount === 0 ? 'block' : 'none';
             }
@@ -24631,39 +24640,10 @@
             }
 
             if (searchInput) {
-                // Tìm kiếm realtime khi gõ
-                searchInput.addEventListener('input', function () {
-                    currentSearchKeyword = this.value.toLowerCase().trim();
-                    applyFilters();
-                });
-                // Tìm kiếm khi nhấn Enter
-                searchInput.addEventListener('keydown', function (e) {
-                    if (e.key === 'Enter') {
-                        e.preventDefault();
-                        currentSearchKeyword = this.value.toLowerCase().trim();
-                        applyFilters();
-                    }
-                });
-                // Chặn form submit mặc định nhưng vẫn lọc
+                searchInput.addEventListener('input', function () { currentSearchKeyword = this.value.toLowerCase().trim(); applyFilters(); });
+                searchInput.addEventListener('keydown', function (e) { if (e.key === 'Enter') e.preventDefault(); });
                 var searchForm = searchInput.closest('form');
-                if (searchForm) {
-                    searchForm.addEventListener('submit', function (e) {
-                        e.preventDefault();
-                        e.stopImmediatePropagation();
-                        currentSearchKeyword = searchInput.value.toLowerCase().trim();
-                        applyFilters();
-                    }, true);
-                }
-                // Nút search (icon kính lúp)
-                var searchBtn = document.querySelector('.btn-search, .search-button, [class*="search"] button, .header__search button');
-                if (searchBtn) {
-                    searchBtn.addEventListener('click', function (e) {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        currentSearchKeyword = searchInput.value.toLowerCase().trim();
-                        applyFilters();
-                    });
-                }
+                if (searchForm) searchForm.addEventListener('submit', function (e) { e.preventDefault(); e.stopImmediatePropagation(); }, true);
             }
 
             function filterProductsByTab(tabText) {
@@ -24982,10 +24962,7 @@
                             </div>
                         </a>
                         <div class="btn-buy">
-                            <a href="javascript:void(0)" class="buy-now"
-                               onclick="event.stopPropagation(); buyNow(${p.id}, '${safeName}', ${p.price}, '${imgUrl}')">
-                               🛒 Mua ngay
-                            </a>
+                            <a href="javascript:void(0)" class="buy-now" onclick="event.stopPropagation(); buyNow(${p.id}, '${safeName}', ${p.price}, '${imgUrl}')">🛒 Mua ngay</a>
                         </div>
                     `;
                     container.appendChild(itemDiv);
@@ -25545,7 +25522,7 @@
   // Lấy key tại: console.groq.com → API Keys → Create API Key
   // Dán key vào dòng dưới đây (dạng gsk_...)
   // ============================================================
-  var GROQ_KEY = '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';
+  var GROQ_KEY = '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';
   var GROQ_URL = 'https://api.groq.com/openai/v1/chat/completions';
   var MODEL    = 'llama-3.1-8b-instant'; // Miễn phí, nhanh
 
