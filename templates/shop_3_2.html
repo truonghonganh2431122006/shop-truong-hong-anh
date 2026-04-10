@@ -244,25 +244,32 @@
 
         /* Nút Giỏ hàng — luôn nằm dưới cùng card */
         #product-list-container .item .btn-buy {
-            padding: 8px 10px 10px !important;
+            padding: 6px 10px 10px !important;
             pointer-events: auto !important;
-            margin-top: auto !important;        /* đẩy nút xuống đáy card */
+            margin-top: auto !important;
             flex-shrink: 0 !important;
-            background: var(--ha-white) !important;
+            display: block !important;
+            width: 100% !important;
+            box-sizing: border-box !important;
         }
 
         #product-list-container .item .buy-now {
             display: block !important;
+            width: 100% !important;
+            box-sizing: border-box !important;
             text-align: center !important;
             background: var(--ha-yellow) !important;
             color: var(--ha-text) !important;
-            font-size: 12px !important;
+            font-size: 12.5px !important;
             font-weight: 700 !important;
-            padding: 9px 0 !important;
-            border-radius: 9px !important;
+            padding: 10px 0 !important;
+            border-radius: 10px !important;
             text-decoration: none !important;
             transition: background 0.2s, box-shadow 0.2s, transform 0.2s !important;
             letter-spacing: 0.2px !important;
+            float: none !important;
+            margin: 0 !important;
+            line-height: 1.4 !important;
         }
 
         #product-list-container .item .buy-now:hover {
@@ -24484,33 +24491,45 @@
             var activeSubItemKeyword = '';
 
             function getAllProductItems() {
-                // Ưu tiên lấy từ #product-list-container (sản phẩm từ API)
+                // Ưu tiên: sản phẩm từ API (có data-pname)
                 var apiItems = document.querySelectorAll('#product-list-container .item[data-pname]');
                 if (apiItems.length > 0) {
                     var all = [], seen = new Set();
-                    apiItems.forEach(function (el) { if (!seen.has(el)) { seen.add(el); all.push(el); } });
+                    apiItems.forEach(function(el){ if(!seen.has(el)){seen.add(el);all.push(el);} });
                     return all;
                 }
-                // Fallback: lấy từ các container khác
+                // Fallback: tất cả item trong container chính
+                var containerItems = document.querySelectorAll('#product-list-container .item');
+                if (containerItems.length > 0) {
+                    var all = [], seen = new Set();
+                    containerItems.forEach(function(el){ if(!seen.has(el)){seen.add(el);all.push(el);} });
+                    return all;
+                }
+                // Cuối cùng: các container cũ
                 var items = document.querySelectorAll('.hot-promotion .item, .box-common .item, .homeproducts-block .item, .item[data-id]');
                 var all = [], seen = new Set();
-                items.forEach(function (el) { if (!seen.has(el)) { seen.add(el); all.push(el); } });
+                items.forEach(function(el){ if(!seen.has(el)){seen.add(el);all.push(el);} });
                 return all;
             }
 
             function getItemText(item) {
-                // Lấy data từ API items (data-pname, data-pdesc)
-                var pname = (item.getAttribute('data-pname') || '').toLowerCase();
-                var pdesc = (item.getAttribute('data-pdesc') || '').toLowerCase();
+                var pname  = (item.getAttribute('data-pname')  || '').toLowerCase();
+                var pdesc  = (item.getAttribute('data-pdesc')  || '').toLowerCase();
+                var pcate  = (item.getAttribute('data-pcate')  || '').toLowerCase();  // từ getCateFromName
                 var ml = item.querySelector('.main-contain');
                 var dn = ml ? (ml.getAttribute('data-name') || '').toLowerCase() : '';
                 var dc = ml ? (ml.getAttribute('data-cate') || '').toLowerCase() : '';
                 var ih = ml ? (ml.getAttribute('href') || '').toLowerCase() : '';
                 var h3 = item.querySelector('h3');
                 var h3t = h3 ? h3.textContent.toLowerCase() : '';
-                // full kết hợp cả tên sản phẩm từ API
-                var full = (pname + ' ' + h3t + ' ' + pdesc + ' ' + item.textContent).toLowerCase();
-                return { dataName: pname || dn, dataCate: dc || pname, href: ih, h3: h3t, full: full };
+                var full = (pname + ' ' + h3t + ' ' + pdesc + ' ' + pcate).toLowerCase();
+                return {
+                    dataName: pname || dn || h3t,
+                    dataCate: pcate || dc || pname,
+                    href: ih,
+                    h3: h3t,
+                    full: full
+                };
             }
 
             function applyFilters() {
@@ -24526,14 +24545,23 @@
                     if (activeCateHref) {
                         var matchCates = hrefToCate[activeCateHref];
                         var catMatch = false;
+                        var pcateVal = (item.getAttribute('data-pcate') || '').toLowerCase();
                         if (matchCates) {
                             for (var k = 0; k < matchCates.length; k++) {
                                 var mc = matchCates[k].toLowerCase();
-                                if (t.dataCate.indexOf(mc) > -1 || t.href.indexOf(activeCateHref.replace('/', '')) > -1 || t.dataName.indexOf(mc) > -1 || t.h3.indexOf(mc) > -1) { catMatch = true; break; }
+                                // Ưu tiên data-pcate (chính xác nhất), rồi đến các fallback
+                                if (pcateVal.indexOf(mc) > -1 ||
+                                    t.dataCate.indexOf(mc) > -1 ||
+                                    t.dataName.indexOf(mc) > -1 ||
+                                    t.h3.indexOf(mc) > -1 ||
+                                    t.href.indexOf(activeCateHref.replace('/', '')) > -1) {
+                                    catMatch = true; break;
+                                }
                             }
                         } else {
                             var seg = activeCateHref.replace(/^\//, '').split('/')[0].split('?')[0];
-                            if (t.href.indexOf(seg) > -1 || t.dataCate.indexOf(seg) > -1 || t.full.indexOf(seg) > -1) catMatch = true;
+                            if (pcateVal.indexOf(seg) > -1 || t.href.indexOf(seg) > -1 ||
+                                t.dataCate.indexOf(seg) > -1 || t.full.indexOf(seg) > -1) catMatch = true;
                         }
                         if (!catMatch) show = false;
                     }
@@ -24640,25 +24668,57 @@
                 applyFilters();
             }
 
-            if (searchInput) {
-                searchInput.addEventListener('input', function () {
+            // Hàm bind search cho 1 input
+            function bindSearchInput(inp) {
+                if (!inp || inp._haBound) return;
+                inp._haBound = true;
+                inp.addEventListener('input', function() {
                     currentSearchKeyword = this.value.toLowerCase().trim();
                     applyFilters();
                 });
-                searchInput.addEventListener('keydown', function (e) {
+                inp.addEventListener('keydown', function(e) {
                     if (e.key === 'Enter') {
                         e.preventDefault();
                         currentSearchKeyword = this.value.toLowerCase().trim();
                         applyFilters();
                     }
                 });
-                var searchForm = searchInput.closest('form');
-                if (searchForm) searchForm.addEventListener('submit', function (e) {
-                    e.preventDefault();
-                    e.stopImmediatePropagation();
-                    currentSearchKeyword = searchInput.value.toLowerCase().trim();
-                    applyFilters();
-                }, true);
+                var form = inp.closest('form');
+                if (form && !form._haBound) {
+                    form._haBound = true;
+                    form.addEventListener('submit', function(e) {
+                        e.preventDefault(); e.stopImmediatePropagation();
+                        currentSearchKeyword = inp.value.toLowerCase().trim();
+                        applyFilters();
+                        return false;
+                    }, true);
+                }
+            }
+
+            // Bind tất cả input tìm kiếm có thể có
+            function bindAllSearchInputs() {
+                var selectors = [
+                    '#skw', '#search-input', '#q', '#keyword',
+                    '.header__search input',
+                    'input[name="q"]',
+                    'input[placeholder*="ìm"]',   // "Tìm" / "tìm"
+                    'input[placeholder*="earch"]'  // "search"
+                ];
+                selectors.forEach(function(sel) {
+                    try {
+                        document.querySelectorAll(sel).forEach(function(el) { bindSearchInput(el); });
+                    } catch(e) {}
+                });
+            }
+
+            // Bind ngay + bind lại sau khi DOM ổn định
+            bindAllSearchInputs();
+            document.addEventListener('DOMContentLoaded', bindAllSearchInputs);
+            setTimeout(bindAllSearchInputs, 1000); // đảm bảo sau khi render xong
+
+            // Fallback cũ
+            if (searchInput) {
+                bindSearchInput(searchInput);
             }
 
             function filterProductsByTab(tabText) {
@@ -24920,11 +24980,23 @@
             }
         }
 
+        // Map tên sản phẩm → danh mục (dùng cho filter)
+        function getCateFromName(name) {
+            var n = (name || '').toLowerCase();
+            if (/iphone|samsung galaxy|oppo|xiaomi|vivo|realme|nokia g|asus rog phone|google pixel|redmi|oneplus/.test(n)) return 'điện thoại';
+            if (/macbook|laptop|dell xps|dell inspiron|hp spectre|hp pavilion|asus zenbook|asus vivobook|lenovo|acer predator|acer aspire|msi|surface laptop|rog strix/.test(n)) return 'laptop';
+            if (/ipad|samsung tab|huawei matepad|nokia t|máy tính bảng|tablet/.test(n)) return 'máy tính bảng';
+            if (/tai nghe|airpods|airpod|chuột logitech|chuột|bàn phím|sạc dự phòng|sạc|hub|webcam|microphone|túi chống sốc|ốp lưng|phụ kiện/.test(n)) return 'phụ kiện';
+            if (/apple watch|samsung watch|oppo watch|xiaomi watch|casio|đồng hồ|watch/.test(n)) return 'đồng hồ';
+            if (/màn hình|máy in|pc|máy tính để bàn/.test(n)) return 'màn hình máy in';
+            if (/cũ|máy cũ|thu cũ/.test(n)) return 'máy cũ';
+            return '';
+        }
+
         async function displayProducts() {
             const container = document.getElementById('product-list-container');
             if (!container) return;
 
-            // Hiện skeleton khi đang tải
             showSkeletons(container, 12);
 
             try {
@@ -24938,6 +25010,7 @@
                     const displayPrice = cleanPrice(p.price);
                     const isHot = p.price >= 10000000;
                     const isSale = p.price < 3000000;
+                    const itemCate = getCateFromName(p.name);
 
                     const itemDiv = document.createElement('div');
                     itemDiv.className = "item";
@@ -24946,6 +25019,7 @@
                     itemDiv.setAttribute('data-pimg', imgUrl);
                     itemDiv.setAttribute('data-pdesc', p.description || '');
                     itemDiv.setAttribute('data-pid', p.id);
+                    itemDiv.setAttribute('data-pcate', itemCate);   // dùng cho filter danh mục
                     itemDiv.style.cursor = 'pointer';
                     itemDiv.style.animationDelay = (idx % 12 * 0.04) + 's';
 
@@ -24953,7 +25027,6 @@
                         ? '<span class="ha-badge">HOT</span>'
                         : isSale ? '<span class="ha-badge" style="background:#1565C0">SALE</span>' : '';
 
-                    // Tên sản phẩm — escape để tránh XSS
                     const safeName = p.name.replace(/'/g, "\'").replace(/"/g, '&quot;');
 
                     itemDiv.innerHTML = `
@@ -24976,19 +25049,18 @@
                                 Flash Sale · Còn 7 suất
                             </div>
                         </a>
-                        <div class="btn-buy">
-                            <a href="javascript:void(0)" class="buy-now"
-                               onclick="event.stopPropagation(); buyNow(${p.id}, '${safeName}', ${p.price}, '${imgUrl}')">
-                               🛒 Mua ngay
-                            </a>
-                        </div>
+                        <div class="btn-buy"><a href="javascript:void(0)" class="buy-now" onclick="event.stopPropagation(); buyNow(${p.id}, '${safeName}', ${p.price}, '${imgUrl}')">🛒 Mua ngay</a></div>
                     `;
                     container.appendChild(itemDiv);
                 });
-                console.log("Đã nạp thành công " + products.length + " sản phẩm!");
+
+                console.log("Đã nạp " + products.length + " sản phẩm!");
+
+                // Re-apply bộ lọc/tìm kiếm đang active (nếu có)
+                if (typeof applyFilters === 'function') applyFilters();
+
             } catch (error) {
                 console.error("Lỗi khi kết nối API:", error);
-                // Hiện thông báo lỗi thân thiện
                 if (container) container.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:#888;font-size:14px">⚠️ Không thể tải sản phẩm. Vui lòng thử lại!</div>';
             }
         }
