@@ -130,7 +130,7 @@
             border-radius: var(--ha-radius) !important;
             padding: 0 !important;
             margin: 0 !important;
-            overflow: hidden !important;
+            overflow: visible !important;   /* visible để nút Mua ngay không bị cắt */
             display: flex !important;
             flex-direction: column !important;
             cursor: pointer !important;
@@ -242,10 +242,13 @@
             border-radius: 4px !important;
         }
 
-        /* Nút Giỏ hàng */
+        /* Nút Giỏ hàng — luôn nằm dưới cùng card */
         #product-list-container .item .btn-buy {
             padding: 8px 10px 10px !important;
             pointer-events: auto !important;
+            margin-top: auto !important;        /* đẩy nút xuống đáy card */
+            flex-shrink: 0 !important;
+            background: var(--ha-white) !important;
         }
 
         #product-list-container .item .buy-now {
@@ -640,13 +643,13 @@
 
         /* Định dạng từng ô sản phẩm */
         .listproduct .item {
-            display: none;
+            display: flex;  /* ĐÃ SỬA: từ display:none → flex để sản phẩm hiện ra */
+            flex-direction: column;
             width: 100% !important;
             box-sizing: border-box !important;
             border: 1px solid #f1f1f1;
             border-radius: 8px;
-            /* Thêm bo góc cho sản phẩm trông hiện đại hơn */
-            padding: 10px !important;
+            padding: 0 !important;
             background: #fff;
             list-style: none;
             margin: 0 !important;
@@ -24481,6 +24484,14 @@
             var activeSubItemKeyword = '';
 
             function getAllProductItems() {
+                // Ưu tiên lấy từ #product-list-container (sản phẩm từ API)
+                var apiItems = document.querySelectorAll('#product-list-container .item[data-pname]');
+                if (apiItems.length > 0) {
+                    var all = [], seen = new Set();
+                    apiItems.forEach(function (el) { if (!seen.has(el)) { seen.add(el); all.push(el); } });
+                    return all;
+                }
+                // Fallback: lấy từ các container khác
                 var items = document.querySelectorAll('.hot-promotion .item, .box-common .item, .homeproducts-block .item, .item[data-id]');
                 var all = [], seen = new Set();
                 items.forEach(function (el) { if (!seen.has(el)) { seen.add(el); all.push(el); } });
@@ -24488,14 +24499,18 @@
             }
 
             function getItemText(item) {
+                // Lấy data từ API items (data-pname, data-pdesc)
+                var pname = (item.getAttribute('data-pname') || '').toLowerCase();
+                var pdesc = (item.getAttribute('data-pdesc') || '').toLowerCase();
                 var ml = item.querySelector('.main-contain');
                 var dn = ml ? (ml.getAttribute('data-name') || '').toLowerCase() : '';
                 var dc = ml ? (ml.getAttribute('data-cate') || '').toLowerCase() : '';
                 var ih = ml ? (ml.getAttribute('href') || '').toLowerCase() : '';
                 var h3 = item.querySelector('h3');
                 var h3t = h3 ? h3.textContent.toLowerCase() : '';
-                var full = item.textContent.toLowerCase();
-                return { dataName: dn, dataCate: dc, href: ih, h3: h3t, full: full };
+                // full kết hợp cả tên sản phẩm từ API
+                var full = (pname + ' ' + h3t + ' ' + pdesc + ' ' + item.textContent).toLowerCase();
+                return { dataName: pname || dn, dataCate: dc || pname, href: ih, h3: h3t, full: full };
             }
 
             function applyFilters() {
@@ -24626,10 +24641,24 @@
             }
 
             if (searchInput) {
-                searchInput.addEventListener('input', function () { currentSearchKeyword = this.value.toLowerCase().trim(); applyFilters(); });
-                searchInput.addEventListener('keydown', function (e) { if (e.key === 'Enter') e.preventDefault(); });
+                searchInput.addEventListener('input', function () {
+                    currentSearchKeyword = this.value.toLowerCase().trim();
+                    applyFilters();
+                });
+                searchInput.addEventListener('keydown', function (e) {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        currentSearchKeyword = this.value.toLowerCase().trim();
+                        applyFilters();
+                    }
+                });
                 var searchForm = searchInput.closest('form');
-                if (searchForm) searchForm.addEventListener('submit', function (e) { e.preventDefault(); e.stopImmediatePropagation(); }, true);
+                if (searchForm) searchForm.addEventListener('submit', function (e) {
+                    e.preventDefault();
+                    e.stopImmediatePropagation();
+                    currentSearchKeyword = searchInput.value.toLowerCase().trim();
+                    applyFilters();
+                }, true);
             }
 
             function filterProductsByTab(tabText) {
