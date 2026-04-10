@@ -176,11 +176,17 @@
             flex-shrink: 0 !important;
         }
 
-        #product-list-container .item .item-img img {
+        /* Fix: override .listproduct .item-img img { height: auto } từ CSS gốc */
+        #product-list-container .item .item-img img,
+        #product-list-container.listproduct .item .item-img img,
+        #product-list-container.slider-flashsale .item .item-img img {
             width: 100% !important;
             height: 100% !important;
+            max-width: 100% !important;
             object-fit: contain !important;
-            padding: 14px !important;
+            padding: 12px !important;
+            margin: 0 !important;          /* reset margin từ .listproduct .item-img img */
+            display: block !important;     /* đảm bảo không bị display:none từ slick */
             transition: transform 0.45s var(--ha-ease) !important;
         }
 
@@ -12354,6 +12360,7 @@
         .listproduct .item-img img {
             height: auto;
             display: block;
+            /* height:auto được override bởi #product-list-container rule ở trên */
             margin: 0 auto
         }
 
@@ -23922,7 +23929,8 @@
             <div class="modal-body">
                 <!-- Cột trái: ảnh -->
                 <div class="modal-left">
-                    <img id="modalImg" src="" alt="Ảnh sản phẩm">
+                    <img id="modalImg" src="" alt="Ảnh sản phẩm"
+                         onerror="this.onerror=null;this.src='https://placehold.co/300x300?text=No+Image'">
                 </div>
 
                 <!-- Cột phải: thông tin -->
@@ -24897,7 +24905,7 @@
                 container.innerHTML = '';
 
                 products.forEach((p, idx) => {
-                    const imgUrl = p.image_url || "https://via.placeholder.com/200x200?text=No+Image";
+                    const imgUrl = p.image_url || "https://placehold.co/200x200?text=No+Image";
                     const displayPrice = cleanPrice(p.price);
                     const isHot = p.price >= 10000000;
                     const isSale = p.price < 3000000;
@@ -24923,8 +24931,8 @@
                         \${badge}
                         <a href="javascript:void(0)" class="remain_quantity main-contain">
                             <div class="item-img">
-                                <img src="\${imgUrl}" alt="\${p.name}" loading="lazy"
-                                     onerror="this.src='https://via.placeholder.com/200x200?text=No+Image'">
+                                <img src="\${imgUrl}" alt="\${p.name}"
+                                     onerror="this.onerror=null;this.src='https://placehold.co/200x200?text=No+Image'">
                             </div>
                             <h3>\${p.name}</h3>
                             <strong class="price">
