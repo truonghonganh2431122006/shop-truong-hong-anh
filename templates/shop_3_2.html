@@ -24762,6 +24762,8 @@
         <div id="haQoPreviewName">Đang tải...</div>
         <div id="haQoPreviewPrice"></div>
         <div id="haQoFinalPrice"></div>
+        <!-- Luôn chứa giá THỰC TẾ cuối cùng (sau voucher) để confirmOrder đọc -->
+        <span id="quick-order-total" style="display:none;"></span>
         <span class="ha-qo-badge">🚀 Giao hàng tận nơi</span>
       </div>
     </div>
@@ -25037,6 +25039,11 @@
     var finalEl = document.getElementById('haQoFinalPrice');
     if (!finalEl) return;
     var finalPrice = Math.max(0, _price - _discount);
+
+    /* ── Luôn đồng bộ quick-order-total = giá thực khách trả ── */
+    var qot = document.getElementById('quick-order-total');
+    if (qot) qot.textContent = finalPrice;
+
     if (_discount > 0) {
       finalEl.style.display = 'block';
       finalEl.setAttribute('data-value', finalPrice); /* ← lưu giá thực để haQoSubmit đọc */
@@ -25075,6 +25082,13 @@
 
   /* ── Mở form với dữ liệu sản phẩm ── */
   window.openQuickOrder = function (idOrObj, name, price, img) {
+    /* ══ KIỂM TRA ĐĂNG NHẬP — bắt buộc trước khi hiện form ══ */
+    if (!localStorage.getItem('access_token')) {
+      alert('⚠️ Vui lòng đăng nhập để mua hàng!\nĐang chuyển hướng đến trang đăng nhập...');
+      window.location.href = '/login';
+      return;
+    }
+
     if (arguments.length === 1) {
       var pid = parseInt(idOrObj) || 0;
       var prods = window.allProducts || [];
@@ -25099,6 +25113,10 @@
     if (elImg) { elImg.src = _img; elImg.alt = _name; }
     if (elName) elName.textContent = _name;
     if (elPrice) elPrice.textContent = new Intl.NumberFormat('vi-VN').format(_price) + ' ₫';
+
+    /* ── Khởi tạo quick-order-total với giá gốc (trước khi áp voucher) ── */
+    var _qot = document.getElementById('quick-order-total');
+    if (_qot) _qot.textContent = _price;
 
     /* Reset toàn bộ form */
     ['haQoName','haQoPhone','haQoAddress'].forEach(function(fid){
@@ -25187,19 +25205,24 @@
 
     var fullAddr = qStreet + ', ' + qWard + ', ' + qDistrict + ', ' + qCity;
 
-    /* ── Lấy giá cuối từ THẺ HIỂN THỊ để đảm bảo 100% khớp UI ── */
-    var _finalDisplayEl = document.getElementById('haQoFinalPrice');
-    var _displayedValue = _finalDisplayEl ? parseFloat(_finalDisplayEl.getAttribute('data-value') || '') : NaN;
-
-    /* Fallback: đọc text thẻ nếu data-value không có */
-    if ((isNaN(_displayedValue) || _displayedValue <= 0) && _finalDisplayEl && _finalDisplayEl.style.display !== 'none') {
-        var _rawText = (_finalDisplayEl.textContent || '').replace(/[^\d]/g, '');
-        if (_rawText.length > 0) _displayedValue = parseInt(_rawText, 10);
+    /* ══ LẤY GIÁ CUỐI CÙNG từ thẻ hiển thị — khớp 100% với UI ══
+       Ưu tiên: quick-order-total (luôn được cập nhật theo từng thay đổi voucher)
+       Fallback: data-value trên haQoFinalPrice → tính lại từ _price - _discount  */
+    var finalPriceToSave = parseInt(
+      (document.getElementById('quick-order-total') || {textContent: ''}).textContent.replace(/\D/g, '')
+    );
+    if (!finalPriceToSave || isNaN(finalPriceToSave)) {
+      /* Fallback 1: data-value */
+      var _fEl = document.getElementById('haQoFinalPrice');
+      var _dv  = _fEl ? parseFloat(_fEl.getAttribute('data-value') || '') : NaN;
+      if (!isNaN(_dv) && _dv >= 0 && _fEl && _fEl.style.display !== 'none') {
+        finalPriceToSave = _dv;
+      } else {
+        /* Fallback 2: tính lại */
+        finalPriceToSave = Math.max(0, _price - _discount);
+      }
     }
-
-    var finalPrice = (!isNaN(_displayedValue) && _displayedValue > 0 && _discount > 0)
-      ? _displayedValue
-      : Math.max(0, _price - _discount);
+    var finalPrice = finalPriceToSave;
 
     var btn = document.getElementById('haQoConfirmBtn');
     if (btn) { btn.disabled = true; btn.textContent = '⏳ Đang xử lý...'; }
