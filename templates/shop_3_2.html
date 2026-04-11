@@ -296,7 +296,7 @@
             width: 100% !important;
             box-sizing: border-box !important;
             border: 1.5px solid #e8e8ed !important;
-            border-radius: 14px !important;
+            border-radius: 15px !important;
             padding: 0 !important;
             background: #fff !important;
             list-style: none !important;
@@ -307,8 +307,8 @@
             flex-direction: column !important;
             cursor: pointer !important;
             transition:
-                transform 0.28s cubic-bezier(0.34,1.2,0.64,1),
-                box-shadow 0.28s ease,
+                transform 0.30s cubic-bezier(0.34,1.2,0.64,1),
+                box-shadow 0.30s ease,
                 border-color 0.22s ease !important;
             will-change: transform !important;
         }
@@ -319,11 +319,14 @@
             display: flex !important;
         }
 
-        /* ── HOVER EFFECT ── nổi lên + viền vàng + đổ bóng */
+        /* ── HOVER EFFECT ── nổi lên mạnh + viền vàng + đổ bóng rộng mịn */
         #product-list-container .item:hover {
-            transform: translateY(-6px) scale(1.018) !important;
-            box-shadow: 0 14px 40px rgba(0,0,0,0.13), 0 0 0 2px var(--ha-yellow) !important;
-            border-color: var(--ha-yellow) !important;
+            transform: translateY(-8px) scale(1.022) !important;
+            box-shadow:
+                0 20px 50px rgba(0,0,0,0.16),
+                0 6px 16px rgba(0,0,0,0.10),
+                0 0 0 2.5px #ffcd00 !important;
+            border-color: #ffcd00 !important;
             z-index: 2 !important;
         }
 
@@ -366,42 +369,48 @@
 
         /* Tên sản phẩm — clamp 2 dòng → chiều cao cố định */
         #product-list-container .item h3 {
-            font-size: 12.5px !important;
+            font-size: 13.5px !important;
             font-weight: 700 !important;
-            color: #1d1d1f !important;
+            color: #0a0a0a !important;
             line-height: 1.45 !important;
             margin: 0 0 8px !important;
-            min-height: 36px !important;      /* 2 dòng × 1.45 × 12.5px ≈ 36px */
+            min-height: 39px !important;      /* 2 dòng × 1.45 × 13.5px ≈ 39px */
             display: -webkit-box !important;
             -webkit-line-clamp: 2 !important;
             -webkit-box-orient: vertical !important;
             overflow: hidden !important;
+            letter-spacing: -0.1px !important;
         }
 
-        /* Giá — đỏ nổi bật */
+        /* Giá — đỏ tươi cực kỳ nổi bật, font số hiện đại */
         #product-list-container .item strong.price {
-            font-size: 14.5px !important;
-            font-weight: 800 !important;
-            color: #d0021c !important;
+            font-size: 16px !important;
+            font-weight: 900 !important;
+            color: #e8000d !important;
             display: flex !important;
             align-items: center !important;
             gap: 6px !important;
             flex-wrap: wrap !important;
-            margin-top: auto !important;      /* đẩy xuống đáy phần content */
+            margin-top: auto !important;
+            font-variant-numeric: tabular-nums !important;
+            letter-spacing: -0.3px !important;
         }
         #product-list-container .item .price-old.black {
-            font-size: 10px !important;
-            color: #6e6e73 !important;
+            font-size: 10.5px !important;
+            color: #b0b0b8 !important;
             font-weight: 400 !important;
             text-decoration: line-through !important;
+            text-decoration-color: #b0b0b8 !important;
+            text-decoration-thickness: 1.5px !important;
         }
         #product-list-container .item small {
             background: #fff0f0 !important;
-            color: #d0021c !important;
+            color: #e8000d !important;
             font-size: 10px !important;
-            font-weight: 700 !important;
-            padding: 1px 5px !important;
-            border-radius: 4px !important;
+            font-weight: 800 !important;
+            padding: 2px 6px !important;
+            border-radius: 5px !important;
+            border: 1px solid #ffd0d0 !important;
         }
 
         /* ── NÚT GIỎ HÀNG — mờ khi thường, rõ khi hover card ── */
@@ -415,32 +424,34 @@
         #product-list-container .item .buy-now {
             display: block !important;
             text-align: center !important;
-            background: #f5f5f7 !important;       /* xám nhạt khi không hover */
+            background: linear-gradient(135deg, #f5f5f7 0%, #ebebed 100%) !important; /* xám nhạt khi chưa hover */
             color: #555 !important;
-            font-size: 12.5px !important;
-            font-weight: 700 !important;
+            font-size: 12px !important;
+            font-weight: 800 !important;
             padding: 9px 0 !important;
-            border-radius: 10px !important;
+            border-radius: 50px !important;   /* pill-shaped */
             text-decoration: none !important;
             border: 1.5px solid #e2e8f0 !important;
             cursor: pointer !important;
             width: 100% !important;
             box-sizing: border-box !important;
-            transition: background 0.22s, color 0.22s, border-color 0.22s, box-shadow 0.22s, transform 0.22s !important;
-            opacity: 0.65 !important;             /* mờ khi chưa hover */
+            letter-spacing: 0.2px !important;
+            transition: background 0.25s, color 0.25s, border-color 0.25s, box-shadow 0.25s, transform 0.25s !important;
+            opacity: 0.7 !important;
         }
-        /* Khi hover vào CARD → nút sáng lên vàng nổi bật */
+        /* Khi hover vào CARD → nút gradient cam-đỏ rực rỡ kích thích mua hàng */
         #product-list-container .item:hover .buy-now {
-            background: var(--ha-yellow) !important;
-            color: #1d1d1f !important;
-            border-color: #f0d800 !important;
+            background: linear-gradient(135deg, #ff7e00 0%, #e8000d 100%) !important;
+            color: #fff !important;
+            border-color: transparent !important;
             opacity: 1 !important;
-            box-shadow: 0 3px 12px rgba(255,229,0,0.5) !important;
+            box-shadow: 0 6px 18px rgba(232,0,13,0.40), 0 2px 6px rgba(255,126,0,0.30) !important;
             transform: translateY(-1px) !important;
         }
         #product-list-container .item .buy-now:hover {
-            background: #ffe500 !important;
+            background: linear-gradient(135deg, #ff9100 0%, #d0000c 100%) !important;
             transform: translateY(-2px) !important;
+            box-shadow: 0 8px 22px rgba(232,0,13,0.50) !important;
         }
 
         /* Badge HOT/SALE */
@@ -23378,6 +23389,11 @@
 
             function applyFilters() {
                 var keyword = (currentSearchKeyword || '').toLowerCase().trim();
+                // Ẩn thông báo ngay khi bắt đầu lọc
+                var noResEarly = document.getElementById('ha-no-results');
+                if (noResEarly) noResEarly.style.setProperty('display', 'none', 'important');
+                if (noResultsEl) noResultsEl.style.display = 'none';
+
                 // Lấy sản phẩm từ #product-list-container trước (API products)
                 var apiItems = Array.from(document.querySelectorAll('#product-list-container .item'));
                 // Lấy thêm các sản phẩm tĩnh khác (nếu có)
@@ -23709,9 +23725,8 @@
             noRes.innerHTML = '<div style="font-size:40px;margin-bottom:12px">🔍</div>Không tìm thấy sản phẩm phù hợp.<br><span style="font-size:13px;color:#aaa">Thử bỏ bộ lọc hoặc chọn tiêu chí khác.</span>';
             container.appendChild(noRes);
         }
-        noRes.style.display = matched.length === 0 ? 'block' : 'none';
-        noRes.style.removeProperty('display');
-        if (matched.length === 0) noRes.style.display = 'block';
+        // ── Ẩn thông báo ngay, chỉ hiện SAU KHI duyệt hết và không có kết quả ──
+        noRes.style.setProperty('display', matched.length === 0 ? 'block' : 'none', 'important');
 
         // 6. Cập nhật nút XEM THÊM
         updateSuperBtn(matched);
@@ -24076,6 +24091,12 @@
                     container.appendChild(itemDiv);
                 });
                 console.log("Đã nạp thành công " + products.length + " sản phẩm!");
+                // Lưu vào global để Shopping AI truy cập
+                window.allProducts = products.map(function(p){
+                    return { id: p.id, name: p.name, price: p.price,
+                             img: p.image_url || 'https://placehold.co/200x200?text=No+Image',
+                             description: p.description || '' };
+                });
                 // Khởi động phân trang và lọc sau khi sản phẩm đã render
                 if (window.haInitPaging) setTimeout(window.haInitPaging, 100);
             } catch (error) {
@@ -24272,7 +24293,7 @@
   // Lấy key tại: console.groq.com → API Keys → Create API Key
   // Dán key vào dòng dưới đây (dạng gsk_...)
   // ============================================================
-  var GROQ_KEY = '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';
+  var GROQ_KEY = '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'; // ← AI #1 — Điền Groq API key của bạn vào đây
   var GROQ_URL = 'https://api.groq.com/openai/v1/chat/completions';
   var MODEL    = 'llama-3.1-8b-instant'; // Miễn phí, nhanh
 
@@ -24401,6 +24422,542 @@
 })();
 </script>
 <!-- ============ END CHATBOT ============ -->
+
+<!-- ════════════════════════════════════════════════════════════
+     SHOPPING AI — AI THỨ HAI (So sánh với AI #1)
+     Đặc điểm: Tự "lục kho" & hiển thị Product Card ngay trong chat
+     Model: llama3-8b-8192 | Màu: Cam-Vàng Gold
+════════════════════════════════════════════════════════════ -->
+<style>
+/* ─── Shopping AI FAB ─── */
+#sa-fab {
+  position:fixed; bottom:28px; right:96px;
+  width:58px; height:58px;
+  background:linear-gradient(145deg,#ffa726,#e65c00);
+  border-radius:50%; border:none; cursor:pointer;
+  box-shadow:0 4px 20px rgba(230,92,0,0.42);
+  display:flex; align-items:center; justify-content:center;
+  z-index:99990;
+  transition:transform 0.25s cubic-bezier(.34,1.56,.64,1), box-shadow 0.2s;
+}
+#sa-fab:hover { transform:scale(1.12); box-shadow:0 6px 28px rgba(230,92,0,0.60); }
+#sa-fab svg  { width:26px; height:26px; }
+#sa-fab-badge {
+  position:absolute; top:-2px; right:-2px;
+  background:#e53e3e; color:#fff;
+  font-size:10px; font-weight:700; width:18px; height:18px;
+  border-radius:50%; display:none; align-items:center;
+  justify-content:center; border:2px solid #fff;
+}
+/* Tooltip nhãn 2 AI */
+#sa-fab::after {
+  content:'Shopping AI'; position:absolute; bottom:66px; left:50%;
+  transform:translateX(-50%); background:rgba(230,92,0,0.92); color:#fff;
+  font-size:10px; font-weight:700; padding:3px 9px; border-radius:12px;
+  white-space:nowrap; opacity:0; pointer-events:none;
+  transition:opacity 0.18s; font-family:-apple-system,sans-serif;
+}
+#sa-fab:hover::after { opacity:1; }
+#ha-fab::after {
+  content:'Hồng Anh AI'; position:absolute; bottom:66px; left:50%;
+  transform:translateX(-50%); background:rgba(26,26,46,0.92); color:#ffed00;
+  font-size:10px; font-weight:700; padding:3px 9px; border-radius:12px;
+  white-space:nowrap; opacity:0; pointer-events:none;
+  transition:opacity 0.18s; font-family:-apple-system,sans-serif;
+}
+#ha-fab:hover::after { opacity:1; }
+
+/* ─── Shopping AI Window ─── */
+#sa-win {
+  position:fixed; bottom:100px; right:164px;
+  width:380px; max-width:calc(100vw - 40px);
+  height:560px; max-height:calc(100vh - 120px);
+  background:#fff; border-radius:20px;
+  box-shadow:0 12px 48px rgba(230,92,0,0.18), 0 4px 16px rgba(0,0,0,0.10);
+  display:flex; flex-direction:column; overflow:hidden; z-index:99989;
+  transform:scale(0.85) translateY(20px); opacity:0; pointer-events:none;
+  transition:transform 0.28s cubic-bezier(.34,1.56,.64,1), opacity 0.22s;
+  transform-origin:bottom right;
+}
+#sa-win.open { transform:scale(1) translateY(0); opacity:1; pointer-events:all; }
+
+/* ─── Header cam-đỏ gradient ─── */
+#sa-hdr {
+  background:linear-gradient(135deg,#e65c00 0%,#ff8c00 60%,#ffa726 100%);
+  padding:14px 18px; display:flex; align-items:center; gap:12px; flex-shrink:0;
+  position:relative;
+}
+#sa-hdr::after {
+  content:'AI #2'; position:absolute; top:8px; right:52px;
+  background:rgba(255,255,255,0.22); color:#fff;
+  font-size:9px; font-weight:800; padding:2px 7px; border-radius:10px;
+  letter-spacing:0.5px; font-family:-apple-system,sans-serif;
+}
+#sa-av {
+  width:40px; height:40px; background:rgba(255,255,255,0.22);
+  border-radius:50%; display:flex; align-items:center;
+  justify-content:center; flex-shrink:0;
+  box-shadow:0 2px 8px rgba(0,0,0,0.15);
+}
+#sa-av svg { width:22px; height:22px; }
+#sa-hdr-info { flex:1; min-width:0; }
+#sa-hdr-name  { color:#fff; font-size:14px; font-weight:800; font-family:-apple-system,sans-serif; text-shadow:0 1px 3px rgba(0,0,0,0.2); }
+#sa-hdr-sub   { color:rgba(255,255,255,0.80); font-size:10px; margin-top:1px; font-family:-apple-system,sans-serif; }
+#sa-hdr-status{ color:#fff8c0; font-size:11px; margin-top:2px; font-family:-apple-system,sans-serif; }
+#sa-x {
+  background:rgba(255,255,255,0.18); border:none; color:#fff;
+  width:30px; height:30px; border-radius:50%; cursor:pointer;
+  font-size:16px; display:flex; align-items:center; justify-content:center;
+  transition:background 0.2s; flex-shrink:0;
+}
+#sa-x:hover { background:rgba(255,255,255,0.35); }
+
+/* ─── Messages area ─── */
+#sa-msgs {
+  flex:1; overflow-y:auto; padding:14px 12px;
+  display:flex; flex-direction:column; gap:10px;
+  background:#fffbf4; scroll-behavior:smooth;
+}
+#sa-msgs::-webkit-scrollbar { width:4px; }
+#sa-msgs::-webkit-scrollbar-thumb { background:#ffcc80; border-radius:4px; }
+
+/* ─── Bubbles (prefix sa-) — hoàn toàn tách biệt .ha-b ─── */
+.sa-b {
+  max-width:84%; padding:10px 14px; border-radius:18px;
+  font-size:13.5px; line-height:1.55; word-break:break-word;
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  animation:sa-pop 0.22s cubic-bezier(.34,1.56,.64,1);
+}
+@keyframes sa-pop { from{transform:scale(0.88);opacity:0} to{transform:scale(1);opacity:1} }
+.sa-b.bot {
+  background:#fff; color:#1a1a2e; align-self:flex-start;
+  border-bottom-left-radius:5px;
+  box-shadow:0 1px 6px rgba(230,92,0,0.12);
+  border-left:3px solid #ff8c00;
+}
+.sa-b.usr {
+  background:linear-gradient(135deg,#ff8c00,#e65c00);
+  color:#fff; align-self:flex-end; border-bottom-right-radius:5px;
+}
+.sa-b.err {
+  background:#fff3cd; color:#856404; align-self:flex-start;
+  border-bottom-left-radius:5px; border-left:3px solid #ffc107;
+}
+.sa-dots {
+  display:flex; gap:5px; align-items:center; padding:12px 16px;
+  background:#fff; border-radius:18px; border-bottom-left-radius:5px;
+  align-self:flex-start;
+  box-shadow:0 1px 6px rgba(230,92,0,0.12); border-left:3px solid #ff8c00;
+}
+.sa-dots span {
+  width:7px; height:7px; background:#ffcc80; border-radius:50%;
+  animation:sa-bounce 1.2s infinite;
+}
+.sa-dots span:nth-child(2){animation-delay:.2s;}
+.sa-dots span:nth-child(3){animation-delay:.4s;}
+@keyframes sa-bounce {
+  0%,60%,100%{transform:translateY(0);background:#ffcc80}
+  30%{transform:translateY(-6px);background:#e65c00}
+}
+
+/* ─── Quick-reply chips ─── */
+#sa-chips {
+  display:flex; gap:6px; flex-wrap:wrap;
+  padding:0 12px 10px; background:#fffbf4; flex-shrink:0;
+}
+.sa-chip {
+  padding:5px 12px; background:#fff; border:1.5px solid #ffd0a0;
+  border-radius:20px; font-size:12px; cursor:pointer;
+  color:#c45000; font-weight:600; transition:all .18s;
+  white-space:nowrap; font-family:-apple-system,sans-serif;
+}
+.sa-chip:hover { background:#e65c00; border-color:#e65c00; color:#fff; }
+
+/* ─── Input area ─── */
+#sa-inp-area {
+  display:flex; align-items:center; gap:8px; padding:12px 14px;
+  background:#fff; border-top:1px solid #ffe0b2; flex-shrink:0;
+}
+#sa-inp {
+  flex:1; padding:10px 14px; border:1.5px solid #ffd0a0;
+  border-radius:24px; font-size:13.5px; outline:none; resize:none;
+  font-family:-apple-system,sans-serif; transition:border-color .2s;
+  max-height:80px; line-height:1.4; background:#fffbf4;
+}
+#sa-inp:focus { border-color:#e65c00; background:#fff; }
+#sa-send {
+  width:40px; height:40px;
+  background:linear-gradient(135deg,#ff8c00,#e65c00);
+  border:none; border-radius:50%; cursor:pointer;
+  display:flex; align-items:center; justify-content:center;
+  flex-shrink:0; transition:transform .2s, box-shadow .2s;
+  box-shadow:0 2px 8px rgba(230,92,0,0.35);
+}
+#sa-send:hover { transform:scale(1.1); box-shadow:0 4px 14px rgba(230,92,0,0.5); }
+#sa-send svg { width:18px; height:18px; }
+
+/* ─── PRODUCT CARD trong khung chat ─── */
+.sa-prod-cards {
+  align-self:stretch; width:100%;
+  animation:sa-pop 0.28s cubic-bezier(.34,1.56,.64,1);
+}
+.sa-prod-cards-title {
+  font-size:11.5px; font-weight:700; color:#c45000;
+  margin-bottom:8px; padding-left:2px;
+  font-family:-apple-system,sans-serif;
+  display:flex; align-items:center; gap:5px;
+}
+.sa-prod-list {
+  display:flex; gap:8px; overflow-x:auto; padding-bottom:4px;
+  scroll-snap-type:x mandatory;
+}
+.sa-prod-list::-webkit-scrollbar { height:3px; }
+.sa-prod-list::-webkit-scrollbar-thumb { background:#ffcc80; border-radius:3px; }
+.sa-prod-card {
+  flex:0 0 130px; background:#fff; border-radius:12px;
+  border:1.5px solid #ffe0b2; overflow:hidden;
+  box-shadow:0 2px 8px rgba(230,92,0,0.12);
+  transition:transform 0.22s cubic-bezier(.34,1.2,.64,1), box-shadow 0.22s;
+  cursor:pointer; scroll-snap-align:start;
+}
+.sa-prod-card:hover {
+  transform:translateY(-4px) scale(1.02);
+  box-shadow:0 8px 22px rgba(230,92,0,0.28);
+  border-color:#ff8c00;
+}
+.sa-prod-card-img {
+  width:100%; height:88px; background:#fff8f0;
+  display:flex; align-items:center; justify-content:center; overflow:hidden;
+}
+.sa-prod-card-img img {
+  width:100%; height:100%; object-fit:contain;
+  padding:6px; box-sizing:border-box;
+  transition:transform 0.3s;
+}
+.sa-prod-card:hover .sa-prod-card-img img { transform:scale(1.06); }
+.sa-prod-card-body { padding:6px 8px 8px; }
+.sa-prod-card-name {
+  font-size:10.5px; font-weight:700; color:#0a0a0a;
+  display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical;
+  overflow:hidden; line-height:1.35; margin-bottom:4px;
+  font-family:-apple-system,sans-serif;
+}
+.sa-prod-card-price {
+  font-size:12.5px; font-weight:900; color:#e8000d;
+  font-variant-numeric:tabular-nums;
+  font-family:-apple-system,sans-serif; letter-spacing:-0.3px;
+}
+.sa-prod-card-btn {
+  display:block; margin-top:6px; padding:5px 0;
+  background:linear-gradient(135deg,#ff8c00,#e65c00);
+  color:#fff; border:none; border-radius:20px;
+  font-size:10px; font-weight:800; cursor:pointer;
+  width:100%; text-align:center; font-family:-apple-system,sans-serif;
+  letter-spacing:0.2px;
+  transition:opacity 0.18s, transform 0.18s;
+  box-shadow:0 2px 6px rgba(230,92,0,0.3);
+}
+.sa-prod-card-btn:hover { opacity:0.88; transform:translateY(-1px); }
+</style>
+
+<!-- ── Shopping AI FAB Button ── -->
+<button id="sa-fab" onclick="saToggle()" title="🛍️ Shopping AI — Gợi ý sản phẩm thông minh">
+  <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2"
+       stroke-linecap="round" stroke-linejoin="round">
+    <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/>
+    <line x1="3" y1="6" x2="21" y2="6"/>
+    <path d="M16 10a4 4 0 01-8 0"/>
+  </svg>
+  <span id="sa-fab-badge"></span>
+</button>
+
+<!-- ── Shopping AI Chat Window ── -->
+<div id="sa-win">
+  <div id="sa-hdr">
+    <div id="sa-av">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.3"
+           stroke-linecap="round" stroke-linejoin="round">
+        <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/>
+        <line x1="3" y1="6" x2="21" y2="6"/>
+        <path d="M16 10a4 4 0 01-8 0"/>
+      </svg>
+    </div>
+    <div id="sa-hdr-info">
+      <div id="sa-hdr-name">🛍️ Shopping AI</div>
+      <div id="sa-hdr-sub">Gợi ý sản phẩm • Lục kho thông minh</div>
+      <div id="sa-hdr-status">● Sẵn sàng tư vấn</div>
+    </div>
+    <button id="sa-x" onclick="saToggle()">✕</button>
+  </div>
+  <div id="sa-msgs"></div>
+  <div id="sa-chips">
+    <button class="sa-chip" onclick="saQ('Tìm iPhone giá rẻ nhất')">📱 iPhone rẻ</button>
+    <button class="sa-chip" onclick="saQ('Laptop văn phòng dưới 15 triệu')">💻 Laptop VP</button>
+    <button class="sa-chip" onclick="saQ('Tai nghe không dây tốt nhất')">🎧 Tai nghe</button>
+    <button class="sa-chip" onclick="saQ('Đồng hồ thông minh')">⌚ Smartwatch</button>
+  </div>
+  <div id="sa-inp-area">
+    <textarea id="sa-inp" rows="1" placeholder="Bạn muốn mua gì? Hỏi tôi nhé..."></textarea>
+    <button id="sa-send" onclick="saSend()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5"
+           stroke-linecap="round" stroke-linejoin="round">
+        <polygon points="22 2 15 22 11 13 2 9 22 2" fill="#fff" stroke="none"/>
+      </svg>
+    </button>
+  </div>
+</div>
+
+<script>
+/* ====================================================================
+   SHOPPING AI — AI #2 | Groq llama3-8b-8192 | Tự gợi ý sản phẩm
+   Prefix: sa- (tách hoàn toàn với ha- của AI #1)
+   Để trống API key — tự điền vào SA_KEY bên dưới
+==================================================================== */
+(function(){
+  var SA_KEY   = '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'; // ← Điền Groq API key của bạn vào đây (dạng gsk_...)
+  var SA_URL   = 'https://api.groq.com/openai/v1/chat/completions';
+  var SA_MODEL = 'llama3-8b-8192';
+
+  /* System prompt: yêu cầu AI trả SEARCH:keyword khi khách muốn mua */
+  var SA_SYS = [
+    'Bạn là Shopping AI của shop Trương Hồng Anh — chuyên tư vấn và gợi ý sản phẩm',
+    'công nghệ: điện thoại, laptop, tablet, phụ kiện, đồng hồ thông minh.',
+    'Trả lời bằng tiếng Việt có dấu, thân thiện, ngắn gọn 2-3 câu.',
+    'ĐẶC BIỆT QUAN TRỌNG: Nếu khách muốn mua, tìm kiếm hoặc hỏi về sản phẩm cụ thể,',
+    'hãy thêm dòng cuối cùng: SEARCH:từ_khóa (ví dụ: SEARCH:iphone, SEARCH:laptop dell,',
+    'SEARCH:tai nghe, SEARCH:samsung). Chỉ 1-3 từ, không dấu câu thêm.'
+  ].join(' ');
+
+  var SA_GREET = [
+    '🛍️ Xin chào! Tôi là <b>Shopping AI</b> — trợ lý mua sắm thông minh!<br>',
+    '<span style="color:#c45000;font-size:11px">',
+    'Hỏi tôi: <i>"iPhone nào giá tốt?"</i>, <i>"Laptop dưới 15 triệu?"</i>',
+    ' hay <i>"Tai nghe chống ồn?"</i>...',
+    '<br>Tôi sẽ <b>tự tìm & hiển thị sản phẩm</b> ngay trong khung chat! 🚀',
+    '</span>'
+  ].join('');
+
+  var saOpen=false, saBusy=false, saHist=[], saStarted=false;
+
+  function el(id){ return document.getElementById(id); }
+
+  /* ── Toggle cửa sổ Shopping AI ── */
+  window.saToggle = function(){
+    saOpen = !saOpen;
+    el('sa-win').classList.toggle('open', saOpen);
+    if(saOpen){
+      if(!saStarted){ saStarted=true; saBotMsg(SA_GREET); }
+      setTimeout(function(){ el('sa-inp') && el('sa-inp').focus(); }, 300);
+      var b=el('sa-fab-badge'); if(b) b.style.display='none';
+    }
+  };
+
+  window.saQ = function(t){ el('sa-inp').value=t; saSend(); };
+
+  window.saSend = function(){
+    var inp=el('sa-inp'), txt=inp.value.trim();
+    if(!txt || saBusy) return;
+    inp.value=''; inp.style.height='auto';
+    saUsrMsg(txt);
+    saHist.push({role:'user', content:txt});
+    saAsk();
+  };
+
+  /* ── Gọi Groq API ── */
+  async function saAsk(){
+    saBusy = true;
+    var dot = saMakeDots();
+    try {
+      var messages = [{role:'system', content:SA_SYS}].concat(saHist);
+      var res = await fetch(SA_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type':  'application/json',
+          'Authorization': 'Bearer ' + SA_KEY
+        },
+        body: JSON.stringify({
+          model: SA_MODEL, messages: messages,
+          max_tokens: 450, temperature: 0.75
+        })
+      });
+      var d = await res.json();
+      dot.remove();
+
+      if(res.status === 429){
+        saErrMsg('⏳ AI đang bận, vui lòng thử lại sau 10 giây!');
+        saHist.pop(); saBusy=false; return;
+      }
+      if(!res.ok){
+        var eMsg = (d.error && d.error.message) || 'Lỗi không xác định';
+        saErrMsg('⚠️ ' + eMsg);
+        saHist.pop(); saBusy=false; return;
+      }
+
+      var reply = (d.choices && d.choices[0] && d.choices[0].message)
+        ? d.choices[0].message.content
+        : 'Xin lỗi, mình chưa hiểu. Bạn thử hỏi lại nhé!';
+
+      saHist.push({role:'assistant', content:reply});
+
+      /* Tách SEARCH:keyword ra khỏi reply, giữ phần text sạch */
+      var searchKw = null;
+      var cleanReply = reply.replace(/SEARCH:\s*([^\n\r]+)/gi, function(_, kw){
+        if(!searchKw) searchKw = kw.trim().toLowerCase();
+        return '';
+      }).replace(/\n{2,}/g, '\n').trim();
+
+      saBotMsg(saMd(cleanReply));
+
+      /* Nếu AI trả SEARCH keyword → tự động lục kho & hiển thị cards */
+      if(searchKw) {
+        setTimeout(function(){ saShowProducts(searchKw); }, 200);
+      }
+
+    } catch(e) {
+      dot.remove();
+      saErrMsg('⚠️ Lỗi kết nối. Kiểm tra internet rồi thử lại!');
+      if(saHist.length && saHist[saHist.length-1].role==='user') saHist.pop();
+    }
+    saBusy = false;
+  }
+
+  /* ── Lục kho & render Product Cards trong chat ── */
+  function saShowProducts(keyword){
+    /* Ưu tiên window.allProducts (được set từ displayProducts) */
+    var prods = window.allProducts || [];
+
+    /* Fallback: đọc từ DOM nếu allProducts chưa sẵn */
+    if(!prods.length){
+      var items = document.querySelectorAll('#product-list-container .item[data-pname]');
+      items.forEach(function(item){
+        prods.push({
+          id:    parseInt(item.getAttribute('data-pid')   || 0),
+          name:  item.getAttribute('data-pname')  || '',
+          price: parseFloat(item.getAttribute('data-pprice') || 0),
+          img:   item.getAttribute('data-pimg')   || ''
+        });
+      });
+    }
+
+    /* Lọc theo từng từ trong keyword (tìm rộng: bất kỳ từ nào khớp) */
+    var kws = keyword.split(/\s+/).filter(Boolean);
+    var matched = prods.filter(function(p){
+      var n = (p.name || '').toLowerCase();
+      return kws.some(function(kw){ return n.indexOf(kw) > -1; });
+    });
+
+    /* Sắp xếp: khớp nhiều từ → lên trên; lấy tối đa 6 thẻ */
+    matched.sort(function(a, b){
+      var na = (a.name||'').toLowerCase(), nb = (b.name||'').toLowerCase();
+      var sa = kws.filter(function(k){ return na.indexOf(k)>-1; }).length;
+      var sb = kws.filter(function(k){ return nb.indexOf(k)>-1; }).length;
+      return sb - sa;
+    });
+    matched = matched.slice(0, 6);
+
+    if(!matched.length){
+      saBotMsg('😕 Mình không tìm thấy sản phẩm <b>' + keyword + '</b> trong kho. Thử từ khóa khác nhé!');
+      return;
+    }
+
+    /* Tạo wrapper product cards */
+    var wrapper = document.createElement('div');
+    wrapper.className = 'sa-prod-cards';
+
+    var title = document.createElement('div');
+    title.className = 'sa-prod-cards-title';
+    title.innerHTML = '🔍 Tìm thấy <b style="color:#e65c00">' + matched.length + '</b> sản phẩm phù hợp:';
+    wrapper.appendChild(title);
+
+    var list = document.createElement('div');
+    list.className = 'sa-prod-list';
+
+    matched.forEach(function(p){
+      var fmt  = new Intl.NumberFormat('vi-VN').format(p.price);
+      var safe = (p.name||'').replace(/'/g,"\\'").replace(/"/g,'&quot;');
+      var imgSafe = (p.img||'').replace(/'/g,"\\'");
+
+      var card = document.createElement('div');
+      card.className = 'sa-prod-card';
+      card.innerHTML =
+        '<div class="sa-prod-card-img">' +
+          '<img src="' + (p.img||'') + '" alt="' + (p.name||'') + '" ' +
+               'onerror="this.src=\'https://placehold.co/130x90?text=SP\'">' +
+        '</div>' +
+        '<div class="sa-prod-card-body">' +
+          '<div class="sa-prod-card-name">' + (p.name||'') + '</div>' +
+          '<div class="sa-prod-card-price">' + fmt + '₫</div>' +
+          '<button class="sa-prod-card-btn" ' +
+            'onclick="event.stopPropagation();buyNow(' + p.id + ',\'' + safe + '\',' + p.price + ',\'' + imgSafe + '\')">' +
+            '🛒 MUA NGAY' +
+          '</button>' +
+        '</div>';
+
+      /* Click card → mở modal chi tiết */
+      card.addEventListener('click', function(e){
+        if(e.target.closest('.sa-prod-card-btn')) return;
+        if(typeof showProductModal === 'function')
+          showProductModal(p.name, p.price, p.img, p.description||'', p.id);
+      });
+
+      list.appendChild(card);
+    });
+
+    wrapper.appendChild(list);
+    el('sa-msgs').appendChild(wrapper);
+    saScroll();
+
+    /* Badge thông báo nếu cửa sổ đang đóng */
+    if(!saOpen){ var b=el('sa-fab-badge'); if(b){b.style.display='flex';b.textContent='1';} }
+  }
+
+  /* ── Helper functions ── */
+  function saUsrMsg(t){
+    var d=document.createElement('div');
+    d.className='sa-b usr'; d.textContent=t;
+    el('sa-msgs').appendChild(d); saScroll();
+  }
+  function saBotMsg(h){
+    var d=document.createElement('div');
+    d.className='sa-b bot'; d.innerHTML=h;
+    el('sa-msgs').appendChild(d); saScroll();
+    if(!saOpen){ var b=el('sa-fab-badge'); if(b){b.style.display='flex';b.textContent='1';} }
+  }
+  function saErrMsg(h){
+    var d=document.createElement('div');
+    d.className='sa-b err'; d.innerHTML=h;
+    el('sa-msgs').appendChild(d); saScroll();
+  }
+  function saMakeDots(){
+    var d=document.createElement('div');
+    d.className='sa-dots';
+    d.innerHTML='<span></span><span></span><span></span>';
+    el('sa-msgs').appendChild(d); saScroll(); return d;
+  }
+  function saScroll(){ var m=el('sa-msgs'); if(m) m.scrollTop=m.scrollHeight; }
+  function saMd(t){
+    return t
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+      .replace(/\*\*(.+?)\*\*/g,'<b>$1</b>')
+      .replace(/\*(.+?)\*/g,'<i>$1</i>')
+      .replace(/`(.+?)`/g,'<code style="background:#fff3e0;padding:1px 5px;border-radius:3px;color:#bf360c">$1</code>')
+      .replace(/\n/g,'<br>');
+  }
+
+  /* ── Keyboard & auto-resize textarea ── */
+  document.addEventListener('DOMContentLoaded', function(){
+    var inp=el('sa-inp'); if(!inp) return;
+    inp.addEventListener('keydown', function(e){
+      if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); saSend(); }
+    });
+    inp.addEventListener('input', function(){
+      this.style.height='auto';
+      this.style.height=Math.min(this.scrollHeight,80)+'px';
+    });
+  });
+})();
+</script>
+<!-- ============ END SHOPPING AI ============ -->
     </body>
 
 </html>
