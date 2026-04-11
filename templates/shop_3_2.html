@@ -23154,7 +23154,23 @@
                     productMap[String(p.name || '').trim().toLowerCase()] = { id: p.id, price: p.price };
                 });
 
-                // Match từng item được chọn với DB theo tên
+                /* ── Tính tổng & discount TRƯỚC khi build validItems ── */
+                var rawTotal = 0;
+                selectedCart.forEach(function(item) {
+                    rawTotal += (parseFloat(item.price) || 0) * (parseInt(item.qty || item.quantity) || 1);
+                });
+                var cartDiscount = 0;
+                if (appliedVoucher) {
+                    if (appliedVoucher.type === 'percent') {
+                        cartDiscount = Math.round(rawTotal * appliedVoucher.value / 100);
+                    } else {
+                        cartDiscount = Math.min(appliedVoucher.value, rawTotal);
+                    }
+                }
+                var finalTotal = rawTotal - cartDiscount;
+                var discountRatio = (rawTotal > 0 && cartDiscount > 0) ? (finalTotal / rawTotal) : 1;
+
+                // Match từng item được chọn với DB theo tên, áp dụng giảm giá vào unit_price ngay
                 const validItems = [];
                 const notFound = [];
                 selectedCart.forEach(item => {
@@ -23164,7 +23180,7 @@
                         validItems.push({
                             product_id: match.id,
                             quantity: parseInt(item.qty || item.quantity) || 1,
-                            unit_price: match.price
+                            unit_price: Math.round(match.price * discountRatio)
                         });
                     } else {
                         notFound.push(item.name);
@@ -23181,27 +23197,6 @@
                     window.location.reload();
                     return;
                 }
-
-                /* ── Tính tổng tiền thực tế sau Voucher — lấy trực tiếp từ UI ── */
-                var rawTotal = 0;
-                selectedCart.forEach(function(item) {
-                    rawTotal += (parseFloat(item.price) || 0) * (parseInt(item.qty || item.quantity) || 1);
-                });
-                var cartDiscount = 0;
-                if (appliedVoucher) {
-                    if (appliedVoucher.type === 'percent') {
-                        cartDiscount = Math.round(rawTotal * appliedVoucher.value / 100);
-                    } else {
-                        cartDiscount = Math.min(appliedVoucher.value, rawTotal);
-                    }
-                }
-                var finalTotal = rawTotal - cartDiscount;
-
-                /* Cập nhật unit_price theo tỉ lệ giảm giá để server lưu đúng giá */
-                var discountRatio = rawTotal > 0 ? (finalTotal / rawTotal) : 1;
-                validItems.forEach(function(it) {
-                    it.unit_price = Math.round(it.unit_price * discountRatio);
-                });
 
                 const orderData = {
                     items: validItems,
