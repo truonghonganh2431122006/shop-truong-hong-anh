@@ -25161,7 +25161,7 @@
         var nameKey = String(_name || '').trim().toLowerCase();
         var match   = productMap[nameKey];
         var productId = match ? match.id : _id;
-        var unitPrice = match ? match.price : _price;
+        var unitPrice = finalPrice;
 
         var orderData = {
           items: [{ product_id: productId, quantity: 1, unit_price: unitPrice }],
@@ -25218,7 +25218,7 @@
         payment_method: _payMethod === 'online' ? 'Chuyển khoản' : 'COD',
         voucher_code: _voucherCode || null,
         discount_amount: _discount || 0,
-        items: [{ name: _name, image: _img, qty: 1, price: _price }],
+        items: [{ name: _name, image: _img, qty: 1, price: finalPrice }],
         total: finalPrice
       };
       localOrders.unshift(newOrder);
