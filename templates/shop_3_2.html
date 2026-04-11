@@ -23182,11 +23182,37 @@
                     return;
                 }
 
+                /* ── Tính tổng tiền thực tế sau Voucher (khớp 100% với UI) ── */
+                var rawTotal = 0;
+                selectedCart.forEach(function(item) {
+                    rawTotal += (parseFloat(item.price) || 0) * (parseInt(item.qty || item.quantity) || 1);
+                });
+                var cartDiscount = 0;
+                if (appliedVoucher) {
+                    if (appliedVoucher.type === 'percent') {
+                        cartDiscount = Math.round(rawTotal * appliedVoucher.value / 100);
+                    } else {
+                        cartDiscount = Math.min(appliedVoucher.value, rawTotal);
+                    }
+                }
+                var finalTotal = rawTotal - cartDiscount;
+
+                /* Cập nhật unit_price theo tỉ lệ giảm giá để server lưu đúng giá */
+                var discountRatio = rawTotal > 0 ? (finalTotal / rawTotal) : 1;
+                validItems.forEach(function(it) {
+                    it.unit_price = Math.round(it.unit_price * discountRatio);
+                });
+
                 const orderData = {
                     items: validItems,
                     shipping_address: fullAddr,
                     phone_number: phone.trim(),
-                    customer_name: name.trim()
+                    customer_name: name.trim(),
+                    voucher_code: appliedVoucher ? appliedVoucher.code : null,
+                    voucherUsed: appliedVoucher ? appliedVoucher.code : null,
+                    discount_amount: cartDiscount,
+                    discountAmount: cartDiscount,
+                    final_total: finalTotal
                 };
                 
                 try {
@@ -23202,6 +23228,32 @@
                     const result = await res.json();
 
                     if (res.ok) {
+                        /* ── Lưu đơn hàng vào localStorage với giá THỰC TẾ đã trả ── */
+                        try {
+                            var now = new Date();
+                            var dateStr = now.getDate() + '/' + (now.getMonth()+1) + '/' + now.getFullYear() + ' ' +
+                                          ('0'+now.getHours()).slice(-2) + ':' + ('0'+now.getMinutes()).slice(-2);
+                            var savedOrders = JSON.parse(localStorage.getItem('ha_quick_orders') || '[]');
+                            var savedItems = selectedCart.map(function(item) {
+                                return { name: item.name, image: item.img || item.image || '', qty: parseInt(item.qty||item.quantity)||1, price: (parseFloat(item.price)||0) * discountRatio };
+                            });
+                            savedOrders.unshift({
+                                id: result.id || ('C' + Date.now()),
+                                date: dateStr,
+                                status: 'Chờ xác nhận',
+                                customer_name: name.trim(),
+                                phone_number: phone.trim(),
+                                shipping_address: fullAddr,
+                                voucher_code: appliedVoucher ? appliedVoucher.code : null,
+                                voucherUsed: appliedVoucher ? appliedVoucher.code : null,
+                                discount_amount: cartDiscount,
+                                discountAmount: cartDiscount,
+                                items: savedItems,
+                                total: finalTotal
+                            });
+                            localStorage.setItem('ha_quick_orders', JSON.stringify(savedOrders));
+                        } catch(e) {}
+
                         // Chỉ xóa các sản phẩm đã đặt khỏi giỏ
                         const remainCart = cart.filter((_, i) => !selectedIdx.includes(i));
                         cart.length = 0;
@@ -24991,9 +25043,11 @@
     var finalPrice = Math.max(0, _price - _discount);
     if (_discount > 0) {
       finalEl.style.display = 'block';
+      finalEl.setAttribute('data-value', finalPrice); /* ← lưu giá thực để haQoSubmit đọc */
       finalEl.innerHTML = '→ Sau giảm: <b>' + new Intl.NumberFormat('vi-VN').format(finalPrice) + '₫</b>';
     } else {
       finalEl.style.display = 'none';
+      finalEl.removeAttribute('data-value');
     }
   }
 
@@ -25136,7 +25190,13 @@
     if (!qStreet)  { alert('Vui lòng nhập số nhà, tên đường!'); document.getElementById('haQoAddress').focus(); return; }
 
     var fullAddr = qStreet + ', ' + qWard + ', ' + qDistrict + ', ' + qCity;
-    var finalPrice = Math.max(0, _price - _discount);
+
+    /* ── Lấy giá cuối từ THẺ HIỂN THỊ để đảm bảo 100% khớp UI ── */
+    var _finalDisplayEl = document.getElementById('haQoFinalPrice');
+    var _displayedValue = _finalDisplayEl ? parseFloat(_finalDisplayEl.getAttribute('data-value') || '') : NaN;
+    var finalPrice = (!isNaN(_displayedValue) && _displayedValue >= 0 && _discount > 0)
+      ? _displayedValue
+      : Math.max(0, _price - _discount);
 
     var btn = document.getElementById('haQoConfirmBtn');
     if (btn) { btn.disabled = true; btn.textContent = '⏳ Đang xử lý...'; }
@@ -25217,7 +25277,9 @@
         shipping_address: fullAddr,
         payment_method: _payMethod === 'online' ? 'Chuyển khoản' : 'COD',
         voucher_code: _voucherCode || null,
+        voucherUsed: _voucherCode || null,       /* ← đồng bộ tên field */
         discount_amount: _discount || 0,
+        discountAmount: _discount || 0,           /* ← đồng bộ tên field */
         items: [{ name: _name, image: _img, qty: 1, price: finalPrice }],
         total: finalPrice
       };
