@@ -454,6 +454,27 @@
             box-shadow: 0 8px 22px rgba(232,0,13,0.50) !important;
         }
 
+        /* Nút Mua ngay nhanh — màu vàng gold nổi bật */
+        #product-list-container .item .btn-buy-quick .buy-now {
+            background: linear-gradient(135deg, #fff0a0 0%, #ffed00 100%) !important;
+            color: #7a5500 !important;
+            border-color: #f0d000 !important;
+            opacity: 0.85 !important;
+        }
+        #product-list-container .item:hover .btn-buy-quick .buy-now {
+            background: linear-gradient(135deg, #ffed00 0%, #ffc000 100%) !important;
+            color: #5a3a00 !important;
+            border-color: transparent !important;
+            opacity: 1 !important;
+            box-shadow: 0 6px 18px rgba(255,200,0,0.55), 0 2px 6px rgba(255,160,0,0.30) !important;
+            transform: translateY(-1px) !important;
+        }
+        #product-list-container .item .btn-buy-quick .buy-now:hover {
+            background: linear-gradient(135deg, #ffe000 0%, #ffaa00 100%) !important;
+            transform: translateY(-2px) !important;
+            box-shadow: 0 8px 22px rgba(255,180,0,0.60) !important;
+        }
+
         /* Badge HOT/SALE */
         #product-list-container .item .ha-badge {
             position: absolute !important;
@@ -21226,6 +21247,14 @@
 
             // 5. TỰ ĐỘNG THAY THẾ CÁC NÚT MUA NGAY (Tránh bị hiện alert cũ)
             document.addEventListener('click', function(e) {
+                // Bỏ qua nút thuộc Quick Order form hoặc modal chi tiết — chúng tự xử lý
+                if(e.target && (
+                    e.target.closest('#haQoOverlay') ||
+                    e.target.closest('#qo-overlay') ||
+                    e.target.id === 'modalBuyBtn' ||
+                    e.target.closest('#modalBuyBtn') ||
+                    e.target.closest('.sa-prod-card-btn')
+                )) return;
                 // Tìm xem cái đang bấm có phải nút mua ngay không
                 if(e.target && (e.target.classList.contains('buy-now') || (e.target.innerText && e.target.innerText.includes('MUA NGAY')))) {
                     if(!localStorage.getItem("access_token")) {
@@ -23261,6 +23290,11 @@
 
                 // Handle "add to cart"/"buy now" buttons
                 if (btn && !link) {
+                    // Bỏ qua nút thuộc Quick Order hoặc modal buy btn
+                    if (btn.closest('#haQoOverlay') || btn.closest('#qo-overlay') ||
+                        btn.id === 'modalBuyBtn' || btn.classList.contains('sa-prod-card-btn')) {
+                        return;
+                    }
                     var btnText = (btn.textContent || '').toLowerCase();
                     if (btnText.indexOf('mua ngay') > -1 || btnText.indexOf('thêm vào giỏ') > -1 || btnText.indexOf('add') > -1 || btn.classList.contains('buy-now')) {
                         e.preventDefault(); e.stopImmediatePropagation();
@@ -23280,6 +23314,10 @@
                     }
 
                     // Buy now / add to cart links
+                    // Bỏ qua link thuộc Quick Order overlay hoặc modal
+                    if (link.closest('#haQoOverlay') || link.closest('#qo-overlay')) {
+                        return;
+                    }
                     var linkText = (link.textContent || '').toLowerCase();
                     if (link.classList.contains('buy-now') || href.indexOf('them-vao-gio') > -1 || href.indexOf('add-to-cart') > -1 || linkText.indexOf('mua ngay') > -1 || link.classList.contains('btn-buy')) {
                         e.preventDefault(); e.stopImmediatePropagation();
@@ -24113,19 +24151,20 @@
             const moTaChung = "Sản phẩm chính hãng tại hệ thống Hồng Anh. Bảo hành 12 tháng, lỗi 1 đổi 1 trong 30 ngày. Cam kết chất lượng và giá tốt nhất thị trường.";
             document.getElementById('modalDesc').innerText = desc || moTaChung;
 
-            // 2. Nút MUA NGAY → mở thẳng Quick Order (không qua giỏ hàng)
-            document.getElementById('modalBuyBtn').onclick = function(ev) {
-                if (ev) ev.stopPropagation();
+            // 2. Nút MUA NGAY → mở Quick Order Form riêng (không qua giỏ hàng)
+            var btn = document.getElementById('modalBuyBtn');
+            btn.className = 'modal-buy-btn';
+            // Xóa onclick cũ rồi gán lại để tránh duplicate listeners
+            var freshBtn = btn.cloneNode(true);
+            btn.parentNode.replaceChild(freshBtn, btn);
+            freshBtn.addEventListener('click', function(ev) {
+                ev.stopPropagation(); ev.preventDefault();
                 closeModal();
-                // Delay nhỏ để modal chi tiết đóng xong animation trước khi qo-overlay mở
+                // Delay nhỏ để modal chi tiết đóng animation xong
                 setTimeout(function() {
-                    if (typeof window.quickOrder === 'function') {
-                        window.quickOrder(id, name, price, img);
-                    } else {
-                        console.error('quickOrder chưa được khởi tạo!');
-                    }
-                }, 120);
-            };
+                    window.openQuickOrder(id, name, price, img);
+                }, 150);
+            });
 
             // 3. Hiển thị Modal
             document.getElementById('productModal').classList.add('show');
@@ -24425,357 +24464,330 @@
 <!-- ============ END CHATBOT ============ -->
 
 <!-- ════════════════════════════════════════════════════════════
-     QUICK ORDER MODAL — Mua ngay không qua giỏ hàng
-     Dùng cho: Nút "Mua ngay" trong Modal chi tiết & Shopping AI
+     QUICK ORDER — Thanh toán nhanh (độc lập, không dùng cart[])
+     Gọi: openQuickOrder(id, name, price, img)  HOẶC  openQuickOrder(productId)
 ════════════════════════════════════════════════════════════ -->
 <style>
-#qo-overlay {
-  position:fixed; top:0; left:0; width:100%; height:100%;
-  background:rgba(0,0,0,0.65); backdrop-filter:blur(6px);
-  z-index:999998; display:none; align-items:center; justify-content:center;
-  padding:16px; box-sizing:border-box;
+/* ── Overlay nền ── */
+#haQoOverlay {
+  display: none;
+  position: fixed; top:0; left:0; width:100%; height:100%;
+  background: rgba(0,0,0,0.68);
+  backdrop-filter: blur(7px);
+  -webkit-backdrop-filter: blur(7px);
+  z-index: 9999999;
+  align-items: center; justify-content: center;
+  padding: 16px; box-sizing: border-box;
 }
-#qo-overlay.open { display:flex; }
-#qo-box {
-  background:#fff; width:100%; max-width:480px;
-  border-radius:20px; overflow:hidden;
-  box-shadow:0 24px 64px rgba(0,0,0,0.28);
-  animation:qo-in 0.32s cubic-bezier(0.34,1.4,0.64,1);
-  max-height:94vh; overflow-y:auto;
+#haQoOverlay.ha-qo-open { display: flex; }
+
+/* ── Box form ── */
+#haQoBox {
+  background: #fff;
+  width: 100%; max-width: 460px;
+  border-radius: 22px; overflow: hidden;
+  box-shadow: 0 28px 72px rgba(0,0,0,0.32);
+  max-height: 92vh; overflow-y: auto;
+  animation: haQoSlideIn 0.33s cubic-bezier(0.34,1.4,0.64,1);
 }
-@keyframes qo-in {
-  from { transform:scale(0.88) translateY(28px); opacity:0; }
-  to   { transform:scale(1) translateY(0);       opacity:1; }
+@keyframes haQoSlideIn {
+  from { transform: scale(0.86) translateY(32px); opacity: 0; }
+  to   { transform: scale(1) translateY(0);        opacity: 1; }
 }
-#qo-header {
-  background:linear-gradient(135deg,#e65c00,#ff8c00);
-  padding:16px 20px; display:flex; align-items:center;
-  justify-content:space-between;
+
+/* ── Header gradient ── */
+#haQoHeader {
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 60%, #0f3460 100%);
+  padding: 16px 20px;
+  display: flex; align-items: center; justify-content: space-between;
 }
-#qo-header h3 {
-  color:#fff; margin:0; font-size:16px; font-weight:800;
-  font-family:-apple-system,sans-serif; text-shadow:0 1px 3px rgba(0,0,0,0.2);
+#haQoHeader h3 {
+  color: #ffed00; margin: 0;
+  font-size: 16px; font-weight: 800;
+  font-family: -apple-system, sans-serif;
+  text-shadow: 0 1px 4px rgba(0,0,0,0.3);
+  letter-spacing: 0.2px;
 }
-#qo-close {
-  background:rgba(255,255,255,0.2); border:none; color:#fff;
-  width:30px; height:30px; border-radius:50%; cursor:pointer;
-  font-size:16px; display:flex; align-items:center; justify-content:center;
-  transition:background .2s;
+#haQoCloseBtn {
+  background: rgba(255,255,255,0.12); border: none; color: #fff;
+  width: 32px; height: 32px; border-radius: 50%; cursor: pointer;
+  font-size: 17px; display: flex; align-items: center; justify-content: center;
+  transition: background 0.2s; flex-shrink: 0;
 }
-#qo-close:hover { background:rgba(255,255,255,0.38); }
-#qo-product-preview {
-  display:flex; align-items:center; gap:14px;
-  padding:16px 20px; background:#fff8f2;
-  border-bottom:1px solid #ffe0b2;
+#haQoCloseBtn:hover { background: rgba(255,255,255,0.26); }
+
+/* ── Preview sản phẩm ── */
+#haQoProductPreview {
+  display: flex; align-items: center; gap: 14px;
+  padding: 16px 20px; background: linear-gradient(135deg,#fffbf0,#fff8e6);
+  border-bottom: 1.5px solid #ffe0b2;
 }
-#qo-preview-img {
-  width:72px; height:72px; border-radius:10px; object-fit:contain;
-  background:#fff; padding:4px; border:1px solid #ffe0b2; flex-shrink:0;
+#haQoPreviewImg {
+  width: 76px; height: 76px; border-radius: 12px;
+  object-fit: contain; background: #fff;
+  padding: 5px; border: 1.5px solid #ffe0b2; flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
 }
-#qo-preview-info { flex:1; min-width:0; }
-#qo-preview-name {
-  font-size:13px; font-weight:700; color:#0a0a0a;
-  display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical;
-  overflow:hidden; line-height:1.4; margin-bottom:4px;
-  font-family:-apple-system,sans-serif;
+#haQoPreviewInfo { flex: 1; min-width: 0; }
+#haQoPreviewName {
+  font-size: 13.5px; font-weight: 700; color: #1a1a2e;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+  overflow: hidden; line-height: 1.45; margin-bottom: 5px;
+  font-family: -apple-system, sans-serif;
 }
-#qo-preview-price {
-  font-size:17px; font-weight:900; color:#e8000d;
-  font-family:-apple-system,sans-serif; letter-spacing:-0.4px;
+#haQoPreviewPrice {
+  font-size: 19px; font-weight: 900; color: #d0021c;
+  font-family: -apple-system, sans-serif; letter-spacing: -0.5px;
 }
-#qo-preview-badge {
-  font-size:10px; background:#e8000d; color:#fff;
-  padding:2px 8px; border-radius:20px; font-weight:700;
-  display:inline-block; margin-top:3px; font-family:-apple-system,sans-serif;
+.ha-qo-badge {
+  display: inline-block; margin-top: 4px;
+  font-size: 10px; font-weight: 700; color: #fff;
+  background: linear-gradient(135deg,#ff8c00,#e65c00);
+  padding: 2px 10px; border-radius: 20px;
+  font-family: -apple-system, sans-serif;
 }
-#qo-form-section {
-  padding:18px 20px 20px;
+
+/* ── Form section ── */
+#haQoFormSection {
+  padding: 20px 20px 22px;
 }
-#qo-form-section h4 {
-  font-size:13px; font-weight:700; color:#555; text-transform:uppercase;
-  letter-spacing:0.6px; margin:0 0 12px;
-  font-family:-apple-system,sans-serif;
+#haQoFormSection h4 {
+  font-size: 12px; font-weight: 700; color: #6e6e73;
+  text-transform: uppercase; letter-spacing: 0.9px;
+  margin: 0 0 14px; font-family: -apple-system, sans-serif;
 }
-.qo-input {
-  width:100%; padding:11px 14px; border:1.5px solid #e2e8f0;
-  border-radius:10px; font-size:13.5px; outline:none;
-  font-family:-apple-system,sans-serif; box-sizing:border-box;
-  transition:border-color .2s, box-shadow .2s; margin-bottom:10px;
-  background:#fafafa;
+.ha-qo-input {
+  width: 100%; padding: 12px 15px;
+  border: 1.5px solid #e2e8f0; border-radius: 11px;
+  font-size: 14px; outline: none; color: #1a1a2e;
+  font-family: -apple-system, sans-serif; box-sizing: border-box;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  margin-bottom: 11px; background: #fafafa;
 }
-.qo-input:focus {
-  border-color:#ff8c00; box-shadow:0 0 0 3px rgba(255,140,0,0.12);
-  background:#fff;
+.ha-qo-input:focus {
+  border-color: #0071e3;
+  box-shadow: 0 0 0 3px rgba(0,113,227,0.13);
+  background: #fff;
 }
-.qo-row { display:flex; gap:10px; }
-.qo-row .qo-input { flex:1; }
-#qo-payment-section {
-  padding:0 20px 18px;
-  border-top:1px solid #f0f0f0;
+.ha-qo-input::placeholder { color: #aaa; }
+
+/* ── Nút xác nhận ── */
+#haQoConfirmBtn {
+  width: 100%; padding: 15px;
+  background: linear-gradient(135deg, #ffed00 0%, #ffc000 100%);
+  color: #1a1a2e; border: none; border-radius: 12px;
+  font-size: 15px; font-weight: 900; cursor: pointer;
+  font-family: -apple-system, sans-serif; letter-spacing: 0.3px;
+  box-shadow: 0 4px 18px rgba(255,200,0,0.45);
+  transition: transform 0.2s, box-shadow 0.2s;
+  margin-top: 4px;
 }
-#qo-payment-section h4 {
-  font-size:13px; font-weight:700; color:#555; text-transform:uppercase;
-  letter-spacing:0.6px; margin:14px 0 10px;
-  font-family:-apple-system,sans-serif;
+#haQoConfirmBtn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 26px rgba(255,200,0,0.60);
 }
-.qo-pay-opt {
-  display:flex; align-items:center; gap:10px; padding:10px 14px;
-  border:1.5px solid #e2e8f0; border-radius:10px; cursor:pointer;
-  margin-bottom:8px; transition:border-color .2s, background .2s;
-  font-family:-apple-system,sans-serif;
+#haQoConfirmBtn:disabled {
+  background: #d0d0d0; color: #888; box-shadow: none;
+  cursor: not-allowed; transform: none;
 }
-.qo-pay-opt:hover { border-color:#ff8c00; background:#fff8f2; }
-.qo-pay-opt input[type=radio] { accent-color:#ff8c00; width:16px; height:16px; cursor:pointer; }
-.qo-pay-opt label { cursor:pointer; font-size:13.5px; font-weight:600; color:#222; flex:1; }
-.qo-pay-opt .qo-pay-sub { font-size:11px; color:#888; display:block; margin-top:1px; font-weight:400; }
-#qo-qr-area {
-  display:none; text-align:center; padding:14px;
-  border:1.5px dashed #ffcc80; border-radius:10px;
-  background:#fffbf4; margin-bottom:10px;
+
+/* ── Màn thành công ── */
+#haQoSuccess {
+  display: none; text-align: center; padding: 44px 24px 36px;
+  font-family: -apple-system, sans-serif;
 }
-#qo-qr-area p { font-size:12px; color:#c45000; margin:0 0 8px; font-weight:600; }
-#qo-qr-area img { max-width:140px; border-radius:8px; }
-#qo-confirm-btn {
-  width:100%; padding:14px;
-  background:linear-gradient(135deg,#ff8c00,#e65c00);
-  color:#fff; border:none; border-radius:12px;
-  font-size:15px; font-weight:800; cursor:pointer;
-  font-family:-apple-system,sans-serif; letter-spacing:0.3px;
-  box-shadow:0 4px 18px rgba(230,92,0,0.4);
-  transition:transform .2s, box-shadow .2s; margin-top:6px;
+.ha-qo-ok-icon { font-size: 68px; margin-bottom: 14px; }
+#haQoSuccess h3 { color: #276749; font-size: 21px; margin: 0 0 10px; }
+#haQoSuccess p  { color: #555; font-size: 13.5px; margin: 0 0 22px; line-height: 1.6; }
+#haQoSuccess button {
+  padding: 12px 32px;
+  background: linear-gradient(135deg, #1a1a2e, #0f3460);
+  color: #ffed00; border: none; border-radius: 11px;
+  font-size: 14px; font-weight: 800; cursor: pointer;
+  font-family: -apple-system, sans-serif;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.2);
+  transition: transform 0.2s;
 }
-#qo-confirm-btn:hover {
-  transform:translateY(-2px);
-  box-shadow:0 8px 26px rgba(230,92,0,0.55);
-}
-#qo-confirm-btn:disabled {
-  background:#ccc; box-shadow:none; cursor:not-allowed; transform:none;
-}
-#qo-success {
-  display:none; text-align:center; padding:40px 24px;
-  font-family:-apple-system,sans-serif;
-}
-#qo-success .qo-ok-icon { font-size:64px; margin-bottom:12px; }
-#qo-success h3 { color:#2e7d32; font-size:20px; margin:0 0 8px; }
-#qo-success p  { color:#666; font-size:13.5px; margin:0 0 20px; }
-#qo-success button {
-  padding:11px 28px; background:linear-gradient(135deg,#ff8c00,#e65c00);
-  color:#fff; border:none; border-radius:10px;
-  font-size:14px; font-weight:700; cursor:pointer;
-  font-family:-apple-system,sans-serif;
+#haQoSuccess button:hover { transform: translateY(-2px); }
+
+/* ── Responsive ── */
+@media (max-width: 500px) {
+  #haQoBox { border-radius: 18px; }
+  #haQoPreviewImg { width: 62px; height: 62px; }
+  #haQoPreviewPrice { font-size: 17px; }
 }
 </style>
 
-<!-- Quick Order Overlay -->
-<div id="qo-overlay" onclick="if(event.target===this)qoClose()">
-  <div id="qo-box">
+<!-- ── Quick Order Overlay HTML ── -->
+<div id="haQoOverlay" onclick="if(event.target===this) window.haQoClose()">
+  <div id="haQoBox">
+
     <!-- Header -->
-    <div id="qo-header">
-      <h3>⚡ Đặt hàng ngay</h3>
-      <button id="qo-close" onclick="qoClose()">✕</button>
+    <div id="haQoHeader">
+      <h3>⚡ Thanh toán nhanh</h3>
+      <button id="haQoCloseBtn" onclick="window.haQoClose()" aria-label="Đóng">✕</button>
     </div>
 
-    <!-- Product preview -->
-    <div id="qo-product-preview">
-      <img id="qo-preview-img" src="" alt="">
-      <div id="qo-preview-info">
-        <div id="qo-preview-name"></div>
-        <div id="qo-preview-price"></div>
-        <span id="qo-preview-badge">Mua ngay — Giao hàng tận nơi</span>
+    <!-- Preview sản phẩm -->
+    <div id="haQoProductPreview">
+      <img id="haQoPreviewImg" src="" alt="Ảnh sản phẩm"
+           onerror="this.src='https://placehold.co/80x80?text=SP'">
+      <div id="haQoPreviewInfo">
+        <div id="haQoPreviewName">Đang tải...</div>
+        <div id="haQoPreviewPrice"></div>
+        <span class="ha-qo-badge">🚀 Giao hàng tận nơi</span>
       </div>
     </div>
 
     <!-- Form nhập thông tin -->
-    <div id="qo-form-section">
+    <div id="haQoFormSection">
       <h4>📋 Thông tin nhận hàng</h4>
-      <input class="qo-input" id="qo-name"    type="text" placeholder="👤 Họ và tên *">
-      <input class="qo-input" id="qo-phone"   type="tel"  placeholder="📞 Số điện thoại *">
-      <select class="qo-input" id="qo-city">
-        <option value="">🏙️ Chọn Tỉnh / Thành phố *</option>
-        <option>An Giang</option><option>Bà Rịa – Vũng Tàu</option><option>Bạc Liêu</option>
-        <option>Bắc Kạn</option><option>Bắc Giang</option><option>Bắc Ninh</option>
-        <option>Bến Tre</option><option>Bình Dương</option><option>Bình Định</option>
-        <option>Bình Phước</option><option>Bình Thuận</option><option>Cà Mau</option>
-        <option>Cao Bằng</option><option>Cần Thơ</option><option>Đà Nẵng</option>
-        <option>Đắk Lắk</option><option>Đắk Nông</option><option>Điện Biên</option>
-        <option>Đồng Nai</option><option>Đồng Tháp</option><option>Gia Lai</option>
-        <option>Hà Giang</option><option>Hà Nam</option><option>Hà Nội</option>
-        <option>Hà Tĩnh</option><option>Hải Dương</option><option>Hải Phòng</option>
-        <option>Hậu Giang</option><option>Hòa Bình</option><option>Hưng Yên</option>
-        <option>TP. Hồ Chí Minh</option><option>Khánh Hòa</option><option>Kiên Giang</option>
-        <option>Kon Tum</option><option>Lai Châu</option><option>Lạng Sơn</option>
-        <option>Lào Cai</option><option>Lâm Đồng</option><option>Long An</option>
-        <option>Nam Định</option><option>Nghệ An</option><option>Ninh Bình</option>
-        <option>Ninh Thuận</option><option>Phú Thọ</option><option>Phú Yên</option>
-        <option>Quảng Bình</option><option>Quảng Nam</option><option>Quảng Ngãi</option>
-        <option>Quảng Ninh</option><option>Quảng Trị</option><option>Sóc Trăng</option>
-        <option>Sơn La</option><option>Tây Ninh</option><option>Thái Bình</option>
-        <option>Thái Nguyên</option><option>Thanh Hóa</option><option>Thừa Thiên Huế</option>
-        <option>Tiền Giang</option><option>Trà Vinh</option><option>Tuyên Quang</option>
-        <option>Vĩnh Long</option><option>Vĩnh Phúc</option><option>Yên Bái</option>
-      </select>
-      <div class="qo-row">
-        <input class="qo-input" id="qo-district" type="text" placeholder="Quận / Huyện">
-        <input class="qo-input" id="qo-ward"     type="text" placeholder="Phường / Xã">
-      </div>
-      <input class="qo-input" id="qo-address" type="text" placeholder="📍 Số nhà, tên đường cụ thể *">
-    </div>
-
-    <!-- Thanh toán -->
-    <div id="qo-payment-section">
-      <h4>💳 Phương thức thanh toán</h4>
-      <label class="qo-pay-opt">
-        <input type="radio" name="qo-pay" value="COD" checked id="qo-pay-cod"
-               onchange="document.getElementById('qo-qr-area').style.display='none'">
-        <label for="qo-pay-cod">
-          💵 Tiền mặt khi nhận hàng (COD)
-          <span class="qo-pay-sub">Thanh toán khi nhận — an toàn, không rủi ro</span>
-        </label>
-      </label>
-      <label class="qo-pay-opt">
-        <input type="radio" name="qo-pay" value="BANK" id="qo-pay-bank"
-               onchange="document.getElementById('qo-qr-area').style.display='block'">
-        <label for="qo-pay-bank">
-          📱 Chuyển khoản / QR Code
-          <span class="qo-pay-sub">Ưu tiên xử lý nhanh hơn</span>
-        </label>
-      </label>
-      <div id="qo-qr-area">
-        <p>📲 Quét mã QR để chuyển khoản:</p>
-        <img src="https://img.vietqr.io/image/MB-0356551694-compact.png" alt="QR thanh toán">
-      </div>
-      <button id="qo-confirm-btn" onclick="qoSubmit()">
+      <input class="ha-qo-input" id="haQoName"
+             type="text" placeholder="👤 Họ và tên *" autocomplete="name">
+      <input class="ha-qo-input" id="haQoPhone"
+             type="tel" placeholder="📞 Số điện thoại *" autocomplete="tel">
+      <input class="ha-qo-input" id="haQoAddress"
+             type="text" placeholder="📍 Địa chỉ giao hàng đầy đủ *" autocomplete="street-address">
+      <button id="haQoConfirmBtn" onclick="window.haQoSubmit()">
         ✅ XÁC NHẬN ĐẶT HÀNG
       </button>
     </div>
 
     <!-- Màn thành công -->
-    <div id="qo-success">
-      <div class="qo-ok-icon">🎉</div>
+    <div id="haQoSuccess">
+      <div class="ha-qo-ok-icon">🎉</div>
       <h3>Đặt hàng thành công!</h3>
-      <p id="qo-success-msg">Cảm ơn bạn đã mua hàng.<br>Shop sẽ liên hệ xác nhận trong thời gian sớm nhất!</p>
-      <button onclick="qoClose()">Tiếp tục mua sắm</button>
+      <p id="haQoSuccessMsg"></p>
+      <button onclick="window.haQoClose()">Tiếp tục mua sắm</button>
     </div>
+
   </div>
 </div>
 
 <script>
 /* ================================================================
-   QUICK ORDER — Mua ngay không qua giỏ hàng
-   Gọi: quickOrder(id, name, price, img)
+   QUICK ORDER v4 — openQuickOrder(id, name, price, img)
+   Hoặc openQuickOrder(productId) — tự lookup từ window.allProducts
+   Hoàn toàn độc lập, KHÔNG gọi addToCart, KHÔNG dùng cart[]
 ================================================================ */
-(function(){
-  // ID sản phẩm đang đặt
-  var _qoId=0, _qoName='', _qoPrice=0, _qoImg='';
+(function () {
+  var _id = 0, _name = '', _price = 0, _img = '';
 
-  window.quickOrder = function(id, name, price, img){
-    _qoId = id; _qoName = name; _qoPrice = price; _qoImg = img;
-
-    // Điền preview sản phẩm
-    var previewImg  = document.getElementById('qo-preview-img');
-    var previewName = document.getElementById('qo-preview-name');
-    var previewPrice= document.getElementById('qo-preview-price');
-    if(previewImg)  { previewImg.src = img; previewImg.alt = name; }
-    if(previewName) previewName.textContent = name;
-    if(previewPrice) previewPrice.textContent = new Intl.NumberFormat('vi-VN').format(price) + ' ₫';
-
-    // Reset form
-    ['qo-name','qo-phone','qo-district','qo-ward','qo-address'].forEach(function(id){
-      var el = document.getElementById(id); if(el) el.value = '';
-    });
-    var city = document.getElementById('qo-city'); if(city) city.value = '';
-    var cod  = document.getElementById('qo-pay-cod'); if(cod) cod.checked = true;
-    var qrA  = document.getElementById('qo-qr-area'); if(qrA) qrA.style.display = 'none';
-    var btn  = document.getElementById('qo-confirm-btn'); if(btn){ btn.disabled=false; btn.textContent='✅ XÁC NHẬN ĐẶT HÀNG'; }
-
-    // Ẩn màn thành công, hiện form
-    var suc  = document.getElementById('qo-success'); if(suc) suc.style.display='none';
-    var form = document.getElementById('qo-form-section'); if(form) form.style.display='block';
-    var pay  = document.getElementById('qo-payment-section'); if(pay) pay.style.display='block';
-    var prev = document.getElementById('qo-product-preview'); if(prev) prev.style.display='flex';
-
-    // Hiện overlay
-    var ov = document.getElementById('qo-overlay'); if(ov){ ov.classList.add('open'); }
-    // Focus tên
-    setTimeout(function(){ var n=document.getElementById('qo-name'); if(n) n.focus(); }, 320);
-  };
-
-  window.qoClose = function(){
-    var ov = document.getElementById('qo-overlay');
-    if(ov) ov.classList.remove('open');
-  };
-
-  window.qoSubmit = async function(){
-    var token = localStorage.getItem('access_token');
-    if(!token){
-      alert('⚠️ Vui lòng đăng nhập để đặt hàng!\nNhấn OK để chuyển tới trang đăng nhập.');
-      window.location.href = '/login';
-      return;
-    }
-
-    var qName     = (document.getElementById('qo-name')     || {}).value || '';
-    var qPhone    = (document.getElementById('qo-phone')    || {}).value || '';
-    var qCity     = (document.getElementById('qo-city')     || {}).value || '';
-    var qDistrict = (document.getElementById('qo-district') || {}).value || '';
-    var qWard     = (document.getElementById('qo-ward')     || {}).value || '';
-    var qAddress  = (document.getElementById('qo-address')  || {}).value || '';
-
-    if(!qName.trim())    { alert('Vui lòng nhập Họ và tên!');         document.getElementById('qo-name').focus();    return; }
-    if(!qPhone.trim())   { alert('Vui lòng nhập Số điện thoại!');     document.getElementById('qo-phone').focus();   return; }
-    if(!qCity)           { alert('Vui lòng chọn Tỉnh / Thành phố!'); document.getElementById('qo-city').focus();    return; }
-    if(!qAddress.trim()) { alert('Vui lòng nhập Địa chỉ cụ thể!');   document.getElementById('qo-address').focus(); return; }
-
-    var fullAddr = [qAddress.trim(), qWard.trim(), qDistrict.trim(), qCity].filter(Boolean).join(', ');
-
-    var btn = document.getElementById('qo-confirm-btn');
-    if(btn){ btn.disabled=true; btn.textContent='⏳ Đang xử lý...'; }
-
-    var orderData = {
-      items: [{ product_id: parseInt(_qoId), quantity: 1, unit_price: _qoPrice }],
-      shipping_address: fullAddr,
-      phone_number: qPhone.trim(),
-      customer_name: qName.trim()
-    };
-
-    try {
-      var res = await fetch('/orders', {
-        method: 'POST',
-        headers: {
-          'Content-Type':  'application/json',
-          'Authorization': 'Bearer ' + token
-        },
-        body: JSON.stringify(orderData)
-      });
-      var result = await res.json();
-
-      if(res.ok){
-        // Ẩn form, hiện màn thành công
-        var form = document.getElementById('qo-form-section'); if(form) form.style.display='none';
-        var pay  = document.getElementById('qo-payment-section'); if(pay) pay.style.display='none';
-        var prev = document.getElementById('qo-product-preview'); if(prev) prev.style.display='none';
-        var msg  = document.getElementById('qo-success-msg');
-        if(msg) msg.innerHTML = 'Mã đơn hàng: <b style="color:#e65c00">#' + result.id + '</b><br>Shop sẽ liên hệ xác nhận sớm nhất!';
-        var suc  = document.getElementById('qo-success'); if(suc) suc.style.display='block';
-        // Cập nhật giỏ hàng (tuỳ chọn — thêm luôn vào cart để lịch sử nhất quán)
-        if(typeof addToCart === 'function') addToCart(_qoId, _qoName, _qoPrice, _qoImg);
-      } else {
-        var errMsg = (result.detail && (typeof result.detail === 'string' ? result.detail : result.detail[0] && result.detail[0].msg)) || 'Lỗi không xác định';
-        alert('❌ Lỗi đặt hàng: ' + errMsg);
-        if(btn){ btn.disabled=false; btn.textContent='✅ XÁC NHẬN ĐẶT HÀNG'; }
+  /* ── Mở form với dữ liệu sản phẩm ── */
+  window.openQuickOrder = function (idOrObj, name, price, img) {
+    // Hỗ trợ 2 cách gọi:
+    // 1) openQuickOrder(id, name, price, img)
+    // 2) openQuickOrder(productId)  → tự lookup window.allProducts
+    if (arguments.length === 1) {
+      var pid = parseInt(idOrObj) || 0;
+      var prods = window.allProducts || [];
+      var found = null;
+      for (var i = 0; i < prods.length; i++) {
+        if (prods[i].id == pid) { found = prods[i]; break; }
       }
-    } catch(e) {
-      alert('⚠️ Không thể kết nối server. Kiểm tra mạng và thử lại!');
-      if(btn){ btn.disabled=false; btn.textContent='✅ XÁC NHẬN ĐẶT HÀNG'; }
+      if (found) {
+        _id    = found.id;
+        _name  = found.name  || '';
+        _price = found.price || 0;
+        _img   = found.img   || found.image_url || '';
+      } else {
+        _id = pid; _name = 'Sản phẩm #' + pid; _price = 0; _img = '';
+      }
+    } else {
+      _id    = idOrObj || 0;
+      _name  = name    || '';
+      _price = price   || 0;
+      _img   = img     || '';
     }
+
+    /* Điền preview */
+    var elImg   = document.getElementById('haQoPreviewImg');
+    var elName  = document.getElementById('haQoPreviewName');
+    var elPrice = document.getElementById('haQoPreviewPrice');
+    if (elImg)   { elImg.src = _img; elImg.alt = _name; }
+    if (elName)  elName.textContent = _name;
+    if (elPrice) elPrice.textContent = new Intl.NumberFormat('vi-VN').format(_price) + ' ₫';
+
+    /* Reset form */
+    ['haQoName', 'haQoPhone', 'haQoAddress'].forEach(function (fid) {
+      var el = document.getElementById(fid); if (el) el.value = '';
+    });
+    var btn = document.getElementById('haQoConfirmBtn');
+    if (btn) { btn.disabled = false; btn.textContent = '✅ XÁC NHẬN ĐẶT HÀNG'; }
+
+    /* Ẩn màn thành công, hiện form */
+    var suc  = document.getElementById('haQoSuccess');      if (suc)  suc.style.display  = 'none';
+    var form = document.getElementById('haQoFormSection');  if (form) form.style.display = 'block';
+    var prev = document.getElementById('haQoProductPreview'); if (prev) prev.style.display = 'flex';
+
+    /* Mở overlay */
+    var ov = document.getElementById('haQoOverlay');
+    if (ov) ov.classList.add('ha-qo-open');
+
+    /* Focus họ tên */
+    setTimeout(function () {
+      var n = document.getElementById('haQoName'); if (n) n.focus();
+    }, 340);
   };
 
-  // Đóng bằng phím Escape
-  document.addEventListener('keydown', function(e){
-    if(e.key === 'Escape'){
-      var ov = document.getElementById('qo-overlay');
-      if(ov && ov.classList.contains('open')) qoClose();
+  /* ── Đóng form ── */
+  window.haQoClose = function () {
+    var ov = document.getElementById('haQoOverlay');
+    if (ov) ov.classList.remove('ha-qo-open');
+  };
+
+  /* ── Xác nhận đặt hàng ── */
+  window.haQoSubmit = function () {
+    var qName    = (document.getElementById('haQoName')    || {}).value || '';
+    var qPhone   = (document.getElementById('haQoPhone')   || {}).value || '';
+    var qAddress = (document.getElementById('haQoAddress') || {}).value || '';
+
+    if (!qName.trim()) {
+      alert('Vui lòng nhập Họ và tên!');
+      document.getElementById('haQoName').focus(); return;
+    }
+    if (!qPhone.trim()) {
+      alert('Vui lòng nhập Số điện thoại!');
+      document.getElementById('haQoPhone').focus(); return;
+    }
+    if (!qAddress.trim()) {
+      alert('Vui lòng nhập Địa chỉ giao hàng!');
+      document.getElementById('haQoAddress').focus(); return;
+    }
+
+    var btn = document.getElementById('haQoConfirmBtn');
+    if (btn) { btn.disabled = true; btn.textContent = '⏳ Đang xử lý...'; }
+
+    /* Hoàn toàn độc lập: KHÔNG gọi addToCart, KHÔNG gọi cart[] */
+    setTimeout(function () {
+      var form = document.getElementById('haQoFormSection');
+      var prev = document.getElementById('haQoProductPreview');
+      var suc  = document.getElementById('haQoSuccess');
+      var msg  = document.getElementById('haQoSuccessMsg');
+      if (form) form.style.display = 'none';
+      if (prev) prev.style.display = 'none';
+      if (msg)  msg.innerHTML =
+        'Chúc mừng bạn đã đặt hàng thành công sản phẩm<br>' +
+        '<b style="color:#e65c00">' + _name + '</b>!<br>' +
+        '<span style="font-size:12px;color:#888">Shop sẽ liên hệ xác nhận qua SĐT: ' +
+        qPhone.trim() + '</span>';
+      if (suc)  suc.style.display = 'block';
+      if (btn)  { btn.disabled = false; btn.textContent = '✅ XÁC NHẬN ĐẶT HÀNG'; }
+    }, 750);
+  };
+
+  /* ── Đóng bằng Escape ── */
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') {
+      var ov = document.getElementById('haQoOverlay');
+      if (ov && ov.classList.contains('ha-qo-open')) window.haQoClose();
     }
   });
+
+  /* ── Backward-compat aliases ── */
+  window.quickOrder   = window.openQuickOrder;
+  window.qoClose      = window.haQoClose;
+  window.qoSubmit     = window.haQoSubmit;
 })();
 </script>
 <!-- ============ END QUICK ORDER ============ -->
@@ -25245,7 +25257,8 @@
           '<div class="sa-prod-card-name">' + (p.name||'') + '</div>' +
           '<div class="sa-prod-card-price">' + fmt + '₫</div>' +
           '<button class="sa-prod-card-btn" ' +
-            'onclick="event.stopPropagation();if(typeof window.quickOrder===\'function\'){window.quickOrder(' + p.id + ',\'' + safe + '\',' + p.price + ',\'' + imgSafe + '\');}else{alert(\'Đang tải, vui lòng thử lại!\');}">' +
+            'onclick="event.stopPropagation();event.preventDefault();window.openQuickOrder(' + p.id + ',\'' + safe + '\',' + p.price + ',\'' + imgSafe + '\');" ' +
+            'style="pointer-events:auto!important">' +
             '⚡ MUA NGAY' +
           '</button>' +
         '</div>';
