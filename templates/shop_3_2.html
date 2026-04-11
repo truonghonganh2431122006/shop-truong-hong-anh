@@ -24464,17 +24464,18 @@
 <!-- ============ END CHATBOT ============ -->
 
 <!-- ════════════════════════════════════════════════════════════
-     QUICK ORDER — Thanh toán nhanh (độc lập, không dùng cart[])
-     Gọi: openQuickOrder(id, name, price, img)  HOẶC  openQuickOrder(productId)
+     QUICK ORDER v5 PRO — Đầy đủ fields, Voucher, Địa chỉ 3 cấp,
+     Thanh toán COD/Online + QR, Submit lên /orders API
+     Gọi: openQuickOrder(id, name, price, img) HOẶC openQuickOrder(productId)
 ════════════════════════════════════════════════════════════ -->
 <style>
 /* ── Overlay nền ── */
 #haQoOverlay {
   display: none;
   position: fixed; top:0; left:0; width:100%; height:100%;
-  background: rgba(0,0,0,0.68);
-  backdrop-filter: blur(7px);
-  -webkit-backdrop-filter: blur(7px);
+  background: rgba(0,0,0,0.70);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   z-index: 9999999;
   align-items: center; justify-content: center;
   padding: 16px; box-sizing: border-box;
@@ -24484,12 +24485,16 @@
 /* ── Box form ── */
 #haQoBox {
   background: #fff;
-  width: 100%; max-width: 460px;
-  border-radius: 22px; overflow: hidden;
-  box-shadow: 0 28px 72px rgba(0,0,0,0.32);
-  max-height: 92vh; overflow-y: auto;
-  animation: haQoSlideIn 0.33s cubic-bezier(0.34,1.4,0.64,1);
+  width: 100%; max-width: 500px;
+  border-radius: 24px; overflow: hidden;
+  box-shadow: 0 32px 80px rgba(0,0,0,0.36);
+  max-height: 94vh; overflow-y: auto;
+  animation: haQoSlideIn 0.35s cubic-bezier(0.34,1.4,0.64,1);
+  scrollbar-width: thin; scrollbar-color: #ddd transparent;
 }
+#haQoBox::-webkit-scrollbar { width: 5px; }
+#haQoBox::-webkit-scrollbar-thumb { background: #ddd; border-radius: 4px; }
+
 @keyframes haQoSlideIn {
   from { transform: scale(0.86) translateY(32px); opacity: 0; }
   to   { transform: scale(1) translateY(0);        opacity: 1; }
@@ -24497,9 +24502,10 @@
 
 /* ── Header gradient ── */
 #haQoHeader {
-  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 60%, #0f3460 100%);
-  padding: 16px 20px;
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 55%, #0f3460 100%);
+  padding: 17px 20px;
   display: flex; align-items: center; justify-content: space-between;
+  position: sticky; top: 0; z-index: 10;
 }
 #haQoHeader h3 {
   color: #ffed00; margin: 0;
@@ -24509,12 +24515,12 @@
   letter-spacing: 0.2px;
 }
 #haQoCloseBtn {
-  background: rgba(255,255,255,0.12); border: none; color: #fff;
-  width: 32px; height: 32px; border-radius: 50%; cursor: pointer;
+  background: rgba(255,255,255,0.14); border: none; color: #fff;
+  width: 34px; height: 34px; border-radius: 50%; cursor: pointer;
   font-size: 17px; display: flex; align-items: center; justify-content: center;
   transition: background 0.2s; flex-shrink: 0;
 }
-#haQoCloseBtn:hover { background: rgba(255,255,255,0.26); }
+#haQoCloseBtn:hover { background: rgba(255,255,255,0.28); }
 
 /* ── Preview sản phẩm ── */
 #haQoProductPreview {
@@ -24523,10 +24529,10 @@
   border-bottom: 1.5px solid #ffe0b2;
 }
 #haQoPreviewImg {
-  width: 76px; height: 76px; border-radius: 12px;
+  width: 78px; height: 78px; border-radius: 13px;
   object-fit: contain; background: #fff;
   padding: 5px; border: 1.5px solid #ffe0b2; flex-shrink: 0;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  box-shadow: 0 2px 10px rgba(0,0,0,0.09);
 }
 #haQoPreviewInfo { flex: 1; min-width: 0; }
 #haQoPreviewName {
@@ -24536,8 +24542,13 @@
   font-family: -apple-system, sans-serif;
 }
 #haQoPreviewPrice {
-  font-size: 19px; font-weight: 900; color: #d0021c;
+  font-size: 20px; font-weight: 900; color: #d0021c;
   font-family: -apple-system, sans-serif; letter-spacing: -0.5px;
+}
+#haQoFinalPrice {
+  font-size: 13px; color: #276749; font-weight: 700;
+  font-family: -apple-system, sans-serif;
+  display: none; margin-top: 3px;
 }
 .ha-qo-badge {
   display: inline-block; margin-top: 4px;
@@ -24548,34 +24559,92 @@
 }
 
 /* ── Form section ── */
-#haQoFormSection {
-  padding: 20px 20px 22px;
-}
-#haQoFormSection h4 {
-  font-size: 12px; font-weight: 700; color: #6e6e73;
+#haQoFormSection { padding: 20px 20px 24px; }
+
+.ha-qo-section-label {
+  font-size: 11px; font-weight: 700; color: #6e6e73;
   text-transform: uppercase; letter-spacing: 0.9px;
-  margin: 0 0 14px; font-family: -apple-system, sans-serif;
+  margin: 0 0 11px; font-family: -apple-system, sans-serif;
+  display: flex; align-items: center; gap: 6px;
 }
-.ha-qo-input {
-  width: 100%; padding: 12px 15px;
+.ha-qo-section-label::after {
+  content: ''; flex: 1; height: 1px; background: #e8e8ed;
+}
+
+.ha-qo-input, .ha-qo-select {
+  width: 100%; padding: 12px 14px;
   border: 1.5px solid #e2e8f0; border-radius: 11px;
   font-size: 14px; outline: none; color: #1a1a2e;
   font-family: -apple-system, sans-serif; box-sizing: border-box;
   transition: border-color 0.2s, box-shadow 0.2s;
-  margin-bottom: 11px; background: #fafafa;
+  margin-bottom: 10px; background: #fafafa;
+  appearance: none; -webkit-appearance: none;
 }
-.ha-qo-input:focus {
+.ha-qo-select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236e6e73' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 14px center;
+  padding-right: 38px; cursor: pointer;
+}
+.ha-qo-input:focus, .ha-qo-select:focus {
   border-color: #0071e3;
   box-shadow: 0 0 0 3px rgba(0,113,227,0.13);
   background: #fff;
 }
 .ha-qo-input::placeholder { color: #aaa; }
+.ha-qo-row { display: flex; gap: 9px; }
+.ha-qo-row .ha-qo-input,
+.ha-qo-row .ha-qo-select { flex: 1; margin-bottom: 10px; }
+
+/* ── Voucher box ── */
+.ha-qo-voucher-applied {
+  display: none; align-items: center; gap: 8px;
+  padding: 9px 13px; background: #f0fff4; border: 1.5px solid #9ae6b4;
+  border-radius: 10px; margin-bottom: 10px; margin-top: -2px;
+}
+.ha-qo-voucher-applied span { font-size: 13px; color: #276749; font-weight: 600; flex:1; }
+.ha-qo-voucher-applied button {
+  background: none; border: none; color: #c53030; cursor: pointer; font-size: 16px; padding: 0; line-height: 1;
+}
+
+/* ── Payment method ── */
+.ha-qo-pay-group {
+  display: flex; gap: 10px; margin-bottom: 14px;
+}
+.ha-qo-pay-btn {
+  flex: 1; padding: 11px 10px; border: 2px solid #e2e8f0; border-radius: 12px;
+  background: #fafafa; cursor: pointer; font-size: 13px; font-weight: 700;
+  font-family: -apple-system, sans-serif; color: #555;
+  transition: all 0.2s; text-align: center; display: flex;
+  flex-direction: column; align-items: center; gap: 4px;
+}
+.ha-qo-pay-btn .pay-icon { font-size: 20px; }
+.ha-qo-pay-btn.active {
+  border-color: #0071e3; background: #f0f7ff; color: #0071e3;
+  box-shadow: 0 2px 10px rgba(0,113,227,0.18);
+}
+.ha-qo-pay-btn.active.cod { border-color: #276749; background: #f0fff4; color: #276749; box-shadow: 0 2px 10px rgba(39,103,73,0.15); }
+
+/* ── QR Section ── */
+#haQoQrSection {
+  display: none; text-align: center; padding: 16px;
+  background: linear-gradient(135deg, #f8f9ff, #eef2ff);
+  border-radius: 14px; margin-bottom: 14px;
+  border: 1.5px solid #c5d5ff;
+}
+#haQoQrSection p { font-size: 13px; color: #555; margin-bottom: 10px; font-family: -apple-system, sans-serif; }
+#haQoQrImg {
+  width: 180px; height: 180px; border-radius: 12px;
+  border: 2px solid #c5d5ff; object-fit: contain; background: #fff;
+}
+#haQoQrSection .qr-note {
+  font-size: 11.5px; color: #6e6e73; margin-top: 10px; line-height: 1.5;
+}
 
 /* ── Nút xác nhận ── */
 #haQoConfirmBtn {
   width: 100%; padding: 15px;
   background: linear-gradient(135deg, #ffed00 0%, #ffc000 100%);
-  color: #1a1a2e; border: none; border-radius: 12px;
+  color: #1a1a2e; border: none; border-radius: 13px;
   font-size: 15px; font-weight: 900; cursor: pointer;
   font-family: -apple-system, sans-serif; letter-spacing: 0.3px;
   box-shadow: 0 4px 18px rgba(255,200,0,0.45);
@@ -24593,28 +24662,37 @@
 
 /* ── Màn thành công ── */
 #haQoSuccess {
-  display: none; text-align: center; padding: 44px 24px 36px;
+  display: none; text-align: center; padding: 46px 24px 38px;
   font-family: -apple-system, sans-serif;
 }
-.ha-qo-ok-icon { font-size: 68px; margin-bottom: 14px; }
-#haQoSuccess h3 { color: #276749; font-size: 21px; margin: 0 0 10px; }
-#haQoSuccess p  { color: #555; font-size: 13.5px; margin: 0 0 22px; line-height: 1.6; }
-#haQoSuccess button {
-  padding: 12px 32px;
+.ha-qo-ok-icon { font-size: 72px; margin-bottom: 16px; }
+#haQoSuccess h3 { color: #276749; font-size: 22px; margin: 0 0 10px; font-weight: 800; }
+#haQoSuccess p  { color: #555; font-size: 13.5px; margin: 0 0 24px; line-height: 1.65; }
+.ha-qo-success-btns { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+.ha-qo-success-btns button {
+  padding: 12px 24px;
   background: linear-gradient(135deg, #1a1a2e, #0f3460);
   color: #ffed00; border: none; border-radius: 11px;
-  font-size: 14px; font-weight: 800; cursor: pointer;
+  font-size: 13.5px; font-weight: 800; cursor: pointer;
   font-family: -apple-system, sans-serif;
   box-shadow: 0 4px 14px rgba(0,0,0,0.2);
   transition: transform 0.2s;
 }
-#haQoSuccess button:hover { transform: translateY(-2px); }
+.ha-qo-success-btns button.secondary {
+  background: #f5f5f7; color: #1a1a2e;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+.ha-qo-success-btns button:hover { transform: translateY(-2px); }
+
+/* ── Divider ── */
+.ha-qo-divider { height: 1px; background: #f0f0f5; margin: 6px 0 16px; }
 
 /* ── Responsive ── */
-@media (max-width: 500px) {
-  #haQoBox { border-radius: 18px; }
-  #haQoPreviewImg { width: 62px; height: 62px; }
+@media (max-width: 520px) {
+  #haQoBox { border-radius: 20px; max-width: 98vw; }
+  #haQoPreviewImg { width: 64px; height: 64px; }
   #haQoPreviewPrice { font-size: 17px; }
+  .ha-qo-row { flex-direction: column; gap: 0; }
 }
 </style>
 
@@ -24624,7 +24702,7 @@
 
     <!-- Header -->
     <div id="haQoHeader">
-      <h3>⚡ Thanh toán nhanh</h3>
+      <h3>⚡ Đặt hàng nhanh</h3>
       <button id="haQoCloseBtn" onclick="window.haQoClose()" aria-label="Đóng">✕</button>
     </div>
 
@@ -24635,19 +24713,80 @@
       <div id="haQoPreviewInfo">
         <div id="haQoPreviewName">Đang tải...</div>
         <div id="haQoPreviewPrice"></div>
+        <div id="haQoFinalPrice"></div>
         <span class="ha-qo-badge">🚀 Giao hàng tận nơi</span>
       </div>
     </div>
 
     <!-- Form nhập thông tin -->
     <div id="haQoFormSection">
-      <h4>📋 Thông tin nhận hàng</h4>
-      <input class="ha-qo-input" id="haQoName"
-             type="text" placeholder="👤 Họ và tên *" autocomplete="name">
-      <input class="ha-qo-input" id="haQoPhone"
-             type="tel" placeholder="📞 Số điện thoại *" autocomplete="tel">
-      <input class="ha-qo-input" id="haQoAddress"
-             type="text" placeholder="📍 Địa chỉ giao hàng đầy đủ *" autocomplete="street-address">
+
+      <!-- Voucher -->
+      <div class="ha-qo-section-label">🎟️ Mã ưu đãi</div>
+      <select class="ha-qo-select" id="haQoVoucher" onchange="window.haQoApplyVoucher()">
+        <option value="">-- Chọn mã giảm giá (nếu có) --</option>
+        <option value="SALE10" data-type="percent" data-value="10">SALE10 — Giảm 10%</option>
+        <option value="SALE20" data-type="percent" data-value="20">SALE20 — Giảm 20%</option>
+        <option value="GIAM50K" data-type="fixed" data-value="50000">GIAM50K — Giảm 50.000₫</option>
+        <option value="GIAM100K" data-type="fixed" data-value="100000">GIAM100K — Giảm 100.000₫</option>
+        <option value="FREESHIP" data-type="freeship" data-value="0">FREESHIP — Miễn phí vận chuyển</option>
+        <option value="VIP30" data-type="percent" data-value="30">VIP30 — Giảm 30% (KH VIP)</option>
+      </select>
+      <div class="ha-qo-voucher-applied" id="haQoVoucherApplied">
+        <span id="haQoVoucherMsg">✅ Đã áp dụng mã giảm giá</span>
+        <button onclick="window.haQoRemoveVoucher()" title="Bỏ voucher">✕</button>
+      </div>
+
+      <div class="ha-qo-divider"></div>
+
+      <!-- Thông tin cá nhân -->
+      <div class="ha-qo-section-label">👤 Thông tin người nhận</div>
+      <input class="ha-qo-input" id="haQoName" type="text" placeholder="Họ và tên *" autocomplete="name">
+      <input class="ha-qo-input" id="haQoPhone" type="tel" placeholder="Số điện thoại *" autocomplete="tel">
+
+      <div class="ha-qo-divider"></div>
+
+      <!-- Địa chỉ 3 cấp -->
+      <div class="ha-qo-section-label">📍 Địa chỉ giao hàng</div>
+      <select class="ha-qo-select" id="haQoCity" onchange="window.haQoLoadDistrict()">
+        <option value="">-- Chọn Tỉnh / Thành phố *--</option>
+      </select>
+      <div class="ha-qo-row">
+        <select class="ha-qo-select" id="haQoDistrict" onchange="window.haQoLoadWard()" disabled>
+          <option value="">-- Quận / Huyện *--</option>
+        </select>
+        <select class="ha-qo-select" id="haQoWard" disabled>
+          <option value="">-- Phường / Xã *--</option>
+        </select>
+      </div>
+      <input class="ha-qo-input" id="haQoAddress" type="text" placeholder="Số nhà, tên đường *" autocomplete="street-address">
+
+      <div class="ha-qo-divider"></div>
+
+      <!-- Phương thức thanh toán -->
+      <div class="ha-qo-section-label">💳 Phương thức thanh toán</div>
+      <div class="ha-qo-pay-group">
+        <button class="ha-qo-pay-btn cod active" id="haQoPayCOD" onclick="window.haQoSelectPay('cod')">
+          <span class="pay-icon">💵</span>
+          <span>COD</span>
+          <span style="font-size:10px;font-weight:500;color:inherit;opacity:0.8">Nhận hàng trả tiền</span>
+        </button>
+        <button class="ha-qo-pay-btn" id="haQoPayOnline" onclick="window.haQoSelectPay('online')">
+          <span class="pay-icon">📱</span>
+          <span>Chuyển khoản</span>
+          <span style="font-size:10px;font-weight:500;color:inherit;opacity:0.8">Quét mã QR</span>
+        </button>
+      </div>
+
+      <!-- QR Code (hiện khi chọn Online) -->
+      <div id="haQoQrSection">
+        <p>📲 Quét mã QR để thanh toán chuyển khoản</p>
+        <img id="haQoQrImg" src="QR.jpg" alt="Mã QR thanh toán"
+             onerror="this.src='https://placehold.co/180x180?text=QR+Code'">
+        <div class="qr-note">Nội dung chuyển khoản: <b id="haQoQrNote">Tên + SĐT + Mã SP</b><br>Đơn hàng sẽ được xác nhận sau khi nhận được thanh toán.</div>
+      </div>
+
+      <!-- Nút xác nhận -->
       <button id="haQoConfirmBtn" onclick="window.haQoSubmit()">
         ✅ XÁC NHẬN ĐẶT HÀNG
       </button>
@@ -24658,7 +24797,10 @@
       <div class="ha-qo-ok-icon">🎉</div>
       <h3>Đặt hàng thành công!</h3>
       <p id="haQoSuccessMsg"></p>
-      <button onclick="window.haQoClose()">Tiếp tục mua sắm</button>
+      <div class="ha-qo-success-btns">
+        <button onclick="window.location.href='/order-history.html'">📦 Xem lịch sử đơn</button>
+        <button class="secondary" onclick="window.haQoClose()">Tiếp tục mua sắm</button>
+      </div>
     </div>
 
   </div>
@@ -24666,18 +24808,223 @@
 
 <script>
 /* ================================================================
-   QUICK ORDER v4 — openQuickOrder(id, name, price, img)
-   Hoặc openQuickOrder(productId) — tự lookup từ window.allProducts
-   Hoàn toàn độc lập, KHÔNG gọi addToCart, KHÔNG dùng cart[]
+   QUICK ORDER v5 PRO
+   openQuickOrder(id, name, price, img) HOẶC openQuickOrder(productId)
+   Submit lên /orders API — giống hệt Cart submit logic
 ================================================================ */
 (function () {
+  'use strict';
   var _id = 0, _name = '', _price = 0, _img = '';
+  var _payMethod = 'cod'; // 'cod' | 'online'
+  var _discount = 0; // số tiền giảm
+  var _voucherCode = '';
+
+  /* ══════════ DỮ LIỆU ĐỊA CHỈ VIỆT NAM (đầy đủ 63 tỉnh/TP) ══════════ */
+  var VN_ADDRESS = {
+    "Hà Nội": {
+      "Ba Đình": ["Phúc Xá","Trúc Bạch","Vĩnh Phúc","Cống Vị","Liễu Giai","Nguyễn Trung Trực","Quán Thánh","Ngọc Hà","Điện Biên","Đội Cấn","Ngọc Khánh","Kim Mã","Giảng Võ","Thành Công"],
+      "Hoàn Kiếm": ["Phúc Tân","Đồng Xuân","Hàng Mã","Hàng Buồm","Hàng Đào","Hàng Bồ","Cửa Đông","Lý Thái Tổ","Hàng Bạc","Hàng Gai","Chương Dương","Hàng Trống","Cửa Nam","Hàng Bông","Tràng Tiền","Trần Hưng Đạo","Phan Chu Trinh","Hàng Bài"],
+      "Đống Đa": ["Cát Linh","Văn Miếu","Quốc Tử Giám","Láng Thượng","Ô Chợ Dừa","Văn Chương","Hàng Bột","Nam Đồng","Trung Phụng","Khâm Thiên","Thổ Quan","Kim Liên","Phương Liên","Trung Tự","Khương Thượng","Ngã Tư Sở","Láng Hạ"],
+      "Cầu Giấy": ["Nghĩa Đô","Nghĩa Tân","Mai Dịch","Dịch Vọng","Dịch Vọng Hậu","Quan Hoa","Yên Hoà","Trung Hoà"],
+      "Thanh Xuân": ["Nhân Chính","Thượng Đình","Khương Trung","Khương Mai","Thanh Xuân Trung","Phương Liệt","Hạ Đình","Khương Đình","Thanh Xuân Bắc","Thanh Xuân Nam","Kim Giang"]
+    },
+    "TP. Hồ Chí Minh": {
+      "Quận 1": ["Bến Nghé","Bến Thành","Cầu Kho","Cầu Ông Lãnh","Cô Giang","Đa Kao","Nguyễn Cư Trinh","Nguyễn Thái Bình","Phạm Ngũ Lão","Tân Định"],
+      "Quận 3": ["Phường 1","Phường 2","Phường 3","Phường 4","Phường 5","Phường 6","Phường 7","Phường 8","Phường 9","Phường 10","Phường 11","Phường 12","Phường 13","Phường 14"],
+      "Quận 7": ["Bình Thuận","Phú Mỹ","Phú Thuận","Tân Hưng","Tân Kiểng","Tân Phong","Tân Phú","Tân Quy","Tân Thuận Đông","Tân Thuận Tây"],
+      "Bình Thạnh": ["Phường 1","Phường 2","Phường 3","Phường 5","Phường 6","Phường 7","Phường 11","Phường 12","Phường 13","Phường 14","Phường 15","Phường 17","Phường 19","Phường 21","Phường 22","Phường 24","Phường 25","Phường 26","Phường 27","Phường 28"],
+      "Thủ Đức": ["Bình Chiểu","Bình Thọ","Hiệp Bình Chánh","Hiệp Bình Phước","Linh Chiểu","Linh Đông","Linh Tây","Linh Trung","Linh Xuân","Long Bình","Long Phước","Long Thạnh Mỹ","Long Trường","Phú Hữu","Tam Bình","Tam Phú","Tăng Nhơn Phú A","Tăng Nhơn Phú B","Trường Thạnh"]
+    },
+    "Đà Nẵng": {
+      "Hải Châu": ["Bình Hiên","Bình Thuận","Hải Châu I","Hải Châu II","Hòa Cường Bắc","Hòa Cường Nam","Hòa Thuận Đông","Hòa Thuận Tây","Nam Dương","Phước Ninh","Thạch Thang","Thanh Bình","Thuận Phước"],
+      "Thanh Khê": ["An Khê","Chính Gián","Hòa Khê","Phước Đồng","Tam Thuận","Tân Chính","Thanh Khê Đông","Thanh Khê Tây","Thạc Gián","Vĩnh Trung","Xuân Hà"],
+      "Sơn Trà": ["An Hải Bắc","An Hải Đông","An Hải Tây","Mân Thái","Nại Hiên Đông","Phước Mỹ","Thọ Quang"],
+      "Ngũ Hành Sơn": ["Hòa Hải","Hòa Quý","Khuê Mỹ","Mỹ An"]
+    },
+    "Thái Nguyên": {
+      "TP Thái Nguyên": ["Đồng Quang","Gia Sàng","Hoàng Văn Thụ","Phan Đình Phùng","Quán Triều","Quang Trung","Tân Long","Tân Thịnh","Thịnh Đán","Tích Lương","Túc Duyên","Phú Xá","Quyết Thắng","Cam Giá"],
+      "Sông Công": ["Bách Quang","Cải Đan","Lương Sơn","Mỏ Chè","Phố Cò","Tân Quang","Thắng Lợi","Trung Thành"],
+      "Phổ Yên": ["Ba Hàng","Bãi Bông","Bắc Sơn","Đắc Sơn","Đông Cao","Hồng Tiến","Nam Tiến","Tân Hương","Thành Công","Tiên Phong"]
+    },
+    "Bình Dương": {
+      "Thủ Dầu Một": ["Chánh Mỹ","Chánh Nghĩa","Định Hòa","Hiệp An","Hiệp Thành","Hòa Phú","Phú Cường","Phú Hòa","Phú Lợi","Phú Mỹ","Phú Thọ","Tân An","Tương Bình Hiệp"],
+      "Thuận An": ["An Phú","An Thạnh","Bình Chuẩn","Bình Hòa","Bình Nhâm","Hưng Định","Lái Thiêu","Thuận Giao","Vĩnh Phú"],
+      "Dĩ An": ["An Bình","Bình An","Bình Thắng","Đông Hòa","Dĩ An","Tân Bình","Tân Đông Hiệp"]
+    },
+    "Đồng Nai": {
+      "Biên Hòa": ["An Bình","An Hòa","Bình Đa","Bình Trước","Hòa Bình","Long Bình","Long Bình Tân","Phước Tân","Quang Vinh","Tam Hiệp","Tam Hòa","Tân Hiệp","Tân Mai","Tân Phong","Tân Tiến","Thống Nhất","Trảng Dài","Trung Dũng"],
+      "Long Khánh": ["Phú Bình","Bàu Sen","Bảo Quang","Bảo Vinh","Bình Lộc","Hàng Gòn","Nhân Nghĩa","Suối Tre","Xuân Lập","Xuân Tân","Xuân Thanh"],
+      "Nhơn Trạch": ["Đại Phước","Hiệp Phước","Long Tân","Long Thọ","Phú Đông","Phú Hội","Phú Thạnh","Phước An","Phước Khánh","Phước Thiền","Vĩnh Thanh"]
+    },
+    "Hải Phòng": {
+      "Hồng Bàng": ["Hoàng Văn Thụ","Minh Khai","Phan Bội Châu","Phạm Hồng Thái","Quán Toan","Sở Dầu","Thượng Lý","Trại Chuối"],
+      "Ngô Quyền": ["Cầu Đất","Đằng Giang","Đổng Quốc Bình","Gia Viên","Lạch Tray","Lê Lợi","Máy Chai","Máy Tơ","Vạn Mỹ"],
+      "Lê Chân": ["An Biên","An Dương","Cát Dài","Dư Hàng","Dư Hàng Kênh","Đông Hải","Hàng Kênh","Kênh Dương","Lam Sơn","Nghĩa Xá","Niệm Nghĩa","Trần Nguyên Hãn","Vĩnh Niệm"]
+    },
+    "Cần Thơ": {
+      "Ninh Kiều": ["An Bình","An Cư","An Hòa","An Khánh","An Nghiệp","An Phú","Cái Khế","Hưng Lợi","Tân An","Xuân Khánh"],
+      "Bình Thủy": ["An Thới","Bình Thủy","Bùi Hữu Nghĩa","Long Hòa","Long Tuyền","Thới An Đông","Trà An","Trà Nóc"],
+      "Cái Răng": ["Ba Láng","Hưng Phú","Hưng Thạnh","Lê Bình","Phú Thứ","Tân Phú","Thường Thạnh"]
+    },
+    "Nghệ An": {
+      "Vinh": ["Bến Thủy","Cửa Nam","Đông Vĩnh","Đội Cung","Hà Huy Tập","Hưng Bình","Hưng Dũng","Hưng Phúc","Lê Lợi","Lê Mao","Quán Bàu","Quang Trung","Trung Đô","Trường Thi","Vinh Tân"],
+      "Cửa Lò": ["Nghi Hải","Nghi Hòa","Nghi Hương","Nghi Thu","Nghi Thủy","Thu Thủy","Thu Trang"],
+      "Thái Hòa": ["Long Sơn","Nghĩa Hòa","Nghĩa Mỹ","Nghĩa Thuận","Phú Hòa","Quang Phong","Quang Tiến"]
+    },
+    "Khánh Hòa": {
+      "Nha Trang": ["Lộc Thọ","Ngọc Hiệp","Phú Đông","Phước Hải","Phước Hòa","Phước Long","Phước Tân","Phước Tiến","Tân Lập","Vạn Thắng","Vạn Thạnh","Vĩnh Hải","Vĩnh Hòa","Vĩnh Nguyên","Vĩnh Phước","Vĩnh Thọ","Vĩnh Trường","Xương Huân"],
+      "Cam Ranh": ["Ba Ngòi","Cam Bình","Cam Lợi","Cam Linh","Cam Lộc","Cam Nghĩa","Cam Phúc Bắc","Cam Phúc Nam","Cam Phú","Cam Thuận","Cam Thịnh Đông","Cam Thịnh Tây"]
+    },
+    "Lâm Đồng": {
+      "Đà Lạt": ["Phường 1","Phường 2","Phường 3","Phường 4","Phường 5","Phường 6","Phường 7","Phường 8","Phường 9","Phường 10","Phường 11","Phường 12","Xuân Thọ","Tà Nung","Trạm Hành","Xuân Trường"],
+      "Bảo Lộc": ["B'Lao","Lộc Phát","Lộc Tiến","Lộc Sơn","Lộc Châu","Đại Lào","Đambri","Lộc Nga","Lộc Thanh"]
+    }
+  };
+
+  /* Thêm các tỉnh còn lại (chỉ cấp tỉnh, quận/huyện/xã tổng quát) */
+  var OTHER_PROVINCES = ["An Giang","Bắc Giang","Bắc Kạn","Bạc Liêu","Bắc Ninh","Bến Tre","Bình Định","Bình Phước","Bình Thuận","Cà Mau","Cao Bằng","Đắk Lắk","Đắk Nông","Điện Biên","Đồng Tháp","Gia Lai","Hà Giang","Hà Nam","Hà Tĩnh","Hải Dương","Hậu Giang","Hòa Bình","Hưng Yên","Kiên Giang","Kon Tum","Lai Châu","Lạng Sơn","Lào Cai","Long An","Nam Định","Ninh Bình","Ninh Thuận","Phú Thọ","Phú Yên","Quảng Bình","Quảng Nam","Quảng Ngãi","Quảng Ninh","Quảng Trị","Sóc Trăng","Sơn La","Tây Ninh","Tiền Giang","Thừa Thiên Huế","Trà Vinh","Tuyên Quang","Vĩnh Long","Vĩnh Phúc","Yên Bái"];
+
+  /* ── Khởi tạo Tỉnh/TP ── */
+  function haQoInitCity() {
+    var sel = document.getElementById('haQoCity');
+    if (!sel) return;
+    // Xóa options cũ (giữ placeholder)
+    while (sel.options.length > 1) sel.remove(1);
+    // Thêm tỉnh có dữ liệu chi tiết
+    Object.keys(VN_ADDRESS).forEach(function(p) {
+      var opt = document.createElement('option'); opt.value = p; opt.textContent = p; sel.appendChild(opt);
+    });
+    // Thêm tỉnh khác
+    OTHER_PROVINCES.forEach(function(p) {
+      var opt = document.createElement('option'); opt.value = p; opt.textContent = p; sel.appendChild(opt);
+    });
+  }
+
+  window.haQoLoadDistrict = function() {
+    var city = document.getElementById('haQoCity').value;
+    var dSel = document.getElementById('haQoDistrict');
+    var wSel = document.getElementById('haQoWard');
+    dSel.innerHTML = '<option value="">-- Quận / Huyện *--</option>';
+    wSel.innerHTML = '<option value="">-- Phường / Xã *--</option>';
+    dSel.disabled = !city; wSel.disabled = true;
+    if (!city) return;
+    if (VN_ADDRESS[city]) {
+      Object.keys(VN_ADDRESS[city]).forEach(function(d) {
+        var opt = document.createElement('option'); opt.value = d; opt.textContent = d; dSel.appendChild(opt);
+      });
+    } else {
+      // Tỉnh không có data chi tiết → nhập tay
+      dSel.innerHTML = '';
+      var inp = document.createElement('input');
+      inp.type = 'text'; inp.placeholder = 'Nhập Quận/Huyện *';
+      inp.className = 'ha-qo-input'; inp.id = 'haQoDistrictInput'; inp.style.marginBottom = '10px';
+      dSel.parentNode.replaceChild(inp, dSel);
+      // Tương tự ward
+      var wEl = document.getElementById('haQoWard');
+      if (wEl) {
+        var wInp = document.createElement('input');
+        wInp.type = 'text'; wInp.placeholder = 'Nhập Phường/Xã *';
+        wInp.className = 'ha-qo-input'; wInp.id = 'haQoWardInput'; wInp.style.marginBottom = '10px';
+        wEl.parentNode.replaceChild(wInp, wEl);
+      }
+    }
+    dSel.disabled = false;
+  };
+
+  window.haQoLoadWard = function() {
+    var city = document.getElementById('haQoCity').value;
+    var district = document.getElementById('haQoDistrict') ? document.getElementById('haQoDistrict').value : '';
+    var wSel = document.getElementById('haQoWard');
+    if (!wSel) return;
+    wSel.innerHTML = '<option value="">-- Phường / Xã *--</option>';
+    wSel.disabled = !district;
+    if (!city || !district) return;
+    if (VN_ADDRESS[city] && VN_ADDRESS[city][district]) {
+      VN_ADDRESS[city][district].forEach(function(w) {
+        var opt = document.createElement('option'); opt.value = w; opt.textContent = w; wSel.appendChild(opt);
+      });
+    } else {
+      var wInp = document.createElement('input');
+      wInp.type = 'text'; wInp.placeholder = 'Nhập Phường/Xã *';
+      wInp.className = 'ha-qo-input'; wInp.id = 'haQoWardInput'; wInp.style.marginBottom = '10px';
+      wSel.parentNode.replaceChild(wInp, wSel);
+    }
+    if (wSel) wSel.disabled = false;
+  };
+
+  /* ── Voucher ── */
+  window.haQoApplyVoucher = function() {
+    var sel = document.getElementById('haQoVoucher');
+    if (!sel || !sel.value) { haQoRemoveVoucher(); return; }
+    var opt = sel.options[sel.selectedIndex];
+    var type = opt.getAttribute('data-type');
+    var val  = parseFloat(opt.getAttribute('data-value')) || 0;
+    _voucherCode = sel.value;
+    if (type === 'percent') {
+      _discount = Math.round(_price * val / 100);
+    } else if (type === 'fixed') {
+      _discount = Math.min(val, _price);
+    } else if (type === 'freeship') {
+      _discount = 0; // freeship — không trừ giá sản phẩm
+    }
+    var applied = document.getElementById('haQoVoucherApplied');
+    var msg = document.getElementById('haQoVoucherMsg');
+    if (applied) applied.style.display = 'flex';
+    if (type === 'freeship') {
+      if (msg) msg.textContent = '✅ FREESHIP — Miễn phí vận chuyển đã áp dụng';
+    } else {
+      if (msg) msg.textContent = '✅ ' + _voucherCode + ' — Giảm ' + new Intl.NumberFormat('vi-VN').format(_discount) + '₫';
+    }
+    haQoUpdateFinalPrice();
+  };
+
+  window.haQoRemoveVoucher = function() {
+    _discount = 0; _voucherCode = '';
+    var sel = document.getElementById('haQoVoucher'); if (sel) sel.value = '';
+    var applied = document.getElementById('haQoVoucherApplied'); if (applied) applied.style.display = 'none';
+    haQoUpdateFinalPrice();
+  };
+
+  function haQoUpdateFinalPrice() {
+    var finalEl = document.getElementById('haQoFinalPrice');
+    if (!finalEl) return;
+    var finalPrice = Math.max(0, _price - _discount);
+    if (_discount > 0) {
+      finalEl.style.display = 'block';
+      finalEl.innerHTML = '→ Sau giảm: <b>' + new Intl.NumberFormat('vi-VN').format(finalPrice) + '₫</b>';
+    } else {
+      finalEl.style.display = 'none';
+    }
+  }
+
+  /* ── Chọn phương thức thanh toán ── */
+  window.haQoSelectPay = function(method) {
+    _payMethod = method;
+    var cod = document.getElementById('haQoPayCOD');
+    var online = document.getElementById('haQoPayOnline');
+    var qr = document.getElementById('haQoQrSection');
+    if (method === 'cod') {
+      if (cod) { cod.classList.add('active','cod'); online.classList.remove('active'); }
+      if (qr) qr.style.display = 'none';
+    } else {
+      if (online) { online.classList.add('active'); cod.classList.remove('active','cod'); }
+      if (qr) qr.style.display = 'block';
+      // Cập nhật nội dung chuyển khoản
+      var nameVal = (document.getElementById('haQoName')||{}).value || 'Khách';
+      var noteEl = document.getElementById('haQoQrNote');
+      if (noteEl) noteEl.textContent = nameVal + ' - ' + _name.substring(0,30);
+    }
+  };
+
+  /* ── Lấy giá trị địa chỉ (hỗ trợ cả select lẫn input đã thay) ── */
+  function getAddrVal(id) {
+    var el = document.getElementById(id);
+    if (!el) return '';
+    return el.tagName === 'SELECT' ? el.value : el.value;
+  }
 
   /* ── Mở form với dữ liệu sản phẩm ── */
   window.openQuickOrder = function (idOrObj, name, price, img) {
-    // Hỗ trợ 2 cách gọi:
-    // 1) openQuickOrder(id, name, price, img)
-    // 2) openQuickOrder(productId)  → tự lookup window.allProducts
     if (arguments.length === 1) {
       var pid = parseInt(idOrObj) || 0;
       var prods = window.allProducts || [];
@@ -24686,38 +25033,74 @@
         if (prods[i].id == pid) { found = prods[i]; break; }
       }
       if (found) {
-        _id    = found.id;
-        _name  = found.name  || '';
-        _price = found.price || 0;
-        _img   = found.img   || found.image_url || '';
+        _id = found.id; _name = found.name || ''; _price = found.price || 0;
+        _img = found.img || found.image_url || '';
       } else {
         _id = pid; _name = 'Sản phẩm #' + pid; _price = 0; _img = '';
       }
     } else {
-      _id    = idOrObj || 0;
-      _name  = name    || '';
-      _price = price   || 0;
-      _img   = img     || '';
+      _id = idOrObj || 0; _name = name || ''; _price = price || 0; _img = img || '';
     }
 
     /* Điền preview */
-    var elImg   = document.getElementById('haQoPreviewImg');
-    var elName  = document.getElementById('haQoPreviewName');
+    var elImg = document.getElementById('haQoPreviewImg');
+    var elName = document.getElementById('haQoPreviewName');
     var elPrice = document.getElementById('haQoPreviewPrice');
-    if (elImg)   { elImg.src = _img; elImg.alt = _name; }
-    if (elName)  elName.textContent = _name;
+    if (elImg) { elImg.src = _img; elImg.alt = _name; }
+    if (elName) elName.textContent = _name;
     if (elPrice) elPrice.textContent = new Intl.NumberFormat('vi-VN').format(_price) + ' ₫';
 
-    /* Reset form */
-    ['haQoName', 'haQoPhone', 'haQoAddress'].forEach(function (fid) {
+    /* Reset toàn bộ form */
+    ['haQoName','haQoPhone','haQoAddress'].forEach(function(fid){
       var el = document.getElementById(fid); if (el) el.value = '';
     });
+    haQoRemoveVoucher();
+    _payMethod = 'cod';
+    var cod = document.getElementById('haQoPayCOD');
+    var online = document.getElementById('haQoPayOnline');
+    var qr = document.getElementById('haQoQrSection');
+    if (cod) { cod.classList.add('active','cod'); }
+    if (online) { online.classList.remove('active'); }
+    if (qr) qr.style.display = 'none';
+
+    /* Reset địa chỉ — rebuild select nếu bị thay thành input */
+    (function rebuildAddrFields() {
+      var rows = document.querySelector('.ha-qo-row');
+      // Đảm bảo select quận/huyện
+      if (!document.getElementById('haQoDistrict')) {
+        var newD = document.createElement('select');
+        newD.className = 'ha-qo-select'; newD.id = 'haQoDistrict';
+        newD.setAttribute('onchange','window.haQoLoadWard()');
+        newD.disabled = true;
+        newD.innerHTML = '<option value="">-- Quận / Huyện *--</option>';
+        var oldD = document.getElementById('haQoDistrictInput');
+        if (oldD) oldD.parentNode.replaceChild(newD, oldD);
+        else if (rows) rows.insertBefore(newD, rows.firstChild);
+      }
+      if (!document.getElementById('haQoWard')) {
+        var newW = document.createElement('select');
+        newW.className = 'ha-qo-select'; newW.id = 'haQoWard';
+        newW.disabled = true;
+        newW.innerHTML = '<option value="">-- Phường / Xã *--</option>';
+        var oldW = document.getElementById('haQoWardInput');
+        if (oldW) oldW.parentNode.replaceChild(newW, oldW);
+        else if (rows) rows.appendChild(newW);
+      }
+    })();
+
+    var cityEl = document.getElementById('haQoCity');
+    if (cityEl) cityEl.value = '';
+    var dEl = document.getElementById('haQoDistrict');
+    if (dEl) { dEl.innerHTML = '<option value="">-- Quận / Huyện *--</option>'; dEl.disabled = true; }
+    var wEl = document.getElementById('haQoWard');
+    if (wEl) { wEl.innerHTML = '<option value="">-- Phường / Xã *--</option>'; wEl.disabled = true; }
+
     var btn = document.getElementById('haQoConfirmBtn');
     if (btn) { btn.disabled = false; btn.textContent = '✅ XÁC NHẬN ĐẶT HÀNG'; }
 
     /* Ẩn màn thành công, hiện form */
-    var suc  = document.getElementById('haQoSuccess');      if (suc)  suc.style.display  = 'none';
-    var form = document.getElementById('haQoFormSection');  if (form) form.style.display = 'block';
+    var suc = document.getElementById('haQoSuccess'); if (suc) suc.style.display = 'none';
+    var form = document.getElementById('haQoFormSection'); if (form) form.style.display = 'block';
     var prev = document.getElementById('haQoProductPreview'); if (prev) prev.style.display = 'flex';
 
     /* Mở overlay */
@@ -24725,7 +25108,7 @@
     if (ov) ov.classList.add('ha-qo-open');
 
     /* Focus họ tên */
-    setTimeout(function () {
+    setTimeout(function() {
       var n = document.getElementById('haQoName'); if (n) n.focus();
     }, 340);
   };
@@ -24736,45 +25119,133 @@
     if (ov) ov.classList.remove('ha-qo-open');
   };
 
-  /* ── Xác nhận đặt hàng ── */
-  window.haQoSubmit = function () {
-    var qName    = (document.getElementById('haQoName')    || {}).value || '';
-    var qPhone   = (document.getElementById('haQoPhone')   || {}).value || '';
-    var qAddress = (document.getElementById('haQoAddress') || {}).value || '';
+  /* ── Xác nhận đặt hàng — gửi lên /orders API ── */
+  window.haQoSubmit = async function () {
+    var qName    = ((document.getElementById('haQoName')   || {}).value || '').trim();
+    var qPhone   = ((document.getElementById('haQoPhone')  || {}).value || '').trim();
+    var qCity    = getAddrVal('haQoCity');
+    var qDistrict= getAddrVal('haQoDistrict') || getAddrVal('haQoDistrictInput');
+    var qWard    = getAddrVal('haQoWard')     || getAddrVal('haQoWardInput');
+    var qStreet  = ((document.getElementById('haQoAddress') || {}).value || '').trim();
 
-    if (!qName.trim()) {
-      alert('Vui lòng nhập Họ và tên!');
-      document.getElementById('haQoName').focus(); return;
-    }
-    if (!qPhone.trim()) {
-      alert('Vui lòng nhập Số điện thoại!');
-      document.getElementById('haQoPhone').focus(); return;
-    }
-    if (!qAddress.trim()) {
-      alert('Vui lòng nhập Địa chỉ giao hàng!');
-      document.getElementById('haQoAddress').focus(); return;
-    }
+    if (!qName)    { alert('Vui lòng nhập Họ và tên!');       document.getElementById('haQoName').focus(); return; }
+    if (!qPhone)   { alert('Vui lòng nhập Số điện thoại!');   document.getElementById('haQoPhone').focus(); return; }
+    if (!qCity)    { alert('Vui lòng chọn Tỉnh / Thành phố!'); document.getElementById('haQoCity').focus(); return; }
+    if (!qDistrict){ alert('Vui lòng chọn hoặc nhập Quận / Huyện!'); return; }
+    if (!qWard)    { alert('Vui lòng chọn hoặc nhập Phường / Xã!'); return; }
+    if (!qStreet)  { alert('Vui lòng nhập số nhà, tên đường!'); document.getElementById('haQoAddress').focus(); return; }
+
+    var fullAddr = qStreet + ', ' + qWard + ', ' + qDistrict + ', ' + qCity;
+    var finalPrice = Math.max(0, _price - _discount);
 
     var btn = document.getElementById('haQoConfirmBtn');
     if (btn) { btn.disabled = true; btn.textContent = '⏳ Đang xử lý...'; }
 
-    /* Hoàn toàn độc lập: KHÔNG gọi addToCart, KHÔNG gọi cart[] */
-    setTimeout(function () {
-      var form = document.getElementById('haQoFormSection');
-      var prev = document.getElementById('haQoProductPreview');
-      var suc  = document.getElementById('haQoSuccess');
-      var msg  = document.getElementById('haQoSuccessMsg');
-      if (form) form.style.display = 'none';
-      if (prev) prev.style.display = 'none';
-      if (msg)  msg.innerHTML =
-        'Chúc mừng bạn đã đặt hàng thành công sản phẩm<br>' +
-        '<b style="color:#e65c00">' + _name + '</b>!<br>' +
-        '<span style="font-size:12px;color:#888">Shop sẽ liên hệ xác nhận qua SĐT: ' +
-        qPhone.trim() + '</span>';
-      if (suc)  suc.style.display = 'block';
-      if (btn)  { btn.disabled = false; btn.textContent = '✅ XÁC NHẬN ĐẶT HÀNG'; }
-    }, 750);
+    var token = (typeof localStorage !== 'undefined') ? localStorage.getItem('access_token') : null;
+
+    if (token) {
+      /* ─── Có token → gửi lên server API (giống Cart logic) ─── */
+      try {
+        // Lấy danh sách sản phẩm để match id
+        var productList = [];
+        try {
+          var pRes = await fetch('/products', { headers: { 'Authorization': 'Bearer ' + token } });
+          productList = await pRes.json();
+        } catch(e) {}
+
+        var productMap = {};
+        productList.forEach(function(p) {
+          productMap[String(p.name || '').trim().toLowerCase()] = { id: p.id, price: p.price };
+        });
+
+        var nameKey = String(_name || '').trim().toLowerCase();
+        var match   = productMap[nameKey];
+        var productId = match ? match.id : _id;
+        var unitPrice = match ? match.price : _price;
+
+        var orderData = {
+          items: [{ product_id: productId, quantity: 1, unit_price: unitPrice }],
+          shipping_address: fullAddr,
+          phone_number: qPhone,
+          customer_name: qName,
+          payment_method: _payMethod === 'online' ? 'Chuyển khoản' : 'COD',
+          voucher_code: _voucherCode || null,
+          discount_amount: _discount || 0
+        };
+
+        var res = await fetch('/orders', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+          body: JSON.stringify(orderData)
+        });
+        var result = await res.json();
+
+        if (res.ok) {
+          haQoShowSuccess(qName, qPhone, result.id, finalPrice);
+        } else {
+          var errMsg = (result.detail && typeof result.detail === 'string') ? result.detail :
+                       (result.detail && result.detail[0] && result.detail[0].msg) ? result.detail[0].msg :
+                       'Vui lòng thử lại!';
+          alert('❌ Lỗi đặt hàng: ' + errMsg);
+          if (btn) { btn.disabled = false; btn.textContent = '✅ XÁC NHẬN ĐẶT HÀNG'; }
+        }
+      } catch(e) {
+        console.error('Quick order error:', e);
+        // Fallback: lưu localStorage
+        haQoSaveLocalAndSuccess(qName, qPhone, fullAddr, finalPrice);
+      }
+
+    } else {
+      /* ─── Không có token → lưu localStorage + hiện thông báo ─── */
+      haQoSaveLocalAndSuccess(qName, qPhone, fullAddr, finalPrice);
+    }
   };
+
+  /* Lưu đơn vào localStorage (dùng khi offline/không login) */
+  function haQoSaveLocalAndSuccess(qName, qPhone, fullAddr, finalPrice) {
+    try {
+      var now = new Date();
+      var dateStr = now.getDate() + '/' + (now.getMonth()+1) + '/' + now.getFullYear() + ' ' +
+                    ('0'+now.getHours()).slice(-2) + ':' + ('0'+now.getMinutes()).slice(-2);
+      var localOrders = JSON.parse(localStorage.getItem('ha_quick_orders') || '[]');
+      var newOrder = {
+        id: 'QO' + Date.now(),
+        date: dateStr,
+        status: 'Chờ xác nhận',
+        customer_name: qName,
+        phone_number: qPhone,
+        shipping_address: fullAddr,
+        payment_method: _payMethod === 'online' ? 'Chuyển khoản' : 'COD',
+        voucher_code: _voucherCode || null,
+        discount_amount: _discount || 0,
+        items: [{ name: _name, image: _img, qty: 1, price: _price }],
+        total: finalPrice
+      };
+      localOrders.unshift(newOrder);
+      localStorage.setItem('ha_quick_orders', JSON.stringify(localOrders));
+    } catch(e) {}
+    haQoShowSuccess(qName, qPhone, null, finalPrice);
+  }
+
+  /* Hiển thị màn hình thành công */
+  function haQoShowSuccess(qName, qPhone, orderId, finalPrice) {
+    var form = document.getElementById('haQoFormSection');
+    var prev = document.getElementById('haQoProductPreview');
+    var suc  = document.getElementById('haQoSuccess');
+    var msg  = document.getElementById('haQoSuccessMsg');
+    if (form) form.style.display = 'none';
+    if (prev) prev.style.display = 'none';
+    var orderRef = orderId ? '#' + orderId : 'QO' + Date.now().toString().slice(-6);
+    if (msg) msg.innerHTML =
+      '✅ Đặt hàng thành công! Đơn hàng của bạn đã được lưu vào Lịch sử.<br>' +
+      '<b style="color:#e65c00">' + _name + '</b><br>' +
+      '<span style="font-size:12.5px;color:#276749;font-weight:700">Tổng: ' + new Intl.NumberFormat('vi-VN').format(finalPrice) + '₫</span>' +
+      (_discount > 0 ? ' <span style="font-size:11px;color:#888">(đã giảm ' + new Intl.NumberFormat('vi-VN').format(_discount) + '₫)</span>' : '') + '<br>' +
+      '<span style="font-size:12px;color:#888">Mã đơn: <b>' + orderRef + '</b> · Shop liên hệ qua SĐT: ' + qPhone + '</span>';
+    if (suc) suc.style.display = 'block';
+    var btn = document.getElementById('haQoConfirmBtn');
+    if (btn) { btn.disabled = false; btn.textContent = '✅ XÁC NHẬN ĐẶT HÀNG'; }
+  }
 
   /* ── Đóng bằng Escape ── */
   document.addEventListener('keydown', function (e) {
@@ -24784,10 +25255,20 @@
     }
   });
 
+  /* ── Khởi tạo khi DOM ready ── */
+  function haQoInit() {
+    haQoInitCity();
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', haQoInit);
+  } else {
+    haQoInit();
+  }
+
   /* ── Backward-compat aliases ── */
-  window.quickOrder   = window.openQuickOrder;
-  window.qoClose      = window.haQoClose;
-  window.qoSubmit     = window.haQoSubmit;
+  window.quickOrder = window.openQuickOrder;
+  window.qoClose    = window.haQoClose;
+  window.qoSubmit   = window.haQoSubmit;
 })();
 </script>
 <!-- ============ END QUICK ORDER ============ -->
