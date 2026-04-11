@@ -23197,19 +23197,6 @@
                 }
                 var finalTotal = rawTotal - cartDiscount;
 
-                /* Ưu tiên đọc giá cuối cùng từ thẻ hiển thị trên giao diện (khớp 100% với số khách thấy) */
-                var summaryEl = document.getElementById('cartSummary');
-                if (summaryEl && cartDiscount > 0) {
-                    var boldEls = summaryEl.querySelectorAll('b');
-                    boldEls.forEach(function(b) {
-                        var raw = b.textContent.replace(/[^\d]/g, '');
-                        if (raw.length > 0) {
-                            var parsed = parseInt(raw, 10);
-                            if (!isNaN(parsed) && parsed > 0) finalTotal = parsed;
-                        }
-                    });
-                }
-
                 /* Cập nhật unit_price theo tỉ lệ giảm giá để server lưu đúng giá */
                 var discountRatio = rawTotal > 0 ? (finalTotal / rawTotal) : 1;
                 validItems.forEach(function(it) {
