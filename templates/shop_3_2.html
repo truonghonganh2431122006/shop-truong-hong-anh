@@ -23182,7 +23182,7 @@
                     return;
                 }
 
-                /* ── Tính tổng tiền thực tế sau Voucher (khớp 100% với UI) ── */
+                /* ── Tính tổng tiền thực tế sau Voucher — lấy trực tiếp từ UI ── */
                 var rawTotal = 0;
                 selectedCart.forEach(function(item) {
                     rawTotal += (parseFloat(item.price) || 0) * (parseInt(item.qty || item.quantity) || 1);
@@ -23196,6 +23196,19 @@
                     }
                 }
                 var finalTotal = rawTotal - cartDiscount;
+
+                /* Ưu tiên đọc giá cuối cùng từ thẻ hiển thị trên giao diện (khớp 100% với số khách thấy) */
+                var summaryEl = document.getElementById('cartSummary');
+                if (summaryEl && cartDiscount > 0) {
+                    var boldEls = summaryEl.querySelectorAll('b');
+                    boldEls.forEach(function(b) {
+                        var raw = b.textContent.replace(/[^\d]/g, '');
+                        if (raw.length > 0) {
+                            var parsed = parseInt(raw, 10);
+                            if (!isNaN(parsed) && parsed > 0) finalTotal = parsed;
+                        }
+                    });
+                }
 
                 /* Cập nhật unit_price theo tỉ lệ giảm giá để server lưu đúng giá */
                 var discountRatio = rawTotal > 0 ? (finalTotal / rawTotal) : 1;
@@ -23212,7 +23225,8 @@
                     voucherUsed: appliedVoucher ? appliedVoucher.code : null,
                     discount_amount: cartDiscount,
                     discountAmount: cartDiscount,
-                    final_total: finalTotal
+                    final_total: finalTotal,
+                    total: finalTotal          /* ← đảm bảo backend luôn nhận đúng tổng đã giảm */
                 };
                 
                 try {
@@ -25194,7 +25208,14 @@
     /* ── Lấy giá cuối từ THẺ HIỂN THỊ để đảm bảo 100% khớp UI ── */
     var _finalDisplayEl = document.getElementById('haQoFinalPrice');
     var _displayedValue = _finalDisplayEl ? parseFloat(_finalDisplayEl.getAttribute('data-value') || '') : NaN;
-    var finalPrice = (!isNaN(_displayedValue) && _displayedValue >= 0 && _discount > 0)
+
+    /* Fallback: đọc text thẻ nếu data-value không có */
+    if ((isNaN(_displayedValue) || _displayedValue <= 0) && _finalDisplayEl && _finalDisplayEl.style.display !== 'none') {
+        var _rawText = (_finalDisplayEl.textContent || '').replace(/[^\d]/g, '');
+        if (_rawText.length > 0) _displayedValue = parseInt(_rawText, 10);
+    }
+
+    var finalPrice = (!isNaN(_displayedValue) && _displayedValue > 0 && _discount > 0)
       ? _displayedValue
       : Math.max(0, _price - _discount);
 
@@ -25230,7 +25251,9 @@
           customer_name: qName,
           payment_method: _payMethod === 'online' ? 'Chuyển khoản' : 'COD',
           voucher_code: _voucherCode || null,
-          discount_amount: _discount || 0
+          discount_amount: _discount || 0,
+          final_total: finalPrice,
+          total: finalPrice              /* ← đảm bảo backend luôn nhận đúng tổng đã giảm */
         };
 
         var res = await fetch('/orders', {
@@ -25241,6 +25264,29 @@
         var result = await res.json();
 
         if (res.ok) {
+          /* Lưu vào localStorage để đồng bộ với order-history (backup) */
+          try {
+            var now = new Date();
+            var dateStr = now.getDate() + '/' + (now.getMonth()+1) + '/' + now.getFullYear() + ' ' +
+                          ('0'+now.getHours()).slice(-2) + ':' + ('0'+now.getMinutes()).slice(-2);
+            var localOrders = JSON.parse(localStorage.getItem('ha_quick_orders') || '[]');
+            localOrders.unshift({
+              id: result.id || ('QO' + Date.now()),
+              date: dateStr,
+              status: 'Chờ xác nhận',
+              customer_name: qName,
+              phone_number: qPhone,
+              shipping_address: fullAddr,
+              payment_method: _payMethod === 'online' ? 'Chuyển khoản' : 'COD',
+              voucher_code: _voucherCode || null,
+              voucherUsed: _voucherCode || null,
+              discount_amount: _discount || 0,
+              discountAmount: _discount || 0,
+              items: [{ name: _name, image: _img, qty: 1, price: finalPrice }],
+              total: finalPrice
+            });
+            localStorage.setItem('ha_quick_orders', JSON.stringify(localOrders));
+          } catch(e) {}
           haQoShowSuccess(qName, qPhone, result.id, finalPrice);
         } else {
           var errMsg = (result.detail && typeof result.detail === 'string') ? result.detail :
