@@ -24117,7 +24117,14 @@
             document.getElementById('modalBuyBtn').onclick = function(ev) {
                 if (ev) ev.stopPropagation();
                 closeModal();
-                quickOrder(id, name, price, img);
+                // Delay nhỏ để modal chi tiết đóng xong animation trước khi qo-overlay mở
+                setTimeout(function() {
+                    if (typeof window.quickOrder === 'function') {
+                        window.quickOrder(id, name, price, img);
+                    } else {
+                        console.error('quickOrder chưa được khởi tạo!');
+                    }
+                }, 120);
             };
 
             // 3. Hiển thị Modal
@@ -25238,7 +25245,7 @@
           '<div class="sa-prod-card-name">' + (p.name||'') + '</div>' +
           '<div class="sa-prod-card-price">' + fmt + '₫</div>' +
           '<button class="sa-prod-card-btn" ' +
-            'onclick="event.stopPropagation();quickOrder(' + p.id + ',\'' + safe + '\',' + p.price + ',\'' + imgSafe + '\')">' +
+            'onclick="event.stopPropagation();if(typeof window.quickOrder===\'function\'){window.quickOrder(' + p.id + ',\'' + safe + '\',' + p.price + ',\'' + imgSafe + '\');}else{alert(\'Đang tải, vui lòng thử lại!\');}">' +
             '⚡ MUA NGAY' +
           '</button>' +
         '</div>';
