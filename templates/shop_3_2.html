@@ -25084,8 +25084,15 @@
   window.openQuickOrder = function (idOrObj, name, price, img) {
     /* ══ KIỂM TRA ĐĂNG NHẬP — bắt buộc trước khi hiện form ══ */
     if (!localStorage.getItem('access_token')) {
-      alert('⚠️ Vui lòng đăng nhập để mua hàng!\nĐang chuyển hướng đến trang đăng nhập...');
-      window.location.href = '/login';
+      if (typeof showCustomModal === 'function') {
+        showCustomModal(
+          'Yêu cầu đăng nhập',
+          'Vui lòng đăng nhập để mua hàng bạn nhé!',
+          function() { window.location.href = '/login'; }
+        );
+      } else {
+        if (confirm('Vui lòng đăng nhập để mua hàng!')) window.location.href = '/login';
+      }
       return;
     }
 
