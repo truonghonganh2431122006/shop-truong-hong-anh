@@ -15,10 +15,24 @@
             padding: 0 !important;
         }
 
-        /* CSS cho Cửa sổ chi tiết */
+        /* ════════════════════════════════════════════════
+           MODAL CHI TIẾT SẢN PHẨM — UI PRO từ file (3)
+        ════════════════════════════════════════════════ */
+        :root {
+            --ha-blue: #0071e3; --ha-blue-dk: #0058b8;
+            --ha-yellow: #ffed00; --ha-red: #d0021c;
+            --ha-bg: #f5f5f7; --ha-white: #ffffff;
+            --ha-text: #1d1d1f; --ha-sub: #6e6e73;
+            --ha-border: #d2d2d7; --ha-radius: 16px;
+            --ha-shadow: 0 2px 12px rgba(0,0,0,0.09);
+            --ha-shadow-lg: 0 16px 48px rgba(0,0,0,0.17);
+            --ha-ease: cubic-bezier(0.4,0,0.2,1);
+        }
+
         .modal-overlay {
             display: none !important; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.7); z-index: 99998; justify-content: center; align-items: center;
+            background: rgba(0,0,0,0.65); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+            z-index: 99998; justify-content: center; align-items: center;
         }
         .modal-overlay.show { display: flex !important; }
 
@@ -27,16 +41,187 @@
         .listproduct .item > a.remain_quantity * { pointer-events: none; }
         .listproduct .item .btn-buy,
         .listproduct .item .btn-buy * { pointer-events: auto; }
+
         .modal-content {
-            background: white; width: 90%; max-width: 700px; border-radius: 15px;
-            padding: 30px; position: relative; animation: popUp 0.3s ease;
+            background: white; width: 92%; max-width: 780px;
+            border-radius: 22px !important; padding: 0 !important; overflow: hidden !important;
+            box-shadow: 0 32px 80px rgba(0,0,0,0.28) !important; position: relative;
+            animation: ha-modal-in 0.35s cubic-bezier(0.34,1.56,0.64,1);
         }
-        @keyframes popUp { from {transform: scale(0.8); opacity: 0;} to {transform: scale(1); opacity: 1;} }
+        @keyframes ha-modal-in {
+            from { transform: scale(0.88) translateY(30px); opacity: 0; }
+            to   { transform: scale(1) translateY(0); opacity: 1; }
+        }
+        .modal-body {
+            display: flex !important; flex-wrap: nowrap !important;
+            gap: 0 !important; min-height: 380px;
+        }
+        .modal-left {
+            flex: 0 0 46% !important; background: var(--ha-bg) !important;
+            display: flex !important; align-items: center !important;
+            justify-content: center !important; padding: 30px !important;
+        }
+        .modal-left #modalImg {
+            max-width: 100% !important; max-height: 310px !important;
+            object-fit: contain !important; border-radius: 12px !important;
+            transition: transform 0.4s var(--ha-ease) !important; width: 100% !important;
+        }
+        .modal-left #modalImg:hover { transform: scale(1.05) !important; }
+        .modal-right {
+            flex: 1 !important; padding: 30px 28px 26px !important;
+            display: flex !important; flex-direction: column !important;
+            background: var(--ha-white) !important; overflow-y: auto !important;
+        }
+        #modalName {
+            font-size: 17px !important; font-weight: 700 !important;
+            color: var(--ha-text) !important; line-height: 1.4 !important;
+            margin: 0 0 10px !important;
+        }
+        .ha-trust-badges { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 14px; }
+        .ha-trust-badge {
+            font-size: 11px; font-weight: 600; padding: 4px 10px; border-radius: 20px;
+            background: #f0f7ff; color: var(--ha-blue); border: 1px solid #c5dfff;
+        }
+        .ha-trust-badge.green { background: #f0fff4; color: #276749; border-color: #9ae6b4; }
+        .ha-trust-badge.red   { background: #fff5f5; color: #c53030; border-color: #feb2b2; }
+        #modalPrice {
+            font-size: 28px !important; font-weight: 900 !important;
+            color: var(--ha-red) !important; margin: 0 0 18px !important;
+            letter-spacing: -0.5px !important;
+        }
+        .modal-divider { height: 1px; background: var(--ha-border); margin: 0 0 16px; }
+        .modal-desc h4 {
+            font-size: 11px !important; text-transform: uppercase !important;
+            letter-spacing: 0.8px !important; color: var(--ha-sub) !important;
+            margin: 0 0 6px !important; font-weight: 600 !important;
+        }
+        #modalDesc { font-size: 13px !important; color: #444 !important; line-height: 1.75 !important; }
+        #modalBuyBtn, .modal-buy-btn {
+            margin-top: auto !important; padding: 15px 22px !important;
+            background: var(--ha-yellow) !important; border: none !important;
+            border-radius: 12px !important; font-size: 14px !important;
+            font-weight: 800 !important; cursor: pointer !important; width: 100% !important;
+            transition: all 0.22s var(--ha-ease) !important;
+        }
+        #modalBuyBtn:hover, .modal-buy-btn:hover {
+            background: #ffe500 !important;
+            box-shadow: 0 6px 20px rgba(255,229,0,0.5) !important;
+            transform: translateY(-2px) !important;
+        }
         .close-modal {
-            position: absolute; top: 10px; right: 20px; font-size: 35px; cursor: pointer; color: #999;
+            position: absolute !important; top: 14px !important; right: 16px !important;
+            width: 32px !important; height: 32px !important; background: rgba(0,0,0,0.07) !important;
+            border-radius: 50% !important; display: flex !important; align-items: center !important;
+            justify-content: center !important; font-size: 16px !important; cursor: pointer !important;
+            z-index: 10 !important; transition: background 0.2s !important; color: var(--ha-text) !important;
         }
-        .modal-body { display: flex; gap: 25px; flex-wrap: wrap; }
-        .modal-left, .modal-right { flex: 1; min-width: 280px; }
+        .close-modal:hover { background: rgba(0,0,0,0.15) !important; }
+        @media (max-width: 860px) {
+            .modal-body { flex-direction: column !important; }
+            .modal-left { flex: none !important; min-height: 220px !important; padding: 22px !important; }
+            .modal-right { padding: 20px !important; }
+            .modal-content { max-width: 96vw !important; border-radius: 18px !important; }
+        }
+
+        /* ════════════════════════════════════════════════
+           FILTER BAR — Nút Lọc sản phẩm
+        ════════════════════════════════════════════════ */
+        #ha-filter-wrapper {
+            width: 94%; max-width: 1200px; margin: 16px auto 0; box-sizing: border-box;
+        }
+        #ha-filter-btn {
+            display: inline-flex; align-items: center; gap: 8px;
+            padding: 11px 22px; background: #1d1d1f; color: #fff;
+            border: none; border-radius: 30px; font-size: 14px; font-weight: 700;
+            cursor: pointer; box-shadow: 0 4px 16px rgba(0,0,0,0.18);
+            transition: all 0.22s var(--ha-ease); font-family: inherit; letter-spacing: 0.2px;
+        }
+        #ha-filter-btn:hover { background: #0071e3; box-shadow: 0 6px 20px rgba(0,113,227,0.35); transform: translateY(-2px); }
+        #ha-filter-btn svg { width: 16px; height: 16px; flex-shrink: 0; }
+        #ha-filter-btn .ha-filter-count {
+            background: #ffed00; color: #1d1d1f; font-size: 11px; font-weight: 800;
+            padding: 1px 7px; border-radius: 20px; display: none;
+        }
+        #ha-filter-btn .ha-filter-count.show { display: inline-block; }
+
+        #ha-filter-panel {
+            display: none; background: #fff; border: 1.5px solid #e2e8f0;
+            border-radius: 16px; padding: 20px 24px; margin-top: 10px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+            animation: ha-panel-in 0.22s var(--ha-ease);
+        }
+        #ha-filter-panel.open { display: block; }
+        @keyframes ha-panel-in { from { opacity:0; transform:translateY(-8px); } to { opacity:1; transform:translateY(0); } }
+
+        .ha-fp-row { display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-start; }
+        .ha-fp-group { display: flex; flex-direction: column; gap: 8px; }
+        .ha-fp-label {
+            font-size: 11px; font-weight: 700; text-transform: uppercase;
+            letter-spacing: 0.8px; color: #6e6e73;
+        }
+        .ha-fp-chips { display: flex; flex-wrap: wrap; gap: 7px; }
+        .ha-chip-btn {
+            padding: 7px 16px; background: #f5f5f7; border: 1.5px solid #e2e8f0;
+            border-radius: 20px; font-size: 13px; font-weight: 600; cursor: pointer;
+            color: #1d1d1f; transition: all 0.18s; font-family: inherit;
+        }
+        .ha-chip-btn:hover { background: #e8f0fe; border-color: #0071e3; color: #0071e3; }
+        .ha-chip-btn.active { background: #0071e3; border-color: #0071e3; color: #fff; box-shadow: 0 2px 8px rgba(0,113,227,0.3); }
+        .ha-fp-divider { width: 1px; background: #e2e8f0; align-self: stretch; }
+        .ha-fp-actions { display: flex; gap: 10px; align-items: center; margin-top: 16px; border-top: 1px solid #e2e8f0; padding-top: 14px; }
+        #ha-filter-apply {
+            padding: 10px 24px; background: #0071e3; color: #fff; border: none;
+            border-radius: 20px; font-size: 13px; font-weight: 700; cursor: pointer;
+            transition: all 0.2s; font-family: inherit;
+        }
+        #ha-filter-apply:hover { background: #0058b8; transform: translateY(-1px); }
+        #ha-filter-reset {
+            padding: 10px 18px; background: #f5f5f7; color: #444; border: 1.5px solid #e2e8f0;
+            border-radius: 20px; font-size: 13px; font-weight: 600; cursor: pointer;
+            transition: all 0.2s; font-family: inherit;
+        }
+        #ha-filter-reset:hover { background: #e2e8f0; }
+        #ha-filter-result-msg {
+            font-size: 13px; color: #6e6e73; margin-left: auto; font-style: italic;
+        }
+
+        /* ════ SKELETON LOADING ════ */
+        @keyframes ha-shimmer {
+            0%   { background-position: -700px 0 }
+            100% { background-position:  700px 0 }
+        }
+        .ha-skel {
+            background: linear-gradient(90deg, #ebebeb 25%, #f8f8f8 50%, #ebebeb 75%);
+            background-size: 700px 100%;
+            animation: ha-shimmer 1.5s infinite linear;
+            border-radius: 8px;
+        }
+        .ha-skel-card {
+            background: #fff; border-radius: 16px; padding: 0;
+            overflow: hidden; box-shadow: 0 2px 12px rgba(0,0,0,0.09);
+            display: flex; flex-direction: column;
+        }
+        .ha-skel-img  { height: 175px; border-radius: 0; }
+        .ha-skel-body { padding: 12px; display: flex; flex-direction: column; gap: 8px; }
+        .ha-skel-line { height: 13px; border-radius: 6px; }
+        .ha-skel-line.s60 { width: 60%; }
+        .ha-skel-line.s40 { width: 40%; }
+        .ha-skel-btn  { height: 36px; border-radius: 8px; margin-top: 4px; }
+
+        /* ════ SUPER BTN UPGRADE ════ */
+        #superBtn {
+            background: linear-gradient(135deg, #0071e3, #0058b8) !important;
+            color: #fff !important; border: none !important;
+            border-radius: 30px !important; padding: 14px 52px !important;
+            font-size: 15px !important; font-weight: 700 !important;
+            cursor: pointer !important;
+            transition: all 0.25s cubic-bezier(0.4,0,0.2,1) !important;
+            box-shadow: 0 4px 18px rgba(0,113,227,0.35) !important;
+        }
+        #superBtn:hover {
+            transform: translateY(-3px) !important;
+            box-shadow: 0 10px 28px rgba(0,113,227,0.5) !important;
+        }
 
         /* Khung chứa dùng công thức Grid để chia đúng 6 cột */
         .listproduct {
@@ -21626,7 +21811,62 @@
 </div>
 <!--End-->
 <div class="main-container">
-    <div id="filter-container" class="filter-box" style="margin: 20px 0;"></div>
+    <!-- ════ NÚT LỌC SẢN PHẨM — nằm ngay trên danh sách ════ -->
+    <div id="ha-filter-wrapper">
+        <button id="ha-filter-btn" onclick="haToggleFilter()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="11" y1="18" x2="13" y2="18"/>
+            </svg>
+            🔍 Lọc sản phẩm
+            <span class="ha-filter-count" id="ha-filter-count">0</span>
+        </button>
+
+        <div id="ha-filter-panel">
+            <div class="ha-fp-row">
+                <!-- Hãng -->
+                <div class="ha-fp-group">
+                    <div class="ha-fp-label">Hãng</div>
+                    <div class="ha-fp-chips" id="ha-brand-chips">
+                        <button class="ha-chip-btn" data-group="brand" data-val="apple" onclick="haToggleChip(this)">🍎 Apple</button>
+                        <button class="ha-chip-btn" data-group="brand" data-val="samsung" onclick="haToggleChip(this)">Samsung</button>
+                        <button class="ha-chip-btn" data-group="brand" data-val="xiaomi" onclick="haToggleChip(this)">Xiaomi</button>
+                        <button class="ha-chip-btn" data-group="brand" data-val="oppo" onclick="haToggleChip(this)">Oppo</button>
+                    </div>
+                </div>
+
+                <div class="ha-fp-divider"></div>
+
+                <!-- Giá -->
+                <div class="ha-fp-group">
+                    <div class="ha-fp-label">Khoảng giá</div>
+                    <div class="ha-fp-chips" id="ha-price-chips">
+                        <button class="ha-chip-btn" data-group="price" data-min="0" data-max="5000000" onclick="haToggleChip(this)">Dưới 5 triệu</button>
+                        <button class="ha-chip-btn" data-group="price" data-min="5000000" data-max="10000000" onclick="haToggleChip(this)">5 – 10 triệu</button>
+                        <button class="ha-chip-btn" data-group="price" data-min="10000000" data-max="20000000" onclick="haToggleChip(this)">10 – 20 triệu</button>
+                        <button class="ha-chip-btn" data-group="price" data-min="20000000" data-max="999999999" onclick="haToggleChip(this)">Trên 20 triệu</button>
+                    </div>
+                </div>
+
+                <div class="ha-fp-divider"></div>
+
+                <!-- Sắp xếp -->
+                <div class="ha-fp-group">
+                    <div class="ha-fp-label">Sắp xếp</div>
+                    <div class="ha-fp-chips" id="ha-sort-chips">
+                        <button class="ha-chip-btn" data-group="sort" data-val="asc" onclick="haToggleChip(this)">💰 Giá thấp → cao</button>
+                        <button class="ha-chip-btn" data-group="sort" data-val="desc" onclick="haToggleChip(this)">💎 Giá cao → thấp</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="ha-fp-actions">
+                <button id="ha-filter-apply" onclick="haApplyFilter()">✅ Áp dụng</button>
+                <button id="ha-filter-reset" onclick="haResetFilter()">↩ Bỏ lọc</button>
+                <span id="ha-filter-result-msg"></span>
+            </div>
+        </div>
+    </div>
+    <!-- ════ END FILTER ════ -->
 
     <div class="box-common__content">
         <div id="product-list-container" class="listproduct slider-flashsale">
@@ -22389,24 +22629,37 @@
     </div>
     <div class="toast-msg" id="toastMsg"></div>
 
+    <!-- ════ MODAL CHI TIẾT SẢN PHẨM PRO — 2 cột ════ -->
     <div id="productModal" class="modal-overlay" onclick="if(event.target===this) closeModal()">
         <div class="modal-content" onclick="event.stopPropagation()">
-            <span class="close-modal" onclick="closeModal()">&times;</span>
+            <!-- Nút đóng -->
+            <span class="close-modal" onclick="closeModal()" title="Đóng">&#10005;</span>
             <div class="modal-body">
+                <!-- Cột trái: ảnh -->
                 <div class="modal-left">
-                    <img id="modalImg" src="" alt="Ảnh sản phẩm" style="width:100%; border-radius:8px;">
+                    <img id="modalImg" src="" alt="Ảnh sản phẩm"
+                         onerror="this.onerror=null;this.src='https://placehold.co/300x300?text=No+Image'">
                 </div>
+                <!-- Cột phải: thông tin -->
                 <div class="modal-right">
-                    <h2 id="modalName" style="margin-top:0;"></h2>
-                    <p class="modal-price" id="modalPrice" style="color:red; font-size:24px; font-weight:bold;"></p>
-                    <hr>
-                    <div class="modal-desc">
-                        <h4 style="margin-bottom:10px;">Mô tả chi tiết:</h4>
-                        <p id="modalDesc" style="color:#555; line-height:1.6;"></p>
+                    <h2 id="modalName"></h2>
+                    <!-- Badges tin tưởng -->
+                    <div class="ha-trust-badges">
+                        <span class="ha-trust-badge green">✅ Chính hãng 100%</span>
+                        <span class="ha-trust-badge">🛡️ BH 12 tháng</span>
+                        <span class="ha-trust-badge red">🔄 Đổi trả 30 ngày</span>
                     </div>
-                    <button class="modal-buy-btn" id="modalBuyBtn" 
-                        style="width:100%; padding:15px; background:#ffed00; border:none; border-radius:8px; font-weight:bold; cursor:pointer; margin-top:20px;">
-                        Cảm ơn bạn đã xem 
+                    <!-- Giá -->
+                    <div id="modalPrice"></div>
+                    <div class="modal-divider"></div>
+                    <!-- Mô tả -->
+                    <div class="modal-desc">
+                        <h4>Mô tả sản phẩm</h4>
+                        <p id="modalDesc"></p>
+                    </div>
+                    <!-- Nút mua -->
+                    <button class="modal-buy-btn" id="modalBuyBtn">
+                        🛒&nbsp; Mua ngay
                     </button>
                 </div>
             </div>
@@ -23124,42 +23377,196 @@
 
         })();
     </script>
+    <!-- ════ FILTER LOGIC + XEM THÊM TÍCH HỢP ════ -->
     <script>
-        window.addEventListener("load", function () {
-            var sanPham = document.querySelectorAll(".listproduct .item");
-            var nut = document.getElementById("superBtn") || document.getElementById("btnXemThem") || document.querySelector(".readmore-btn");
+    // ─── Trạng thái lọc toàn cục ────────────────────────────────────────────
+    var haFilterState = { brand: null, priceMin: null, priceMax: null, sort: null };
+    var haPageSize   = 12;   // số sản phẩm hiển thị lần đầu
+    var haPageStep   = 6;    // mỗi lần bấm XEM THÊM
+    var haVisibleEnd = haPageSize; // con trỏ trang hiện tại
 
-            if (!nut || sanPham.length === 0) return;
+    // ─── Toggle panel mở/đóng ───────────────────────────────────────────────
+    window.haToggleFilter = function() {
+        var panel = document.getElementById('ha-filter-panel');
+        panel.classList.toggle('open');
+    };
 
-            var hienTai = 12; // Hiện 2 hàng đầu (6x2)
-            var buocNhay = 6; // Mỗi lần bấm hiện thêm 1 hàng
-
-            function capNhat() {
-                sanPham.forEach((item, index) => {
-                    if (index < hienTai) {
-                        // Ép display block để nó lấp đầy ô Grid
-                        item.style.setProperty('display', 'block', 'important');
-                    } else {
-                        item.style.setProperty('display', 'none', 'important');
-                    }
-                });
-
-                // Ẩn nút nếu hết hàng
-                if (hienTai >= sanPham.length) {
-                    var vungChuaNut = nut.closest('.readmore') || nut.parentElement;
-                    vungChuaNut.style.display = "none";
-                }
-            }
-
-            capNhat();
-
-            nut.onclick = function (e) {
-                e.preventDefault();
-                hienTai += buocNhay;
-                capNhat();
-            };
+    // ─── Toggle chip (chỉ 1 chip/group được active) ─────────────────────────
+    window.haToggleChip = function(btn) {
+        var group = btn.getAttribute('data-group');
+        document.querySelectorAll('.ha-chip-btn[data-group="' + group + '"]').forEach(function(b) {
+            b.classList.remove('active');
         });
+        btn.classList.toggle('active');
+
+        // Đọc giá trị vào state
+        if (btn.classList.contains('active')) {
+            if (group === 'brand')  haFilterState.brand    = btn.getAttribute('data-val');
+            if (group === 'price')  { haFilterState.priceMin = parseFloat(btn.getAttribute('data-min')); haFilterState.priceMax = parseFloat(btn.getAttribute('data-max')); }
+            if (group === 'sort')   haFilterState.sort     = btn.getAttribute('data-val');
+        } else {
+            if (group === 'brand')  haFilterState.brand    = null;
+            if (group === 'price')  { haFilterState.priceMin = null; haFilterState.priceMax = null; }
+            if (group === 'sort')   haFilterState.sort     = null;
+        }
+        updateFilterCount();
+    };
+
+    // ─── Đếm số tiêu chí đang lọc để hiện badge ────────────────────────────
+    function updateFilterCount() {
+        var c = 0;
+        if (haFilterState.brand) c++;
+        if (haFilterState.priceMin !== null) c++;
+        if (haFilterState.sort) c++;
+        var badge = document.getElementById('ha-filter-count');
+        if (!badge) return;
+        badge.textContent = c;
+        badge.classList.toggle('show', c > 0);
+    }
+
+    // ─── Áp dụng lọc + sắp xếp + phân trang ────────────────────────────────
+    window.haApplyFilter = function() {
+        var container = document.getElementById('product-list-container');
+        if (!container) return;
+
+        var allItems = Array.from(container.querySelectorAll('.item'));
+
+        // 1. Lọc theo brand & giá
+        var matched = allItems.filter(function(item) {
+            var name  = (item.getAttribute('data-pname') || item.querySelector('h3')?.textContent || '').toLowerCase();
+            var price = parseFloat(item.getAttribute('data-pprice') || 0);
+
+            var brandOk = true;
+            if (haFilterState.brand) {
+                brandOk = name.indexOf(haFilterState.brand) > -1;
+            }
+            var priceOk = true;
+            if (haFilterState.priceMin !== null) {
+                priceOk = price >= haFilterState.priceMin && price < haFilterState.priceMax;
+            }
+            return brandOk && priceOk;
+        });
+
+        // 2. Sắp xếp
+        if (haFilterState.sort === 'asc') {
+            matched.sort(function(a, b) { return parseFloat(a.getAttribute('data-pprice')||0) - parseFloat(b.getAttribute('data-pprice')||0); });
+        } else if (haFilterState.sort === 'desc') {
+            matched.sort(function(a, b) { return parseFloat(b.getAttribute('data-pprice')||0) - parseFloat(a.getAttribute('data-pprice')||0); });
+        }
+
+        // 3. Ẩn tất cả
+        allItems.forEach(function(item) { item.style.setProperty('display', 'none', 'important'); });
+
+        // 4. Hiện lại theo thứ tự đã sắp xếp (reorder trong DOM) & phân trang
+        haVisibleEnd = haPageSize;
+        matched.forEach(function(item, idx) {
+            container.appendChild(item); // reorder
+            if (idx < haVisibleEnd) item.style.setProperty('display', 'block', 'important');
+        });
+
+        // 5. Cập nhật nút XEM THÊM
+        updateSuperBtn(matched);
+
+        // 6. Thông báo kết quả
+        var msg = document.getElementById('ha-filter-result-msg');
+        if (msg) msg.textContent = 'Tìm thấy ' + matched.length + ' sản phẩm';
+
+        // 7. Đóng panel
+        document.getElementById('ha-filter-panel').classList.remove('open');
+    };
+
+    // ─── Reset toàn bộ bộ lọc ───────────────────────────────────────────────
+    window.haResetFilter = function() {
+        haFilterState = { brand: null, priceMin: null, priceMax: null, sort: null };
+        document.querySelectorAll('.ha-chip-btn').forEach(function(b) { b.classList.remove('active'); });
+        updateFilterCount();
+
+        var container = document.getElementById('product-list-container');
+        if (!container) return;
+        var allItems = Array.from(container.querySelectorAll('.item'));
+
+        haVisibleEnd = haPageSize;
+        allItems.forEach(function(item, idx) {
+            if (idx < haVisibleEnd) item.style.setProperty('display', 'block', 'important');
+            else item.style.setProperty('display', 'none', 'important');
+        });
+        updateSuperBtn(allItems);
+
+        var msg = document.getElementById('ha-filter-result-msg');
+        if (msg) msg.textContent = '';
+        document.getElementById('ha-filter-panel').classList.remove('open');
+    };
+
+    // ─── Helper: cập nhật trạng thái nút XEM THÊM ───────────────────────────
+    function updateSuperBtn(matchedItems) {
+        var nut = document.getElementById('superBtn');
+        if (!nut) return;
+        var wrapper = nut.closest('.readmore') || nut.parentElement;
+
+        if (matchedItems.length <= haVisibleEnd) {
+            wrapper.style.display = 'none';
+        } else {
+            wrapper.style.display = '';
+            nut.onclick = function(e) {
+                e.preventDefault();
+                haVisibleEnd += haPageStep;
+                matchedItems.forEach(function(item, idx) {
+                    if (idx < haVisibleEnd) item.style.setProperty('display', 'block', 'important');
+                });
+                if (haVisibleEnd >= matchedItems.length) wrapper.style.display = 'none';
+            };
+        }
+    }
+
+    // ─── Khởi động ban đầu sau khi DOM sẵn sàng ─────────────────────────────
+    window.haInitPaging = function haInitPaging() {
+        var container = document.getElementById('product-list-container');
+        var nut = document.getElementById('superBtn');
+        if (!container || !nut) return;
+
+        var allItems = Array.from(container.querySelectorAll('.item'));
+        if (allItems.length === 0) return;
+
+        haVisibleEnd = haPageSize;
+        allItems.forEach(function(item, idx) {
+            if (idx < haVisibleEnd) item.style.setProperty('display', 'block', 'important');
+            else item.style.setProperty('display', 'none', 'important');
+        });
+        updateSuperBtn(allItems);
+    }
+
+    // Chạy khi trang load xong (sản phẩm có thể được fetch async)
+    window.addEventListener('load', function() {
+        // Delay nhỏ để đảm bảo fetch sản phẩm đã xong
+        setTimeout(haInitPaging, 800);
+    });
+
+    // Cũng lắng nghe MutationObserver phòng khi sản phẩm được thêm muộn
+    (function() {
+        var container = document.getElementById('product-list-container');
+        if (!container) {
+            document.addEventListener('DOMContentLoaded', function() {
+                var c2 = document.getElementById('product-list-container');
+                if (c2) observeContainer(c2);
+            });
+        } else { observeContainer(container); }
+
+        function observeContainer(c) {
+            var done = false;
+            var obs = new MutationObserver(function() {
+                if (done) return;
+                var items = c.querySelectorAll('.item');
+                if (items.length > 0) {
+                    done = true;
+                    obs.disconnect();
+                    setTimeout(haInitPaging, 200);
+                }
+            });
+            obs.observe(c, { childList: true });
+        }
+    })();
     </script>
+    <!-- ════ END FILTER LOGIC ════ -->
     <script>
         window.initAddressAPI = function () {
             var citis = document.getElementById("province");
@@ -23318,6 +23725,22 @@
 
         // 2. Hàm chính: Lấy dữ liệu từ Database và đổ vào HTML
         async function displayProducts() {
+            // Hiện skeleton khi đang tải
+            const containerPre = document.getElementById('product-list-container');
+            if (containerPre) {
+                let skelHtml = '';
+                for (let i = 0; i < 12; i++) {
+                    skelHtml += `<div class="ha-skel-card">
+                        <div class="ha-skel ha-skel-img"></div>
+                        <div class="ha-skel-body">
+                            <div class="ha-skel ha-skel-line"></div>
+                            <div class="ha-skel ha-skel-line s60"></div>
+                            <div class="ha-skel ha-skel-line s40"></div>
+                            <div class="ha-skel ha-skel-btn"></div>
+                        </div></div>`;
+                }
+                containerPre.innerHTML = skelHtml;
+            }
             try {
                 const response = await fetch('https://shop-truong-hong-anh.onrender.com/products');
                 const products = await response.json();
@@ -23369,6 +23792,8 @@
                     container.appendChild(itemDiv);
                 });
                 console.log("Đã nạp thành công " + products.length + " sản phẩm!");
+                // Khởi động phân trang và lọc sau khi sản phẩm đã render
+                if (window.haInitPaging) setTimeout(window.haInitPaging, 100);
             } catch (error) {
                 console.error("Lỗi khi kết nối API:", error);
             }
