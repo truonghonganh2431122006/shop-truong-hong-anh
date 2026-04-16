@@ -24381,7 +24381,7 @@
   // Lấy key tại: console.groq.com → API Keys → Create API Key
   // Dán key vào dòng dưới đây (dạng gsk_...)
   // ============================================================
-  var GROQ_KEY = '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'; // ← AI #1 — Điền Groq API key của bạn vào đây
+  var GROQ_KEY = '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'; // ← AI #1 — Điền Groq API key của bạn vào đây
   var GROQ_URL = 'https://api.groq.com/openai/v1/chat/completions';
   var MODEL    = 'llama-3.1-8b-instant'; // Miễn phí, nhanh
 
@@ -25684,19 +25684,36 @@
    Để trống API key — tự điền vào SA_KEY bên dưới
 ==================================================================== */
 (function(){
-  var SA_KEY   = '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'; // ← Điền Groq API key của bạn vào đây (dạng gsk_...)
+  var SA_KEY   = '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'; // ← Điền Groq API key của bạn vào đây (dạng gsk_...)
   var SA_URL   = 'https://api.groq.com/openai/v1/chat/completions';
   var SA_MODEL = 'llama-3.1-8b-instant';
 
-  /* System prompt: yêu cầu AI trả SEARCH:keyword khi khách muốn mua */
-  var SA_SYS = [
-    'Bạn là Shopping AI của shop Trương Hồng Anh — chuyên tư vấn và gợi ý sản phẩm',
-    'công nghệ: điện thoại, laptop, tablet, phụ kiện, đồng hồ thông minh.',
-    'Trả lời bằng tiếng Việt có dấu, thân thiện, ngắn gọn 2-3 câu.',
-    'ĐẶC BIỆT QUAN TRỌNG: Nếu khách muốn mua, tìm kiếm hoặc hỏi về sản phẩm cụ thể,',
-    'hãy thêm dòng cuối cùng: SEARCH:từ_khóa (ví dụ: SEARCH:iphone, SEARCH:laptop dell,',
-    'SEARCH:tai nghe, SEARCH:samsung). Chỉ 1-3 từ, không dấu câu thêm.'
-  ].join(' ');
+  /* System prompt: ĐỘNG — inject danh sách sản phẩm thực tế từ window.allProducts */
+  function getSASystemPrompt() {
+    var prods = window.allProducts || [];
+    var catalogLines = '';
+    if (prods.length > 0) {
+      var lines = prods.map(function(p) {
+        var fmt = new Intl.NumberFormat('vi-VN').format(p.price);
+        return '- ' + p.name + ' | Giá: ' + fmt + '₫';
+      });
+      catalogLines =
+        '\n\nDANH SÁCH SẢN PHẨM HIỆN CÓ TRONG SHOP (CHỈ tư vấn các sản phẩm này, KHÔNG bịa thêm):' +
+        '\n' + lines.join('\n') +
+        '\n\nNẾU khách hỏi sản phẩm KHÔNG có trong danh sách trên → trả lời thật thà là shop chưa có mặt hàng đó.';
+    } else {
+      catalogLines = '\n\n(Chưa load được danh sách sản phẩm — hãy thông báo cho khách chờ vài giây rồi thử lại.)';
+    }
+    return [
+      'Bạn là Shopping AI của shop Trương Hồng Anh — chuyên tư vấn sản phẩm công nghệ.',
+      'Trả lời bằng tiếng Việt có dấu, thân thiện, ngắn gọn 2-3 câu.',
+      'Chỉ tư vấn đúng sản phẩm có trong danh sách shop — KHÔNG được tự bịa ra sản phẩm không có.',
+      'ĐẶC BIỆT QUAN TRỌNG: Nếu khách muốn mua hoặc hỏi về sản phẩm CÓ trong shop,',
+      'hãy thêm dòng cuối cùng: SEARCH:từ_khóa (ví dụ: SEARCH:iphone, SEARCH:laptop,',
+      'SEARCH:tai nghe, SEARCH:samsung). Chỉ 1-3 từ, không dấu câu thêm.',
+      catalogLines
+    ].join(' ');
+  }
 
   var SA_GREET = [
     '🛍️ Xin chào! Tôi là <b>Shopping AI</b> — trợ lý mua sắm thông minh!<br>',
@@ -25738,7 +25755,7 @@
     saBusy = true;
     var dot = saMakeDots();
     try {
-      var messages = [{role:'system', content:SA_SYS}].concat(saHist);
+      var messages = [{role:'system', content:getSASystemPrompt()}].concat(saHist);
       var res = await fetch(SA_URL, {
         method: 'POST',
         headers: {
