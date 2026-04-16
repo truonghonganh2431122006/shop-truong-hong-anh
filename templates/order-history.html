@@ -411,17 +411,19 @@
                     if (order.status === 'Đã giao' || order.status === 'Hoàn thành') statusClass = 'status-done';
                     if (order.status === 'Đã hủy') statusClass = 'status-cancel';
 
-                    // Danh sách sản phẩm
-                    const itemsHtml = (order.items || []).map(item => `
+                    // Danh sách sản phẩm — ưu tiên unit_price (giá sau giảm), fallback về price
+                    const itemsHtml = (order.items || []).map(item => {
+                        const displayItemPrice = item.unit_price || item.price || 0;
+                        return `
                         <li class="product-item">
                             <img class="product-img" src="${item.image || 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 56 56%22%3E%3Crect fill=%22%23f0f1f3%22 width=%2256%22 height=%2256%22/%3E%3Ctext x=%2228%22 y=%2232%22 text-anchor=%22middle%22 font-size=%2220%22%3E✅%3C/text%3E%3C/svg%3E'}" alt="${item.name}" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 56 56%22%3E%3Crect fill=%22%23f0f1f3%22 width=%2256%22 height=%2256%22/%3E%3Ctext x=%2228%22 y=%2232%22 text-anchor=%22middle%22 font-size=%2220%22%3E✅%3C/text%3E%3C/svg%3E'" />
                             <div class="product-info">
                                 <div class="product-name">${item.name}</div>
-                                <div class="product-qty">Số lượng: ${item.qty || 1}</div>
+                                <div class="product-qty">Số lượng: ${item.qty || item.quantity || 1}</div>
                             </div>
-                            <span class="product-price">${(item.price || 0).toLocaleString()}đ</span>
-                        </li>
-                    `).join('');
+                            <span class="product-price">${displayItemPrice.toLocaleString()}đ</span>
+                        </li>`;
+                    }).join('');
 
                     // Địa chỉ giao hàng
                     const addrHtml = order.shipping_address ? `
@@ -452,8 +454,8 @@
                             <div class="order-footer">
                                 <div>${cancelBtn}</div>
                                 <div style="text-align:right;">
-                                    <div class="total-label">Tổng thanh toán</div>
-                                    <div class="total-amount">${(order.total || 0).toLocaleString()}đ</div>
+                                    <div class="total-label">Tổng thanh toán${(order.discount_amount||order.discountAmount) ? '<span style="font-size:11px;color:#276749;font-weight:600;margin-left:6px;background:#f0fff4;padding:2px 8px;border-radius:10px;border:1px solid #9ae6b4">🏷️ Đã giảm ' + (order.discount_amount||order.discountAmount||0).toLocaleString() + 'đ</span>' : ''}</div>
+                                    <div class="total-amount">${(order.final_total || order.total || 0).toLocaleString()}đ</div>
                                 </div>
                             </div>
                         </div>
