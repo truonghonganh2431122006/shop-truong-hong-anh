@@ -987,11 +987,12 @@ def create_order(data: OrderCreateSchema, user: User = Depends(get_current_user)
             p = product_map[it.product_id]
             p.stock -= it.quantity # Trừ kho
             
+            saved_price = int(it.unit_price) if it.unit_price is not None else p.price
+            
             oi = OrderItem(
                 order_id=order.id,
                 product_id=p.id,
                 quantity=it.quantity,
-                saved_price = int(it.unit_price) if it.unit_price is not None else p.price
                 unit_price=saved_price
             )
             db.add(oi)
