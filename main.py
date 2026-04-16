@@ -1,3 +1,4 @@
+
 from fastapi import FastAPI, HTTPException, Depends, Request, Query
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from fastapi.responses import FileResponse, RedirectResponse
@@ -353,6 +354,7 @@ class ProductUpdateSchema(BaseModel):
 class CartItemSchema(BaseModel):
     product_id: int
     quantity: int = Field(ge=1)
+    unit_price: Optional[float] = None
 
 
 class OrderCreateSchema(BaseModel):
@@ -989,7 +991,8 @@ def create_order(data: OrderCreateSchema, user: User = Depends(get_current_user)
                 order_id=order.id,
                 product_id=p.id,
                 quantity=it.quantity,
-                unit_price=p.price
+                saved_price = int(it.unit_price) if it.unit_price is not None else p.price
+                unit_price=saved_price
             )
             db.add(oi)
 
