@@ -23070,7 +23070,7 @@
                 html += '<div style="margin:5px 0"><input type="radio" name="payMethod" value="BANK" id="pBank" onclick="document.getElementById(\'qrArea\').style.display=\'block\'"> <label for="pBank">Chuyển khoản (QR)</label></div>';
                 html += '<div id="qrArea" style="display:none;text-align:center;padding:10px;border:1px dashed #ccc;margin-top:10px;">';
                 html += '<p style="font-size:12px;color:#666">Quét mã để chuyển khoản:</p>';
-                html += '<img src="https://img.vietqr.io/image/MB-0356551694-compact.png" style="max-width:150px;border-radius:8px;">';
+                html += '<img id="imgQr" src="/static/QR.jpg" style="max-width:150px;border-radius:8px;">';
                 html += '</div></div>';
                 html += '<button class="btn-checkout" onclick="if(!localStorage.getItem(\'access_token\')){ alert(\'⚠️ Vui lòng đăng nhập để hoàn tất đặt hàng!\'); window.location.href=\'/login\'; } else { window._confirmOrder(); }">✓ Xác nhận đặt hàng</button>';
                 html += '</div>';
