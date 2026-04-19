@@ -1526,12 +1526,32 @@ GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "AIzaSyAJKjMcv0vhlG-KDfeOZGNxtppZ6l
 GEMINI_URL = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={GEMINI_API_KEY}"
 
 # 3. Giữ nguyên System Prompt của bạn (Rất tốt)
-CHATBOT_SYSTEM = (
+CHATBOT_SYSTEM_BASE = (
     "Bạn là Hồng Anh AI - trợ lý bán hàng của shop Trương Hồng Anh chuyên điện thoại, "
     "laptop, tablet, phụ kiện và đồng hồ thông minh chính hãng. "
     "Trả lời thân thiện, ngắn gọn 2-3 câu bằng tiếng Việt có dấu. "
-    "Luôn hướng khách xem sản phẩm hoặc đặt hàng tại shop."
+    "Chỉ tư vấn đúng sản phẩm có trong danh sách shop — KHÔNG được tự bịa ra sản phẩm không có. "
+    "Nếu shop chưa có mặt hàng khách hỏi → thành thật nói chưa có."
 )
+
+def build_chatbot_system(db: Session) -> str:
+    """Tạo system prompt ĐỘNG, inject danh sách sản phẩm thực từ DB."""
+    try:
+        products = db.query(Product).filter(Product.is_active == True).all()
+        if products:
+            lines = [
+                f"- {p.name} | Giá: {int(p.price):,}đ | Tồn kho: {p.stock}".replace(",", ".")
+                for p in products
+            ]
+            catalog = (
+                "\n\nDANH SÁCH SẢN PHẨM HIỆN CÓ TRONG SHOP (CHỈ tư vấn các sản phẩm này):\n"
+                + "\n".join(lines)
+                + "\n\nNẾU khách hỏi sản phẩm KHÔNG có trong danh sách → trả lời thật thà là shop chưa có mặt hàng đó."
+            )
+            return CHATBOT_SYSTEM_BASE + catalog
+    except Exception:
+        pass
+    return CHATBOT_SYSTEM_BASE
 
 class ChatMessage(BaseModel):
     role: str       # "user" hoặc "assistant"
@@ -1541,10 +1561,13 @@ class ChatRequest(BaseModel):
     messages: List[ChatMessage]
 
 @app.post("/api/chat")
-async def chat_proxy(req: ChatRequest):
-    """Proxy gọi Gemini 2.5 Flash API, trả về reply cho frontend."""
+async def chat_proxy(req: ChatRequest, db: Session = Depends(get_db)):
+    """Proxy gọi Gemini API, inject sản phẩm thực tế từ DB vào system prompt."""
     if not req.messages:
         raise HTTPException(status_code=400, detail="Tin nhắn trống")
+
+    # Lấy system prompt ĐỘNG có danh sách sản phẩm thực
+    system_prompt = build_chatbot_system(db)
 
     # Gộp system + prompt đầu tiên (theo cấu trúc bạn cung cấp)
     gemini_contents = []
@@ -1553,7 +1576,7 @@ async def chat_proxy(req: ChatRequest):
         gemini_contents.append({"role": role, "parts": [{"text": m.content}]})
 
     payload = {
-        "system_instruction": {"parts": [{"text": CHATBOT_SYSTEM}]},
+        "system_instruction": {"parts": [{"text": system_prompt}]},
         "contents": gemini_contents,
     }
 

@@ -24385,7 +24385,26 @@
   var GROQ_URL = 'https://api.groq.com/openai/v1/chat/completions';
   var MODEL    = 'llama-3.1-8b-instant'; // Miễn phí, nhanh
 
-  var SYS  = 'Bạn là Hồng Anh AI - trợ lý bán hàng của shop Trương Hồng Anh chuyên điện thoại, laptop, tablet, phụ kiện và đồng hồ thông minh chính hãng. Trả lời thân thiện, ngắn gọn 2-3 câu bằng tiếng Việt có dấu. Luôn hướng khách xem sản phẩm hoặc đặt hàng tại shop.';
+  /* ── System prompt ĐỘNG: inject danh sách sản phẩm thực từ window.allProducts ── */
+  function getSYS() {
+    var prods = window.allProducts || [];
+    var catalogLines = '';
+    if (prods.length > 0) {
+      var lines = prods.map(function(p) {
+        var fmt = new Intl.NumberFormat('vi-VN').format(p.price);
+        return '- ' + p.name + ' | Giá: ' + fmt + '₫';
+      });
+      catalogLines =
+        '\n\nDANH SÁCH SẢN PHẨM HIỆN CÓ TRONG SHOP (CHỈ tư vấn đúng các sản phẩm này, KHÔNG bịa thêm):\n' +
+        lines.join('\n') +
+        '\n\nNẾU khách hỏi sản phẩm KHÔNG có trong danh sách → trả lời thật thà là shop chưa có mặt hàng đó.' +
+        '\nNẾU khách hỏi hoặc muốn xem sản phẩm CÓ trong shop → cuối câu trả lời LUÔN thêm dòng: SEARCH:từ_khóa (ví dụ: SEARCH:iphone, SEARCH:laptop, SEARCH:samsung). Chỉ 1-3 từ không dấu câu.';
+    } else {
+      catalogLines = '\n\n(Chưa tải được danh sách sản phẩm. Hãy thông báo cho khách thử lại sau vài giây.)';
+    }
+    return 'Bạn là Hồng Anh AI - trợ lý bán hàng của shop Trương Hồng Anh chuyên điện thoại, laptop, tablet, phụ kiện và đồng hồ thông minh chính hãng. Trả lời thân thiện, ngắn gọn 2-3 câu bằng tiếng Việt có dấu.' + catalogLines;
+  }
+
   var GREET = 'Chào bạn! 👋 Trợ lý ảo <b>Hồng Anh AI</b> có thể giúp gì cho bạn?<br><span style="color:#888;font-size:11px">Tư vấn điện thoại, laptop, phụ kiện, giá cả, bảo hành...</span>';
 
   // hist theo định dạng OpenAI: [{role:'user',content:'...'},{role:'assistant',content:'...'}]
@@ -24418,8 +24437,8 @@
     isBusy = true;
     var dot = showDots();
     try{
-      // Gộp system prompt + lịch sử hội thoại
-      var messages = [{ role:'system', content:SYS }].concat(hist);
+      // Gộp system prompt ĐỘNG (có sản phẩm thực tế) + lịch sử hội thoại
+      var messages = [{ role:'system', content:getSYS() }].concat(hist);
 
       var res = await fetch(GROQ_URL, {
         method: 'POST',
@@ -24430,7 +24449,7 @@
         body: JSON.stringify({
           model:       MODEL,
           messages:    messages,
-          max_tokens:  300,
+          max_tokens:  400,
           temperature: 0.7
         })
       });
@@ -24454,8 +24473,20 @@
         ? d.choices[0].message.content
         : 'Xin lỗi, mình chưa hiểu câu hỏi. Bạn thử hỏi lại nhé!';
 
+      /* Tách SEARCH:keyword ra khỏi reply, giữ phần text sạch */
+      var searchKw = null;
+      var cleanReply = reply.replace(/SEARCH:\s*([^\n\r]+)/gi, function(_, kw){
+        if(!searchKw) searchKw = kw.trim().toLowerCase();
+        return '';
+      }).replace(/\n{2,}/g, '\n').trim();
+
       hist.push({ role:'assistant', content:reply });
-      botMsg(md(reply));
+      botMsg(md(cleanReply));
+
+      /* Nếu AI trả SEARCH keyword → tự động lục kho & hiển thị cards trong #ha-msgs */
+      if(searchKw) {
+        setTimeout(function(){ haShowProducts(searchKw); }, 200);
+      }
 
     } catch(e){
       dot.remove();
@@ -24463,6 +24494,92 @@
       if(hist.length && hist[hist.length-1].role==='user') hist.pop();
     }
     isBusy = false;
+  }
+
+  /* ── Lục kho & render Product Cards trong #ha-msgs ── */
+  function haShowProducts(keyword){
+    var prods = window.allProducts || [];
+
+    /* Fallback: đọc từ DOM */
+    if(!prods.length){
+      var items = document.querySelectorAll('#product-list-container .item[data-pname]');
+      items.forEach(function(item){
+        prods.push({
+          id:    parseInt(item.getAttribute('data-pid')   || 0),
+          name:  item.getAttribute('data-pname')  || '',
+          price: parseFloat(item.getAttribute('data-pprice') || 0),
+          img:   item.getAttribute('data-pimg')   || ''
+        });
+      });
+    }
+
+    var kws = keyword.split(/\s+/).filter(Boolean);
+    var matched = prods.filter(function(p){
+      var n = (p.name || '').toLowerCase();
+      return kws.some(function(kw){ return n.indexOf(kw) > -1; });
+    });
+
+    matched.sort(function(a, b){
+      var na=(a.name||'').toLowerCase(), nb=(b.name||'').toLowerCase();
+      var sa=kws.filter(function(k){ return na.indexOf(k)>-1; }).length;
+      var sb=kws.filter(function(k){ return nb.indexOf(k)>-1; }).length;
+      return sb - sa;
+    });
+    matched = matched.slice(0, 6);
+
+    if(!matched.length){
+      botMsg('😕 Mình không tìm thấy sản phẩm <b>' + keyword + '</b> trong kho. Bạn thử từ khóa khác nhé!');
+      return;
+    }
+
+    var wrapper = document.createElement('div');
+    wrapper.className = 'sa-prod-cards';
+
+    var title = document.createElement('div');
+    title.className = 'sa-prod-cards-title';
+    title.style.cssText = 'font-size:11.5px;font-weight:700;color:#0058b8;margin-bottom:8px;padding-left:2px;font-family:-apple-system,sans-serif;display:flex;align-items:center;gap:5px;';
+    title.innerHTML = '🔍 Tìm thấy <b style="color:#0071e3">' + matched.length + '</b> sản phẩm phù hợp:';
+    wrapper.appendChild(title);
+
+    var list = document.createElement('div');
+    list.className = 'sa-prod-list';
+
+    matched.forEach(function(p){
+      var fmt  = new Intl.NumberFormat('vi-VN').format(p.price);
+      var safe = (p.name||'').replace(/'/g,"\\'").replace(/"/g,'&quot;');
+      var imgSafe = (p.img||'').replace(/'/g,"\\'");
+
+      var card = document.createElement('div');
+      card.className = 'sa-prod-card';
+      card.style.cssText = 'border-color:#c5dfff;box-shadow:0 2px 8px rgba(0,113,227,0.12);';
+      card.innerHTML =
+        '<div class="sa-prod-card-img">' +
+          '<img src="' + (p.img||'') + '" alt="' + (p.name||'') + '" ' +
+               'onerror="this.src=\'https://placehold.co/130x90?text=SP\'">' +
+        '</div>' +
+        '<div class="sa-prod-card-body">' +
+          '<div class="sa-prod-card-name">' + (p.name||'') + '</div>' +
+          '<div class="sa-prod-card-price" style="color:#d0021c">' + fmt + '₫</div>' +
+          '<button class="sa-prod-card-btn" ' +
+            'style="background:#0071e3;" ' +
+            'onclick="event.stopPropagation();event.preventDefault();window.openQuickOrder(' + p.id + ',\'' + safe + '\',' + p.price + ',\'' + imgSafe + '\');" ' +
+            'pointer-events:auto!important">' +
+            '⚡ MUA NGAY' +
+          '</button>' +
+        '</div>';
+
+      card.addEventListener('click', function(e){
+        if(e.target.closest('.sa-prod-card-btn')) return;
+        if(typeof showProductModal === 'function')
+          showProductModal(p.name, p.price, p.img, p.description||'', p.id);
+      });
+
+      list.appendChild(card);
+    });
+
+    wrapper.appendChild(list);
+    el('ha-msgs').appendChild(wrapper); scroll();
+    if(!isOpen){ var b=el('ha-fab-badge'); if(b){b.style.display='flex';b.textContent='1';} }
   }
 
   function usrMsg(t){
