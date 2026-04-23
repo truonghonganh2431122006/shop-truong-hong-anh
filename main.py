@@ -159,13 +159,15 @@ def page_staff():
     return {"message": "Optional: create static/staff.html to use staff UI."}
 
 
-# --- QUAY LẠI SQLITE CHO NHANH ---
-SQLALCHEMY_DATABASE_URL = "sqlite:///./app.db"
+# --- DÙNG DATABASE_URL từ ENV (PostgreSQL trên Render hoặc SQLite local) ---
+SQLALCHEMY_DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./app.db")
+if SQLALCHEMY_DATABASE_URL.startswith("postgres://"):
+    SQLALCHEMY_DATABASE_URL = SQLALCHEMY_DATABASE_URL.replace("postgres://", "postgresql+psycopg2://", 1)
 
-engine = create_engine(
-    SQLALCHEMY_DATABASE_URL, 
-    connect_args={"check_same_thread": False}
-)
+if SQLALCHEMY_DATABASE_URL.startswith("sqlite"):
+    engine = create_engine(SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False})
+else:
+    engine = create_engine(SQLALCHEMY_DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
@@ -1503,6 +1505,8 @@ def update_product_info(
         p.image_url = data.image_url
     if data.description is not None:
         p.description = data.description
+    if data.stock is not None:
+        p.stock = data.stock
     db.commit()
     return {"message": "Đã cập nhật sản phẩm thành công"}
 
