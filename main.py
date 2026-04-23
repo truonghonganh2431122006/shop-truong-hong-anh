@@ -1399,11 +1399,90 @@ def startup_event():
             db.commit()
             print(f">>> DA TAO MOI ADMIN: {super_admin}")
 
+        # 4. AUTO-SEED SAN PHAM neu bang dang trong
+        product_count = db.query(Product).count()
+        if product_count == 0:
+            print(">>> BANG PRODUCTS TRONG — BAT DAU SEED SAN PHAM...")
+            seed_data = [
+                {"name": "Xiaomi Redmi Note 13", "price": 4590000, "img": "static/a1.jpg"},
+                {"name": "iPhone 14 Pro 128GB", "price": 22990000, "img": "static/a2.jpg"},
+                {"name": "iPhone 15 Pro Max 512GB", "price": 34990000, "img": "static/a3.jpg"},
+                {"name": "Samsung Galaxy A55 5G", "price": 10490000, "img": "static/a4.jpg"},
+                {"name": "Samsung Galaxy S24 Ultra", "price": 27990000, "img": "static/a5.jpg"},
+                {"name": "Tai nghe AirPods Pro 2", "price": 5990000, "img": "static/a6.jpg"},
+                {"name": "MacBook Air M3 2024", "price": 27490000, "img": "static/a7.jpg"},
+                {"name": "Dell XPS 13 Plus", "price": 35000000, "img": "static/a8.jpg"},
+                {"name": "ASUS ROG Strix G16", "price": 32990000, "img": "static/a9.jpg"},
+                {"name": "HP Spectre x360", "price": 29000000, "img": "static/a10.jpg"},
+                {"name": "Man hinh Dell UltraSharp 27", "price": 12500000, "img": "static/a11.jpg"},
+                {"name": "May in HP LaserJet Pro", "price": 4500000, "img": "static/a12.jpg"},
+                {"name": "iPad Pro M4 11 inch", "price": 28490000, "img": "static/a13.jpg"},
+                {"name": "Samsung Galaxy Tab S9 Ultra", "price": 22990000, "img": "static/a14.jpg"},
+                {"name": "Chuot Logitech MX Master 3S", "price": 2490000, "img": "https://images.unsplash.com/photo-1527864550417-7fd91fc51a46?q=80&w=600&auto=format&fit=crop"},
+                {"name": "Man hinh Gaming Samsung", "price": 6500000, "img": "https://images.unsplash.com/photo-1616763355548-1b606f439f86?w=600&h=600&fit=crop"},
+                {"name": "Man hinh Dell 24 inch", "price": 3500000, "img": "https://images.unsplash.com/photo-1547119957-637f8679db1e?w=600&h=600&fit=crop"},
+                {"name": "May cu iPhone 15", "price": 15000000, "img": "https://fdn2.gsmarena.com/vv/pics/apple/apple-iphone-15-1.jpg"},
+                {"name": "iPhone 11 cu", "price": 6500000, "img": "https://fdn2.gsmarena.com/vv/pics/apple/apple-iphone-11-1.jpg"},
+                {"name": "Samsung S21 cu", "price": 7000000, "img": "https://fdn2.gsmarena.com/vv/pics/samsung/samsung-galaxy-s21-5g-1.jpg"},
+                {"name": "Laptop Dell cu", "price": 9000000, "img": "https://images.unsplash.com/photo-1588702547919-26089e690ecc?w=600&h=600&fit=crop"},
+                {"name": "Huawei MatePad", "price": 6500000, "img": "https://fdn2.gsmarena.com/vv/pics/huawei/huawei-matepad-11-2023-1.jpg"},
+                {"name": "iPad Mini 6", "price": 12000000, "img": "https://fdn2.gsmarena.com/vv/pics/apple/apple-ipad-mini-2021-1.jpg"},
+                {"name": "Nokia T21", "price": 5000000, "img": "https://fdn2.gsmarena.com/vv/pics/nokia/nokia-t21-1.jpg"},
+                {"name": "Casio G-Shock Smart", "price": 4000000, "img": "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600&h=600&fit=crop"},
+                {"name": "Oppo Watch X", "price": 8500000, "img": "https://fdn2.gsmarena.com/vv/pics/oppo/oppo-watch-x-1.jpg"},
+                {"name": "Xiaomi Watch S3", "price": 3500000, "img": "https://fdn2.gsmarena.com/vv/pics/xiaomi/xiaomi-watch-s3-1.jpg"},
+                {"name": "Apple Watch Ultra 2", "price": 21000000, "img": "https://fdn2.gsmarena.com/vv/pics/apple/apple-watch-ultra2-1.jpg"},
+                {"name": "Samsung Watch 7 Ultra", "price": 16000000, "img": "https://fdn2.gsmarena.com/vv/pics/samsung/samsung-galaxy-watch-ultra-1.jpg"},
+                {"name": "May anh", "price": 250000, "img": "https://images.unsplash.com/photo-1516035069371-29a1b244cc32?w=600&h=600&fit=crop"},
+                {"name": "Microphone Shure", "price": 5000000, "img": "https://images.unsplash.com/photo-1590602847861-f357a9332bbc?w=600&h=600&fit=crop"},
+                {"name": "Webcam Logitech C922", "price": 2200000, "img": "https://images.unsplash.com/photo-1587825140708-dfaf72ae4b04?w=600&h=600&fit=crop"},
+                {"name": "Tui chong soc Laptop", "price": 350000, "img": "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=600&h=600&fit=crop"},
+                {"name": "Ban phim co AKKO", "price": 1800000, "img": "https://images.unsplash.com/photo-1618384887929-16ec33fab9ef?w=600&h=600&fit=crop"},
+                {"name": "Sac du phong Anker 20k", "price": 1200000, "img": "https://images.unsplash.com/photo-1609091839311-d5365f9ff1c5?w=600&h=600&fit=crop"},
+                {"name": "Dell XPS 15", "price": 45000000, "img": "https://images.unsplash.com/photo-1593642632559-0c6d3fc62b89?w=600&h=600&fit=crop"},
+                {"name": "HP Spectre x360 Pro", "price": 32000000, "img": "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=600&h=600&fit=crop"},
+                {"name": "Asus Zenbook Duo", "price": 38000000, "img": "https://images.unsplash.com/photo-1541807084-5c52b6b3adef?w=600&h=600&fit=crop"},
+                {"name": "Lenovo Legion 5", "price": 28000000, "img": "https://images.unsplash.com/photo-1603302576837-37561b2e2302?w=600&h=600&fit=crop"},
+                {"name": "Acer Predator Helios", "price": 35000000, "img": "https://images.unsplash.com/photo-1593642634315-48f5414c3ad9?w=600&h=600&fit=crop"},
+                {"name": "MSI Katana GF66", "price": 22000000, "img": "https://images.unsplash.com/photo-1587202372634-32705e3bf49c?w=600&h=600&fit=crop"},
+                {"name": "Surface Laptop 5", "price": 25000000, "img": "https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=600&h=600&fit=crop"},
+                {"name": "LG Gram 17", "price": 31000000, "img": "https://images.unsplash.com/photo-1525547719571-a2d4ac8945e2?w=600&h=600&fit=crop"},
+                {"name": "Gigabyte Aero 16", "price": 42000000, "img": "https://images.unsplash.com/photo-1611078489935-0cb964de46d6?w=600&h=600&fit=crop"},
+                {"name": "Huawei MateBook X", "price": 29000000, "img": "https://images.unsplash.com/photo-1484788984921-03950022c9ef?w=600&h=600&fit=crop"},
+                {"name": "iPhone SE 2022", "price": 9000000, "img": "https://fdn2.gsmarena.com/vv/pics/apple/apple-iphone-se-2022-1.jpg"},
+                {"name": "Redmi Note 13 Pro", "price": 8500000, "img": "https://fdn2.gsmarena.com/vv/pics/xiaomi/xiaomi-redmi-note-13-pro-1.jpg"},
+                {"name": "Xiaomi 14 Ultra", "price": 22000000, "img": "https://fdn2.gsmarena.com/vv/pics/xiaomi/xiaomi-14-ultra-1.jpg"},
+                {"name": "Google Pixel 9 Pro", "price": 21500000, "img": "https://fdn2.gsmarena.com/vv/pics/google/google-pixel-9-pro-1.jpg"},
+                {"name": "iPhone 14 Plus", "price": 18900000, "img": "https://fdn2.gsmarena.com/vv/pics/apple/apple-iphone-14-plus-1.jpg"},
+                {"name": "Samsung Z Fold 6", "price": 41000000, "img": "https://fdn2.gsmarena.com/vv/pics/samsung/samsung-galaxy-z-fold6-1.jpg"},
+                {"name": "Samsung Z Flip 6", "price": 26000000, "img": "https://fdn2.gsmarena.com/vv/pics/samsung/samsung-galaxy-z-flip6-1.jpg"},
+                {"name": "Sony Xperia 1 V", "price": 23000000, "img": "https://fdn2.gsmarena.com/vv/pics/sony/sony-xperia-1-v-1.jpg"},
+                {"name": "Asus ROG Phone 8", "price": 25000000, "img": "https://fdn2.gsmarena.com/vv/pics/asus/asus-rog-phone-8-1.jpg"},
+                {"name": "Realme GT 5", "price": 12000000, "img": "https://fdn2.gsmarena.com/vv/pics/realme/realme-gt5-1.jpg"},
+                {"name": "Vivo X100 Pro", "price": 19000000, "img": "https://fdn2.gsmarena.com/vv/pics/vivo/vivo-x100-pro-1.jpg"},
+                {"name": "Nokia G42 5G", "price": 5500000, "img": "https://fdn2.gsmarena.com/vv/pics/nokia/nokia-g42-5g-1.jpg"},
+                {"name": "iPhone 16 Pro Max", "price": 34490000, "img": "https://fdn2.gsmarena.com/vv/pics/apple/apple-iphone-16-pro-max-1.jpg"},
+                {"name": "iPhone 15 Pro", "price": 24900000, "img": "https://fdn2.gsmarena.com/vv/pics/apple/apple-iphone-15-pro-1.jpg"},
+            ]
+            for item in seed_data:
+                db.add(Product(
+                    name=item["name"],
+                    price=item["price"],
+                    stock=100,
+                    image_url=item["img"],
+                    description="San pham chinh hang, bao hanh 12 thang. Loi 1 doi 1 trong 30 ngay. Ho tro tra gop 0%.",
+                    is_active=True
+                ))
+            db.commit()
+            print(f">>> DA SEED {len(seed_data)} SAN PHAM THANH CONG!")
+        else:
+            print(f">>> BANG PRODUCTS DA CO {product_count} SAN PHAM — BO QUA SEED.")
+
     except Exception as e:
         print(f">>> LOI STARTUP: {e}")
     finally:
         db.close()
-# ===================== API BỔ SUNG =====================
+# ===================== API BO SUNG =====================
 
 # 1. Cập nhật sản phẩm (tên, giá, ảnh, mô tả) - Staff & Admin
 @app.put("/admin/products/{product_id}/update")
