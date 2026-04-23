@@ -721,7 +721,7 @@
             });
 
             if (res.status === 401 || res.status === 403) {
-                tbody.innerHTML = '<tr><td colspan="10" style="text-align:center;color:orange;padding:20px">Phiên đăng nhập hết hạn.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;color:orange;padding:20px">Phiên đăng nhập hết hạn.</td></tr>';
                 return;
             }
 
@@ -763,9 +763,6 @@
                         <td><b style="color:var(--danger)">${totalStr}</b></td>
                         <td><small>${dateStr}</small></td>
                         <td><span class="order-status ${sClass}">${ord.status || 'Chờ xác nhận'}</span></td>
-                        <td id="admin-review-${ord.id}" style="font-size:13px;min-width:100px">
-                            <span style="color:#d1d5db;font-size:11px">Đang tải...</span>
-                        </td>
                         <td>
                             <select onchange="updateOrderStatus(${ord.id}, this.value); this.blur();" 
                                 style="
@@ -792,8 +789,15 @@
                                 <option value="Đã hủy"       ${ord.status === 'Đã hủy'       ? 'selected' : ''}>✕ Đã hủy</option>
                             </select>
                         </td>
+                        <td id="admin-review-${ord.id}" style="font-size:12px;min-width:110px;vertical-align:middle">
+                            <span style="color:#d1d5db;font-size:11px">…</span>
+                        </td>
                     </tr>`;
             });
+
+            // Load đánh giá cho từng đơn đã giao
+            orders.filter(o => o.status === 'Đã giao' || o.status === 'Hoàn thành')
+                  .forEach(o => loadAdminReview(o.id));
 
             if (showAlert) showToast('✅ Đã tải lại danh sách đơn hàng!');
         } catch (err) { 
@@ -801,6 +805,28 @@
             tbody.innerHTML = `<tr><td colspan="10" style="text-align:center;color:red;padding:20px">Lỗi kết nối: ${err.message}</td></tr>`; 
         } finally {
             if (btn) { btn.disabled = false; btn.textContent = '🔄 Làm mới'; }
+        }
+    }
+
+
+    // ─── REVIEW: hiển thị đánh giá trong admin ───
+    async function loadAdminReview(orderId) {
+        const cell = document.getElementById('admin-review-' + orderId);
+        if (!cell) return;
+        try {
+            const res = await fetch('/orders/' + orderId + '/review');
+            const data = await res.json();
+            if (data.reviewed) {
+                const stars = '★'.repeat(data.rating) + '☆'.repeat(5 - data.rating);
+                cell.innerHTML =
+                    '<div style="color:#f59e0b;font-size:16px;letter-spacing:1px">' + stars + '</div>' +
+                    (data.comment ? '<div style="font-size:11px;color:#6b7280;margin-top:3px;max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="' + data.comment + '">"' + data.comment + '"</div>' : '') +
+                    '<div style="font-size:10px;color:#9ca3af;margin-top:2px">' + data.created_at + '</div>';
+            } else {
+                cell.innerHTML = '<span style="color:#d1d5db;font-size:11px">Chưa đánh giá</span>';
+            }
+        } catch(e) {
+            cell.innerHTML = '<span style="color:#d1d5db">—</span>';
         }
     }
 
@@ -1137,3 +1163,9 @@
     }
 
     // ===== KHỞI ĐỘNG =====
+    checkAuth().then(() => {
+        loadOrders();
+    });
+</script>
+</body>
+</html>
