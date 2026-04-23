@@ -557,6 +557,7 @@
               <th>ID</th>
               <th>Sản phẩm</th>
               <th>Giá</th>
+              <th>Tồn kho</th>
               <th>Trạng thái</th>
               <th>Thao tác</th>
             </tr>
@@ -633,6 +634,7 @@
         <input id="editProdPrice" type="number" placeholder="Giá (VNĐ) *" style="padding:10px 14px;border:1px solid var(--border);border-radius:8px;font-size:14px;background:var(--bg);color:var(--text);font-family:inherit;">
         <input id="editProdImg" type="text" placeholder="URL ảnh sản phẩm" style="padding:10px 14px;border:1px solid var(--border);border-radius:8px;font-size:14px;background:var(--bg);color:var(--text);font-family:inherit;">
         <textarea id="editProdDesc" placeholder="Mô tả sản phẩm" rows="3" style="padding:10px 14px;border:1px solid var(--border);border-radius:8px;font-size:14px;background:var(--bg);color:var(--text);font-family:inherit;resize:vertical;"></textarea>
+        <input id="editProdStock" type="number" min="0" placeholder="📦 Số lượng tồn kho" style="padding:10px 14px;border:1px solid var(--border);border-radius:8px;font-size:14px;background:var(--bg);color:var(--text);font-family:inherit;">
         <div style="display:flex;gap:10px;margin-top:4px;">
           <button onclick="closeEditProductModal()" style="flex:1;padding:11px;border:1px solid var(--border);border-radius:8px;background:transparent;color:var(--text);cursor:pointer;font-size:14px;font-weight:600;font-family:inherit;">Hủy</button>
           <button onclick="submitEditProduct()" style="flex:2;padding:11px;border:none;border-radius:8px;background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff;cursor:pointer;font-size:14px;font-weight:700;font-family:inherit;">💾 Lưu thay đổi</button>
@@ -927,10 +929,11 @@
                             </div>
                         </td>
                         <td><b style="color:var(--primary)">${safePrice}đ</b></td>
+                        <td><b style="color:${p.stock < 10 ? '#ef4444' : p.stock < 30 ? '#f59e0b' : '#10b981'}">${p.stock ?? 100}</b></td>
                         <td><span class="order-status ${statusClass}">${statusText}</span></td>
                         <td>
                             <button class="btn btn-ship" onclick="toggleProduct(${p.id}, '${toggleAction}')">${toggleIcon}</button>
-                            <button class="btn" style="background:#f59e0b; color:white" onclick="openEditProductModal(${p.id}, '${p.name.replace(/'/g,"\\'")}', ${p.price}, '${(p.image_url||'').replace(/'/g,"\\'")}', '${(p.description||'').replace(/'/g,"\\'")}')">✏️</button>
+                            <button class="btn" style="background:#f59e0b; color:white" onclick="openEditProductModal(${p.id}, '${p.name.replace(/'/g,"\\'")}', ${p.price}, '${(p.image_url||'').replace(/'/g,"\\'")}', '${(p.description||'').replace(/'/g,"\\'")}', ${p.stock ?? 100})">✏️</button>
                             <button class="btn" style="background:#64748b; color:white" onclick="deleteProduct(${p.id})">🗑️</button>
                         </td>
                     </tr>`;
@@ -1020,12 +1023,13 @@
         else { alert('Lỗi thêm sản phẩm!'); }
     }
 
-    function openEditProductModal(id, name, price, img, desc) {
+    function openEditProductModal(id, name, price, img, desc, stock) {
         document.getElementById('editProdId').value = id;
         document.getElementById('editProdName').value = name;
         document.getElementById('editProdPrice').value = price;
         document.getElementById('editProdImg').value = img || '';
         document.getElementById('editProdDesc').value = desc || '';
+        document.getElementById('editProdStock').value = stock !== undefined ? stock : 100;
         document.getElementById('editProductModal').style.display = 'flex';
     }
     function closeEditProductModal() { 
@@ -1037,11 +1041,12 @@
         const price = parseInt(document.getElementById('editProdPrice').value);
         const img = document.getElementById('editProdImg').value.trim();
         const desc = document.getElementById('editProdDesc').value.trim();
+        const stock = parseInt(document.getElementById('editProdStock').value);
         if (!name || !price) { alert('Nhập tên và giá!'); return; }
         const res = await fetch(`/admin/products/${id}/update`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
-            body: JSON.stringify({ name, price, image_url: img, description: desc })
+            body: JSON.stringify({ name, price, image_url: img, description: desc, stock: isNaN(stock) ? undefined : stock })
         });
         if (res.ok) { showToast('✅ Đã cập nhật!'); closeEditProductModal(); loadProducts(); }
         else { alert('Lỗi cập nhật!'); }

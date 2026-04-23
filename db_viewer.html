@@ -1,0 +1,841 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🗄️ DB Viewer — Shop Trương Hồng Anh</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap');
+
+  :root {
+    --bg: #0d0f14;
+    --panel: #141720;
+    --panel2: #1a1e2b;
+    --border: #252a3a;
+    --accent: #00e5a0;
+    --accent2: #3d7bff;
+    --accent3: #ff6b6b;
+    --accent4: #ffd93d;
+    --text: #e8ecf0;
+    --sub: #6b7280;
+    --mono: 'JetBrains Mono', monospace;
+    --sans: 'Be Vietnam Pro', sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    min-height: 100vh;
+  }
+
+  /* ── LOGIN SCREEN ── */
+  #login-screen {
+    display: flex; align-items: center; justify-content: center;
+    min-height: 100vh;
+    background: radial-gradient(ellipse at 50% 0%, rgba(0,229,160,0.08) 0%, transparent 60%);
+  }
+
+  .login-box {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 44px 40px;
+    width: 380px;
+    box-shadow: 0 32px 80px rgba(0,0,0,0.5);
+  }
+
+  .login-logo {
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--accent);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  .login-title {
+    font-size: 26px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 6px;
+  }
+
+  .login-sub {
+    font-size: 13px;
+    color: var(--sub);
+    margin-bottom: 32px;
+  }
+
+  .field-label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--sub);
+    margin-bottom: 8px;
+  }
+
+  .field-input {
+    width: 100%;
+    background: var(--bg);
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 14px;
+    font-size: 14px;
+    font-family: var(--mono);
+    color: var(--text);
+    outline: none;
+    transition: border-color 0.2s;
+    margin-bottom: 20px;
+  }
+  .field-input:focus { border-color: var(--accent); }
+
+  .url-field {
+    display: flex; gap: 8px; margin-bottom: 20px;
+  }
+  .url-field .field-input { margin-bottom: 0; flex: 1; }
+  .url-preset-btn {
+    background: var(--panel2); border: 1.5px solid var(--border);
+    border-radius: 10px; padding: 0 12px; font-size: 11px;
+    color: var(--sub); cursor: pointer; white-space: nowrap;
+    font-family: var(--sans); transition: all 0.15s;
+  }
+  .url-preset-btn:hover { border-color: var(--accent2); color: var(--accent2); }
+
+  .login-btn {
+    width: 100%; padding: 14px;
+    background: var(--accent);
+    border: none; border-radius: 12px;
+    font-size: 14px; font-weight: 700;
+    font-family: var(--sans);
+    color: #0d0f14; cursor: pointer;
+    transition: opacity 0.2s, transform 0.15s;
+  }
+  .login-btn:hover { opacity: 0.9; transform: translateY(-1px); }
+  .login-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+  .login-err {
+    margin-top: 14px; padding: 12px 14px;
+    background: rgba(255,107,107,0.12);
+    border: 1px solid rgba(255,107,107,0.3);
+    border-radius: 10px; font-size: 13px; color: var(--accent3);
+    display: none;
+  }
+
+  /* ── MAIN APP ── */
+  #app { display: none; flex-direction: column; min-height: 100vh; }
+
+  /* Header */
+  .topbar {
+    background: var(--panel);
+    border-bottom: 1px solid var(--border);
+    padding: 0 24px;
+    height: 58px;
+    display: flex; align-items: center; gap: 20px;
+    flex-shrink: 0; position: sticky; top: 0; z-index: 100;
+  }
+
+  .topbar-brand {
+    font-family: var(--mono);
+    font-size: 12px; font-weight: 700;
+    color: var(--accent); letter-spacing: 2px;
+    white-space: nowrap;
+  }
+
+  .topbar-url {
+    font-family: var(--mono);
+    font-size: 11px; color: var(--sub);
+    background: var(--bg); border: 1px solid var(--border);
+    border-radius: 6px; padding: 4px 10px; white-space: nowrap;
+    overflow: hidden; text-overflow: ellipsis; max-width: 260px;
+  }
+
+  .topbar-spacer { flex: 1; }
+
+  .topbar-refresh {
+    background: transparent; border: 1.5px solid var(--border);
+    border-radius: 8px; padding: 6px 14px;
+    font-size: 12px; font-weight: 600; color: var(--sub);
+    cursor: pointer; font-family: var(--sans); transition: all 0.15s;
+  }
+  .topbar-refresh:hover { border-color: var(--accent); color: var(--accent); }
+
+  .topbar-logout {
+    background: transparent; border: none;
+    font-size: 13px; color: var(--sub); cursor: pointer;
+    font-family: var(--sans); padding: 6px 12px;
+    transition: color 0.15s;
+  }
+  .topbar-logout:hover { color: var(--accent3); }
+
+  /* Tabs */
+  .tabs {
+    background: var(--panel); border-bottom: 1px solid var(--border);
+    padding: 0 24px; display: flex; gap: 0;
+  }
+  .tab-btn {
+    padding: 14px 22px; font-size: 13px; font-weight: 600;
+    color: var(--sub); background: none; border: none;
+    cursor: pointer; font-family: var(--sans);
+    border-bottom: 2.5px solid transparent;
+    margin-bottom: -1px; transition: all 0.15s;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .tab-btn:hover { color: var(--text); }
+  .tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+  .tab-badge {
+    background: var(--panel2); border-radius: 20px;
+    font-size: 10px; font-weight: 700; padding: 2px 7px;
+    color: var(--sub); font-family: var(--mono);
+  }
+  .tab-btn.active .tab-badge { background: rgba(0,229,160,0.15); color: var(--accent); }
+
+  /* Content */
+  .content { flex: 1; padding: 24px; overflow: auto; }
+
+  .tab-pane { display: none; }
+  .tab-pane.active { display: block; }
+
+  /* Stats row */
+  .stats-row {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(200px,1fr));
+    gap: 14px; margin-bottom: 24px;
+  }
+  .stat-card {
+    background: var(--panel); border: 1px solid var(--border);
+    border-radius: 14px; padding: 18px 20px;
+  }
+  .stat-label { font-size: 11px; font-weight: 700; color: var(--sub); letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 8px; }
+  .stat-value { font-family: var(--mono); font-size: 28px; font-weight: 700; }
+  .stat-value.green { color: var(--accent); }
+  .stat-value.blue  { color: var(--accent2); }
+  .stat-value.red   { color: var(--accent3); }
+  .stat-value.yellow{ color: var(--accent4); }
+
+  /* Table */
+  .table-wrap {
+    background: var(--panel); border: 1px solid var(--border);
+    border-radius: 16px; overflow: hidden;
+  }
+
+  .table-toolbar {
+    display: flex; align-items: center; gap: 12px;
+    padding: 16px 20px; border-bottom: 1px solid var(--border);
+  }
+  .table-title { font-size: 14px; font-weight: 700; flex: 1; }
+  .table-search {
+    background: var(--bg); border: 1.5px solid var(--border);
+    border-radius: 8px; padding: 7px 12px;
+    font-size: 13px; font-family: var(--mono); color: var(--text);
+    outline: none; width: 220px; transition: border-color 0.2s;
+  }
+  .table-search:focus { border-color: var(--accent2); }
+
+  table { width: 100%; border-collapse: collapse; }
+  thead th {
+    padding: 10px 16px; text-align: left;
+    font-size: 10px; font-weight: 700; letter-spacing: 1.5px;
+    text-transform: uppercase; color: var(--sub);
+    background: var(--panel2); border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+  }
+  tbody tr { border-bottom: 1px solid rgba(255,255,255,0.04); transition: background 0.12s; }
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:hover { background: rgba(255,255,255,0.025); }
+  tbody td { padding: 11px 16px; font-size: 13px; vertical-align: middle; }
+
+  /* Badges */
+  .badge {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 3px 10px; border-radius: 20px;
+    font-size: 11px; font-weight: 700; white-space: nowrap;
+    font-family: var(--mono);
+  }
+  .badge-green { background: rgba(0,229,160,0.12); color: var(--accent); }
+  .badge-blue  { background: rgba(61,123,255,0.12); color: var(--accent2); }
+  .badge-red   { background: rgba(255,107,107,0.12); color: var(--accent3); }
+  .badge-yellow{ background: rgba(255,217,61,0.12); color: var(--accent4); }
+  .badge-gray  { background: rgba(107,114,128,0.15); color: var(--sub); }
+
+  /* Mono text */
+  .mono { font-family: var(--mono); }
+  .sub-text { color: var(--sub); font-size: 12px; }
+
+  .price-text { font-family: var(--mono); color: var(--accent); font-weight: 600; }
+
+  /* Product image */
+  .prod-img {
+    width: 38px; height: 38px; border-radius: 8px;
+    object-fit: cover; background: var(--panel2);
+    border: 1px solid var(--border);
+  }
+
+  /* Loading */
+  .loading-row td {
+    text-align: center; padding: 48px;
+    color: var(--sub); font-size: 13px;
+  }
+  .spinner {
+    display: inline-block; width: 20px; height: 20px;
+    border: 2.5px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%; animation: spin 0.7s linear infinite;
+    margin-right: 8px; vertical-align: middle;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* Order items expand */
+  .expand-btn {
+    background: transparent; border: 1px solid var(--border);
+    border-radius: 6px; padding: 3px 8px; font-size: 11px;
+    color: var(--sub); cursor: pointer; font-family: var(--mono);
+    transition: all 0.15s;
+  }
+  .expand-btn:hover { border-color: var(--accent2); color: var(--accent2); }
+
+  .items-detail {
+    display: none; margin-top: 6px;
+    background: var(--bg); border-radius: 8px;
+    padding: 8px 12px; font-size: 12px; color: var(--sub);
+    line-height: 1.9;
+  }
+  .items-detail.open { display: block; }
+
+  /* Empty */
+  .empty-state {
+    text-align: center; padding: 64px 24px;
+    color: var(--sub); font-size: 14px;
+  }
+  .empty-icon { font-size: 40px; margin-bottom: 12px; }
+
+  /* Pagination */
+  .pagination {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 20px; border-top: 1px solid var(--border);
+    font-size: 12px; color: var(--sub);
+  }
+  .pagination-btns { display: flex; gap: 6px; }
+  .page-btn {
+    background: var(--panel2); border: 1px solid var(--border);
+    border-radius: 6px; padding: 5px 10px; font-size: 12px;
+    color: var(--sub); cursor: pointer; font-family: var(--mono);
+    transition: all 0.15s;
+  }
+  .page-btn:hover:not(:disabled) { border-color: var(--accent2); color: var(--accent2); }
+  .page-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+  .page-btn.active { background: rgba(0,229,160,0.12); border-color: var(--accent); color: var(--accent); }
+
+  /* Note */
+  .info-note {
+    display: flex; align-items: center; gap: 10px;
+    background: rgba(61,123,255,0.08); border: 1px solid rgba(61,123,255,0.25);
+    border-radius: 10px; padding: 12px 16px;
+    font-size: 13px; color: #7da8ff; margin-bottom: 20px;
+  }
+
+  @media (max-width: 600px) {
+    .content { padding: 12px; }
+    .topbar { padding: 0 14px; }
+    .login-box { padding: 30px 22px; margin: 16px; width: auto; }
+    .stats-row { grid-template-columns: 1fr 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ─── LOGIN ─── -->
+<div id="login-screen">
+  <div class="login-box">
+    <div class="login-logo">Shop Trương Hồng Anh</div>
+    <div class="login-title">Database Viewer</div>
+    <div class="login-sub">Đăng nhập bằng tài khoản Admin để xem CSDL</div>
+
+    <div class="field-label">URL Server</div>
+    <div class="url-field">
+      <input class="field-input" id="srv-url" type="text" value="https://shop-truong-hong-anh.onrender.com" placeholder="https://...">
+      <button class="url-preset-btn" onclick="document.getElementById('srv-url').value='http://localhost:10000'">Local</button>
+    </div>
+
+    <div class="field-label">Email Admin</div>
+    <input class="field-input" id="login-email" type="email" value="honganh@gmail.com">
+
+    <div class="field-label">Mật khẩu</div>
+    <input class="field-input" id="login-pw" type="password" value="admin123" onkeydown="if(event.key==='Enter')doLogin()">
+
+    <button class="login-btn" id="login-btn" onclick="doLogin()">🔑 Đăng nhập & Xem CSDL</button>
+    <div class="login-err" id="login-err"></div>
+  </div>
+</div>
+
+<!-- ─── MAIN APP ─── -->
+<div id="app">
+  <div class="topbar">
+    <div class="topbar-brand">⚡ DB VIEWER</div>
+    <div class="topbar-url" id="topbar-url"></div>
+    <div class="topbar-spacer"></div>
+    <button class="topbar-refresh" onclick="refreshAll()">↺ Làm mới</button>
+    <button class="topbar-logout" onclick="doLogout()">Đăng xuất</button>
+  </div>
+
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('orders')" id="tab-orders">
+      📦 Đơn hàng <span class="tab-badge" id="badge-orders">—</span>
+    </button>
+    <button class="tab-btn" onclick="switchTab('products')" id="tab-products">
+      🛍️ Sản phẩm <span class="tab-badge" id="badge-products">—</span>
+    </button>
+    <button class="tab-btn" onclick="switchTab('users')" id="tab-users">
+      👤 Tài khoản <span class="tab-badge" id="badge-users">—</span>
+    </button>
+  </div>
+
+  <div class="content">
+
+    <!-- ORDERS TAB -->
+    <div class="tab-pane active" id="pane-orders">
+      <div class="stats-row" id="order-stats"></div>
+      <div class="table-wrap">
+        <div class="table-toolbar">
+          <div class="table-title">Tất cả đơn hàng</div>
+          <input class="table-search" id="search-orders" placeholder="🔍 Tìm email, trạng thái..." oninput="filterOrders()">
+        </div>
+        <div style="overflow-x:auto">
+          <table>
+            <thead>
+              <tr>
+                <th>#ID</th>
+                <th>Khách hàng</th>
+                <th>SĐT</th>
+                <th>Địa chỉ</th>
+                <th>Sản phẩm</th>
+                <th>Tổng tiền</th>
+                <th>Trạng thái</th>
+                <th>Ngày tạo</th>
+              </tr>
+            </thead>
+            <tbody id="orders-tbody">
+              <tr class="loading-row"><td colspan="8"><span class="spinner"></span>Đang tải đơn hàng...</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="pagination" id="orders-paging"></div>
+      </div>
+    </div>
+
+    <!-- PRODUCTS TAB -->
+    <div class="tab-pane" id="pane-products">
+      <div class="stats-row" id="product-stats"></div>
+      <div class="table-wrap">
+        <div class="table-toolbar">
+          <div class="table-title">Tất cả sản phẩm</div>
+          <input class="table-search" id="search-products" placeholder="🔍 Tìm tên sản phẩm..." oninput="filterProducts()">
+        </div>
+        <div style="overflow-x:auto">
+          <table>
+            <thead>
+              <tr>
+                <th>#ID</th>
+                <th>Ảnh</th>
+                <th>Tên sản phẩm</th>
+                <th>Giá</th>
+                <th>Tồn kho</th>
+                <th>Trạng thái</th>
+              </tr>
+            </thead>
+            <tbody id="products-tbody">
+              <tr class="loading-row"><td colspan="6"><span class="spinner"></span>Đang tải sản phẩm...</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="pagination" id="products-paging"></div>
+      </div>
+    </div>
+
+    <!-- USERS TAB -->
+    <div class="tab-pane" id="pane-users">
+      <div class="info-note">
+        ℹ️ Dữ liệu tài khoản được tổng hợp từ đơn hàng. Để xem đầy đủ hãy thêm endpoint <code style="font-family:var(--mono);background:rgba(0,0,0,0.3);padding:2px 6px;border-radius:4px">/admin/users</code> vào <code style="font-family:var(--mono);background:rgba(0,0,0,0.3);padding:2px 6px;border-radius:4px">main.py</code>
+      </div>
+      <div class="stats-row" id="user-stats"></div>
+      <div class="table-wrap">
+        <div class="table-toolbar">
+          <div class="table-title">Tài khoản (từ đơn hàng)</div>
+          <input class="table-search" id="search-users" placeholder="🔍 Tìm email..." oninput="filterUsers()">
+        </div>
+        <div style="overflow-x:auto">
+          <table>
+            <thead>
+              <tr>
+                <th>Email</th>
+                <th>Số đơn hàng</th>
+                <th>Tổng chi tiêu</th>
+                <th>Đơn gần nhất</th>
+                <th>Trạng thái đơn</th>
+              </tr>
+            </thead>
+            <tbody id="users-tbody">
+              <tr class="loading-row"><td colspan="5"><span class="spinner"></span>Đang xử lý...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  var BASE = '', TOKEN = '';
+  var allOrders = [], allProducts = [], allUsers = [];
+  var ordersPage = 1, productsPage = 1;
+  var PAGE_SIZE = 20;
+
+  // ─── AUTH ───
+  async function doLogin() {
+    var url = document.getElementById('srv-url').value.trim().replace(/\/$/, '');
+    var email = document.getElementById('login-email').value.trim();
+    var pw = document.getElementById('login-pw').value.trim();
+    var btn = document.getElementById('login-btn');
+    var err = document.getElementById('login-err');
+
+    if (!url || !email || !pw) { showErr('Vui lòng điền đầy đủ thông tin!'); return; }
+
+    btn.disabled = true; btn.textContent = '⏳ Đang đăng nhập...';
+    err.style.display = 'none';
+
+    try {
+      var res = await fetch(url + '/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password: pw })
+      });
+      var data = await res.json();
+
+      if (!data.success && !data.access_token) {
+        showErr(data.message || data.detail || 'Đăng nhập thất bại!'); return;
+      }
+
+      BASE = url;
+      TOKEN = data.access_token || data.token || '';
+      document.getElementById('topbar-url').textContent = BASE;
+      document.getElementById('login-screen').style.display = 'none';
+      document.getElementById('app').style.display = 'flex';
+      refreshAll();
+
+    } catch(e) {
+      showErr('Không kết nối được server: ' + e.message);
+    } finally {
+      btn.disabled = false; btn.textContent = '🔑 Đăng nhập & Xem CSDL';
+    }
+  }
+
+  function showErr(msg) {
+    var e = document.getElementById('login-err');
+    e.textContent = '⚠️ ' + msg; e.style.display = 'block';
+  }
+
+  function doLogout() {
+    BASE = ''; TOKEN = '';
+    document.getElementById('login-screen').style.display = 'flex';
+    document.getElementById('app').style.display = 'none';
+  }
+
+  function authHeaders() {
+    return { 'Authorization': 'Bearer ' + TOKEN, 'Content-Type': 'application/json' };
+  }
+
+  // ─── TABS ───
+  function switchTab(name) {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+    document.getElementById('tab-' + name).classList.add('active');
+    document.getElementById('pane-' + name).classList.add('active');
+  }
+
+  // ─── REFRESH ALL ───
+  async function refreshAll() {
+    loadOrders();
+    loadProducts();
+  }
+
+  // ─── ORDERS ───
+  async function loadOrders() {
+    document.getElementById('orders-tbody').innerHTML =
+      '<tr class="loading-row"><td colspan="8"><span class="spinner"></span>Đang tải đơn hàng...</td></tr>';
+
+    try {
+      var res = await fetch(BASE + '/admin/api/orders', { headers: authHeaders() });
+      if (!res.ok) {
+        var res2 = await fetch(BASE + '/api/admin/all-orders', { headers: authHeaders() });
+        if (res2.ok) { var data = await res2.json(); allOrders = data; }
+        else { allOrders = []; }
+      } else {
+        allOrders = await res.json();
+      }
+    } catch(e) { allOrders = []; }
+
+    document.getElementById('badge-orders').textContent = allOrders.length;
+    renderOrderStats();
+    ordersPage = 1;
+    renderOrders(allOrders);
+    buildUsersFromOrders();
+  }
+
+  function renderOrderStats() {
+    var total = allOrders.length;
+    var revenue = allOrders.reduce(function(s, o) {
+      return s + (o.total || o.items?.reduce(function(x,i){return x+i.qty*i.price},0) || 0);
+    }, 0);
+    var pending = allOrders.filter(function(o){ return o.status && o.status.includes('chờ') || o.status === 'NEW'; }).length;
+    var done = allOrders.filter(function(o){ return o.status && (o.status.includes('giao') || o.status === 'DONE'); }).length;
+
+    document.getElementById('order-stats').innerHTML =
+      statCard('Tổng đơn hàng', total, 'blue') +
+      statCard('Tổng doanh thu', fmtPrice(revenue), 'green') +
+      statCard('Chờ xác nhận', pending, 'yellow') +
+      statCard('Đã giao', done, 'green');
+  }
+
+  function statCard(label, val, color) {
+    return '<div class="stat-card"><div class="stat-label">' + label + '</div>' +
+           '<div class="stat-value ' + color + '">' + val + '</div></div>';
+  }
+
+  function filterOrders() {
+    var q = document.getElementById('search-orders').value.toLowerCase();
+    var filtered = allOrders.filter(function(o) {
+      return (o.email||'').toLowerCase().includes(q) ||
+             (o.status||'').toLowerCase().includes(q) ||
+             String(o.id).includes(q) ||
+             (o.phone_number||'').includes(q);
+    });
+    ordersPage = 1;
+    renderOrders(filtered);
+  }
+
+  function renderOrders(data) {
+    var start = (ordersPage - 1) * PAGE_SIZE;
+    var page = data.slice(start, start + PAGE_SIZE);
+
+    if (!data.length) {
+      document.getElementById('orders-tbody').innerHTML =
+        '<tr><td colspan="8"><div class="empty-state"><div class="empty-icon">📭</div>Không có đơn hàng nào</div></td></tr>';
+      document.getElementById('orders-paging').innerHTML = '';
+      return;
+    }
+
+    var html = '';
+    page.forEach(function(o) {
+      var total = o.total || (o.items||[]).reduce(function(s,i){return s+i.qty*i.price},0);
+      var statusBadge = orderStatusBadge(o.status);
+      var itemsHtml = (o.items||[]).map(function(i){
+        return i.name + ' × ' + i.qty + ' — ' + fmtPrice(i.price);
+      }).join('<br>');
+      var itemsId = 'items-' + o.id;
+
+      html += '<tr>';
+      html += '<td class="mono" style="color:var(--sub)">#' + o.id + '</td>';
+      html += '<td style="font-size:13px">' + (o.email || 'Khách vãng lai') +
+              (o.customer_name ? '<br><span class="sub-text">' + o.customer_name + '</span>' : '') + '</td>';
+      html += '<td class="mono sub-text">' + (o.phone_number || '—') + '</td>';
+      html += '<td style="max-width:160px;font-size:12px;color:var(--sub)">' + (o.shipping_address || '—') + '</td>';
+      html += '<td><button class="expand-btn" onclick="toggleItems(\'' + itemsId + '\')">' +
+              (o.items||[]).length + ' sp ▾</button>' +
+              '<div class="items-detail" id="' + itemsId + '">' + itemsHtml + '</div></td>';
+      html += '<td class="price-text">' + fmtPrice(total) + '</td>';
+      html += '<td>' + statusBadge + '</td>';
+      html += '<td class="sub-text" style="font-size:12px">' + (o.created_at || o.date || '—') + '</td>';
+      html += '</tr>';
+    });
+
+    document.getElementById('orders-tbody').innerHTML = html;
+    renderPaging('orders', data.length, ordersPage, function(p){ ordersPage=p; renderOrders(data); });
+  }
+
+  function toggleItems(id) {
+    var el = document.getElementById(id);
+    el.classList.toggle('open');
+  }
+
+  function orderStatusBadge(status) {
+    if (!status) return '<span class="badge badge-gray">—</span>';
+    var s = status.toLowerCase();
+    if (s.includes('hủy') || s === 'canceled') return '<span class="badge badge-red">❌ ' + status + '</span>';
+    if (s.includes('giao') && !s.includes('đang') || s === 'done') return '<span class="badge badge-green">✅ ' + status + '</span>';
+    if (s.includes('đang') || s === 'shipped') return '<span class="badge badge-blue">🚚 ' + status + '</span>';
+    if (s.includes('xác nhận') || s === 'confirmed') return '<span class="badge badge-blue">✔️ ' + status + '</span>';
+    return '<span class="badge badge-yellow">⏳ ' + status + '</span>';
+  }
+
+  // ─── PRODUCTS ───
+  async function loadProducts() {
+    document.getElementById('products-tbody').innerHTML =
+      '<tr class="loading-row"><td colspan="6"><span class="spinner"></span>Đang tải sản phẩm...</td></tr>';
+    try {
+      var res = await fetch(BASE + '/products?include_inactive=true', { headers: authHeaders() });
+      allProducts = res.ok ? await res.json() : [];
+    } catch(e) { allProducts = []; }
+
+    document.getElementById('badge-products').textContent = allProducts.length;
+    renderProductStats();
+    productsPage = 1;
+    renderProducts(allProducts);
+  }
+
+  function renderProductStats() {
+    var total = allProducts.length;
+    var active = allProducts.filter(function(p){ return p.is_active; }).length;
+    var lowStock = allProducts.filter(function(p){ return p.stock < 10; }).length;
+    var totalVal = allProducts.reduce(function(s,p){ return s + p.price * p.stock; }, 0);
+
+    document.getElementById('product-stats').innerHTML =
+      statCard('Tổng sản phẩm', total, 'blue') +
+      statCard('Đang bán', active, 'green') +
+      statCard('Sắp hết hàng (<10)', lowStock, 'red') +
+      statCard('Giá trị tồn kho', fmtPrice(totalVal), 'yellow');
+  }
+
+  function filterProducts() {
+    var q = document.getElementById('search-products').value.toLowerCase();
+    var filtered = allProducts.filter(function(p){
+      return (p.name||'').toLowerCase().includes(q) || String(p.id).includes(q);
+    });
+    productsPage = 1;
+    renderProducts(filtered);
+  }
+
+  function renderProducts(data) {
+    var start = (productsPage - 1) * PAGE_SIZE;
+    var page = data.slice(start, start + PAGE_SIZE);
+
+    if (!data.length) {
+      document.getElementById('products-tbody').innerHTML =
+        '<tr><td colspan="6"><div class="empty-state"><div class="empty-icon">🛒</div>Không có sản phẩm nào</div></td></tr>';
+      document.getElementById('products-paging').innerHTML = '';
+      return;
+    }
+
+    var html = '';
+    page.forEach(function(p) {
+      var stockClass = p.stock < 5 ? 'red' : p.stock < 20 ? 'yellow' : 'green';
+      var statusBadge = p.is_active
+        ? '<span class="badge badge-green">● Đang bán</span>'
+        : '<span class="badge badge-gray">● Đã ẩn</span>';
+
+      html += '<tr>';
+      html += '<td class="mono sub-text">#' + p.id + '</td>';
+      html += '<td><img class="prod-img" src="' + (p.image_url||'') + '" onerror="this.src=\'https://placehold.co/38x38/1a1e2b/666?text=SP\'" /></td>';
+      html += '<td style="max-width:220px"><div style="font-weight:600;font-size:13px">' + (p.name||'') + '</div>' +
+              (p.description ? '<div class="sub-text" style="margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:200px">' + p.description.substring(0,60) + '...</div>' : '') + '</td>';
+      html += '<td class="price-text">' + fmtPrice(p.price) + '</td>';
+      html += '<td><span class="badge badge-' + stockClass + '">' + p.stock + '</span></td>';
+      html += '<td>' + statusBadge + '</td>';
+      html += '</tr>';
+    });
+
+    document.getElementById('products-tbody').innerHTML = html;
+    renderPaging('products', data.length, productsPage, function(p){ productsPage=p; renderProducts(data); });
+  }
+
+  // ─── USERS (tổng hợp từ orders) ───
+  function buildUsersFromOrders() {
+    var map = {};
+    allOrders.forEach(function(o) {
+      var email = o.email || 'Khách vãng lai';
+      if (!map[email]) map[email] = { email, count: 0, total: 0, lastDate: '', lastStatus: '' };
+      map[email].count++;
+      map[email].total += (o.total || 0);
+      map[email].lastDate = o.created_at || o.date || '';
+      map[email].lastStatus = o.status || '';
+    });
+
+    allUsers = Object.values(map).sort(function(a,b){ return b.total - a.total; });
+    document.getElementById('badge-users').textContent = allUsers.length;
+
+    var totalRevenue = allUsers.reduce(function(s,u){ return s + u.total; }, 0);
+    document.getElementById('user-stats').innerHTML =
+      statCard('Khách có đơn hàng', allUsers.length, 'blue') +
+      statCard('Tổng doanh thu', fmtPrice(totalRevenue), 'green');
+
+    renderUsers(allUsers);
+  }
+
+  function filterUsers() {
+    var q = document.getElementById('search-users').value.toLowerCase();
+    var filtered = allUsers.filter(function(u){ return u.email.toLowerCase().includes(q); });
+    renderUsers(filtered);
+  }
+
+  function renderUsers(data) {
+    if (!data.length) {
+      document.getElementById('users-tbody').innerHTML =
+        '<tr><td colspan="5"><div class="empty-state"><div class="empty-icon">👥</div>Không tìm thấy tài khoản</div></td></tr>';
+      return;
+    }
+    var html = '';
+    data.forEach(function(u) {
+      html += '<tr>';
+      html += '<td style="font-weight:600">' + u.email + '</td>';
+      html += '<td class="mono" style="color:var(--accent2)">' + u.count + '</td>';
+      html += '<td class="price-text">' + fmtPrice(u.total) + '</td>';
+      html += '<td class="sub-text" style="font-size:12px">' + u.lastDate + '</td>';
+      html += '<td>' + orderStatusBadge(u.lastStatus) + '</td>';
+      html += '</tr>';
+    });
+    document.getElementById('users-tbody').innerHTML = html;
+  }
+
+  // ─── PAGINATION ───
+  function renderPaging(key, total, current, onChange) {
+    var pages = Math.ceil(total / PAGE_SIZE);
+    if (pages <= 1) { document.getElementById(key + '-paging').innerHTML = ''; return; }
+    var start = (current - 1) * PAGE_SIZE + 1;
+    var end = Math.min(current * PAGE_SIZE, total);
+
+    var html = '<span>Hiển thị ' + start + '–' + end + ' / ' + total + '</span><div class="pagination-btns">';
+    html += '<button class="page-btn" ' + (current===1?'disabled':'') + ' onclick="changePage(\'' + key + '\',' + (current-1) + ')">‹</button>';
+
+    var s = Math.max(1, current-2), e = Math.min(pages, current+2);
+    for (var i = s; i <= e; i++) {
+      html += '<button class="page-btn' + (i===current?' active':'') + '" onclick="changePage(\'' + key + '\',' + i + ')">' + i + '</button>';
+    }
+    html += '<button class="page-btn" ' + (current===pages?'disabled':'') + ' onclick="changePage(\'' + key + '\',' + (current+1) + ')">›</button>';
+    html += '</div>';
+    document.getElementById(key + '-paging').innerHTML = html;
+  }
+
+  function changePage(key, page) {
+    if (key === 'orders') {
+      ordersPage = page;
+      var q = document.getElementById('search-orders').value.toLowerCase();
+      var filtered = q ? allOrders.filter(function(o){
+        return (o.email||'').toLowerCase().includes(q) || (o.status||'').toLowerCase().includes(q) || String(o.id).includes(q);
+      }) : allOrders;
+      renderOrders(filtered);
+    } else {
+      productsPage = page;
+      var q = document.getElementById('search-products').value.toLowerCase();
+      var filtered = q ? allProducts.filter(function(p){ return (p.name||'').toLowerCase().includes(q); }) : allProducts;
+      renderProducts(filtered);
+    }
+  }
+
+  // ─── UTILS ───
+  function fmtPrice(n) {
+    if (!n) return '0₫';
+    return new Intl.NumberFormat('vi-VN').format(Math.round(n)) + '₫';
+  }
+
+  // Keyboard
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter' && document.getElementById('login-screen').style.display !== 'none') {
+      doLogin();
+    }
+  });
+</script>
+</body>
+</html>
