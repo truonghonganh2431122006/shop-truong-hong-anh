@@ -26004,6 +26004,84 @@
 })();
 </script>
 <!-- ============ END SHOPPING AI ============ -->
+
+<!-- ============ DRAGGABLE CHATBOT ============ -->
+<style>
+  #ha-hdr, #sa-hdr { cursor: grab; user-select: none; -webkit-user-select: none; }
+  #ha-hdr:active, #sa-hdr:active { cursor: grabbing; }
+  #ha-win.dragging, #sa-win.dragging {
+    transition: none !important;
+    box-shadow: 0 24px 64px rgba(0,0,0,0.30) !important;
+  }
+</style>
+<script>
+(function(){
+  function makeDraggable(winId, headerId) {
+    var win = document.getElementById(winId);
+    var hdr = document.getElementById(headerId);
+    if (!win || !hdr) return;
+
+    var dragging = false;
+    var startX, startY, origLeft, origTop;
+
+    function startDrag(e) {
+      if (e.target.closest && e.target.closest('#ha-x, #sa-x')) return;
+      var pt = e.touches ? e.touches[0] : e;
+      dragging = true;
+      var rect = win.getBoundingClientRect();
+      origLeft = rect.left;
+      origTop  = rect.top;
+      startX   = pt.clientX;
+      startY   = pt.clientY;
+
+      win.style.left   = origLeft + 'px';
+      win.style.top    = origTop  + 'px';
+      win.style.right  = 'auto';
+      win.style.bottom = 'auto';
+      win.style.position = 'fixed';
+      win.classList.add('dragging');
+      e.preventDefault();
+    }
+
+    function moveDrag(e) {
+      if (!dragging) return;
+      var pt = e.touches ? e.touches[0] : e;
+      var dx = pt.clientX - startX;
+      var dy = pt.clientY - startY;
+      var newL = Math.max(0, Math.min(origLeft + dx, window.innerWidth  - win.offsetWidth));
+      var newT = Math.max(0, Math.min(origTop  + dy, window.innerHeight - win.offsetHeight));
+      win.style.left = newL + 'px';
+      win.style.top  = newT + 'px';
+      e.preventDefault();
+    }
+
+    function endDrag() {
+      if (!dragging) return;
+      dragging = false;
+      win.classList.remove('dragging');
+    }
+
+    hdr.addEventListener('mousedown',  startDrag);
+    hdr.addEventListener('touchstart', startDrag, { passive: false });
+    document.addEventListener('mousemove', moveDrag);
+    document.addEventListener('touchmove',  moveDrag, { passive: false });
+    document.addEventListener('mouseup',   endDrag);
+    document.addEventListener('touchend',  endDrag);
+  }
+
+  function init() {
+    makeDraggable('ha-win', 'ha-hdr');
+    makeDraggable('sa-win', 'sa-hdr');
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+})();
+</script>
+<!-- ============ END DRAGGABLE CHATBOT ============ -->
     </body>
 
 </html>
