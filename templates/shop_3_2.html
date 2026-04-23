@@ -23656,32 +23656,21 @@
                     }
                 });
                 searchInput.addEventListener('keydown', function (e) {
-                    if (e.key === 'Enter') {
-                        e.preventDefault();
-                        e.stopImmediatePropagation();
-                        var kw = searchInput.value.trim();
-                        // Gọi API /products?q=keyword để F12 thấy network request
-                        var url = '/products' + (kw ? '?q=' + encodeURIComponent(kw) : '');
-                        fetch(url)
-                            .then(function(res) { return res.json(); })
-                            .then(function(products) {
-                                console.log('[Search API] q="' + kw + '" → ' + products.length + ' sản phẩm');
-                                // Cập nhật allProducts
-                                window.allProducts = products.map(function(p) {
-                                    return { id: p.id, name: p.name, price: p.price,
-                                             img: p.image_url || '', description: p.description || '' };
-                                });
-                                // Re-render sản phẩm
-                                var container = document.getElementById('product-list-container');
-                                if (!container) return;
-                                container.innerHTML = '';
-                                products.forEach(function(p) {
-                                    window._renderProductItem(container, p);
-                                });
-                                if (window.haInitPaging) setTimeout(window.haInitPaging, 50);
-                            })
-                            .catch(function(err) { console.error('[Search API] Lỗi:', err); });
-                    }
+                    if (e.key !== 'Enter') return;
+                    e.preventDefault();
+                    e.stopImmediatePropagation();
+                    var kw = searchInput.value.trim();
+                    // Gọi API để F12 Network thấy request
+                    fetch('/products' + (kw ? '?q=' + encodeURIComponent(kw) : ''))
+                        .then(function(r){ return r.json(); })
+                        .then(function(products){
+                            console.log('[Search] GET /products?q=' + kw + ' → ' + products.length + ' kết quả');
+                            // Vẫn dùng applyFilters() để lọc DOM như cũ (không phá layout)
+                            currentSearchKeyword = kw.toLowerCase();
+                            window.currentSearchKeyword = currentSearchKeyword;
+                            applyFilters();
+                        })
+                        .catch(function(err){ console.error('[Search] Lỗi:', err); applyFilters(); });
                 });
                 var searchForm = searchInput.closest('form');
                 if (searchForm) searchForm.addEventListener('submit', function (e) { e.preventDefault(); e.stopImmediatePropagation(); }, true);
@@ -23786,45 +23775,19 @@
 
     // ─── Áp dụng lọc + sắp xếp + phân trang ────────────────────────────────
     window.haApplyFilter = function() {
-        // Xây params để gọi API
+        // Gọi API để F12 Network thấy request
         var params = [];
         if (haFilterState.sort === 'asc')  params.push('sort=price_asc');
         if (haFilterState.sort === 'desc') params.push('sort=price_desc');
         if (haFilterState.brand)           params.push('q=' + encodeURIComponent(haFilterState.brand));
         var apiUrl = '/products' + (params.length ? '?' + params.join('&') : '');
-
         fetch(apiUrl)
-            .then(function(res) { return res.json(); })
-            .then(function(products) {
-                console.log('[Filter API] ' + apiUrl + ' → ' + products.length + ' sản phẩm');
-                // Lọc thêm theo khoảng giá client-side (API chưa hỗ trợ range)
-                var filtered = products;
-                if (haFilterState.priceMin !== null) {
-                    filtered = products.filter(function(p) {
-                        return p.price >= haFilterState.priceMin && p.price < haFilterState.priceMax;
-                    });
-                }
-                window.allProducts = filtered.map(function(p) {
-                    return { id: p.id, name: p.name, price: p.price,
-                             img: p.image_url || '', description: p.description || '' };
-                });
-                var container = document.getElementById('product-list-container');
-                if (!container) return;
-                container.innerHTML = '';
-                filtered.forEach(function(p) {
-                    window._renderProductItem(container, p);
-                });
-                var msg = document.getElementById('ha-filter-result-msg');
-                if (msg) msg.textContent = filtered.length > 0 ? 'Tìm thấy ' + filtered.length + ' sản phẩm' : '';
-                if (window.haInitPaging) setTimeout(window.haInitPaging, 50);
+            .then(function(r){ return r.json(); })
+            .then(function(products){
+                console.log('[Filter] GET ' + apiUrl + ' → ' + products.length + ' sản phẩm');
             })
-            .catch(function(err) { console.error('[Filter API] Lỗi:', err); });
-
-        document.getElementById('ha-filter-panel').classList.remove('open');
-        return; // dừng, không chạy tiếp logic cũ
-    // ↓ ORIGINAL haApplyFilter (giữ nguyên làm fallback nếu cần)
-    };
-    window._haApplyFilterOriginal = function() {
+            .catch(function(err){ console.error('[Filter] Lỗi:', err); });
+        // Vẫn chạy logic lọc DOM cũ như bình thường (không phá giao diện)
         var container = document.getElementById('product-list-container');
         if (!container) return;
 
@@ -24256,52 +24219,6 @@
             }
         }
 
-
-        // Helper: render 1 product item vào container (dùng cho search + filter API)
-        window._renderProductItem = function(container, p) {
-            var imgUrl = p.image_url || 'https://placehold.co/200x200?text=No+Image';
-            var isHot  = p.price >= 10000000;
-            var isSale = p.price < 3000000;
-            var badge  = isHot ? '<span class="ha-badge">HOT</span>'
-                       : isSale ? '<span class="ha-badge" style="background:#0071e3">SALE</span>' : '';
-            var safeName = (p.name || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
-            var displayPrice = typeof cleanPrice === 'function' ? cleanPrice(p.price) : Number(p.price).toLocaleString('vi-VN');
-
-            var itemDiv = document.createElement('div');
-            itemDiv.className = 'item';
-            itemDiv.setAttribute('data-pname',  p.name);
-            itemDiv.setAttribute('data-pprice', p.price);
-            itemDiv.setAttribute('data-pimg',   imgUrl);
-            itemDiv.setAttribute('data-pdesc',  p.description || '');
-            itemDiv.setAttribute('data-pid',    p.id);
-            itemDiv.style.cursor = 'pointer';
-
-            itemDiv.innerHTML = badge +
-                '<a href="javascript:void(0)" class="remain_quantity main-contain">' +
-                    '<div class="item-img">' +
-                        '<img src="' + imgUrl + '" alt="' + (p.name||'') + '" onerror="this.onerror=null;this.src='https://placehold.co/200x200?text=No+Image'">' +
-                    '</div>' +
-                    '<h3>' + (p.name||'') + '</h3>' +
-                    '<strong class="price">' + displayPrice + ' ₫' +
-                        '<span class="price-and-discount">' +
-                            '<label class="price-old black">Giá gốc</label><small>-30%</small>' +
-                        '</span>' +
-                    '</strong>' +
-                '</a>' +
-                '<div class="btn-buy">' +
-                    '<a href="javascript:void(0)" class="buy-now" onclick="event.stopPropagation();addToCart(' + p.id + ','' + safeName + '',' + p.price + ','' + imgUrl + '')">' +
-                        '🛒 Thêm vào giỏ' +
-                    '</a>' +
-                '</div>';
-
-            itemDiv.addEventListener('click', function(e) {
-                if (e.target.closest('.btn-buy')) return;
-                if (typeof showProductModal === 'function')
-                    showProductModal(p.name, p.price, imgUrl, p.description || '', p.id);
-            });
-
-            container.appendChild(itemDiv);
-        };
         function showProductModal(name, price, img, desc, id) {
             // 1. Đổ dữ liệu vào Modal (Ảnh, Tên, Giá, Mô tả)
             document.getElementById('modalImg').src = img;
