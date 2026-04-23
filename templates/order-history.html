@@ -339,6 +339,59 @@
         .order-card:nth-child(3) { animation-delay: 0.12s; }
         .order-card:nth-child(4) { animation-delay: 0.18s; }
         .order-card:nth-child(5) { animation-delay: 0.24s; }
+
+        /* ─── REVIEW BOX ─── */
+        .review-box {
+            margin: 0 16px 16px;
+            padding: 16px;
+            background: linear-gradient(135deg, #fffbeb, #fefce8);
+            border: 1.5px solid #fde68a;
+            border-radius: 14px;
+        }
+        .review-box.done {
+            background: linear-gradient(135deg, #f0fdf4, #dcfce7);
+            border-color: #86efac;
+        }
+        .review-title {
+            font-size: 13px; font-weight: 700; color: #92400e;
+            margin-bottom: 10px; display: flex; align-items: center; gap: 6px;
+        }
+        .review-box.done .review-title { color: #166534; }
+        .stars-row {
+            display: flex; gap: 6px; margin-bottom: 12px;
+        }
+        .star-btn {
+            font-size: 26px; background: none; border: none; cursor: pointer;
+            transition: transform 0.15s; line-height: 1; padding: 0;
+            filter: grayscale(1); opacity: 0.35;
+        }
+        .star-btn.active { filter: none; opacity: 1; transform: scale(1.18); }
+        .star-btn:hover  { filter: none; opacity: 0.8; transform: scale(1.12); }
+        .review-textarea {
+            width: 100%; padding: 10px 12px;
+            border: 1.5px solid #fde68a; border-radius: 10px;
+            font-size: 13px; font-family: inherit; resize: none;
+            background: #fff; color: #1a1a2e; outline: none;
+            transition: border-color 0.2s; min-height: 72px;
+        }
+        .review-textarea:focus { border-color: #f59e0b; }
+        .review-submit {
+            margin-top: 10px; padding: 10px 24px;
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            color: #fff; font-weight: 700; font-size: 13px;
+            border: none; border-radius: 20px; cursor: pointer;
+            font-family: inherit; transition: all 0.2s;
+            box-shadow: 0 3px 12px rgba(217,119,6,0.3);
+        }
+        .review-submit:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(217,119,6,0.4); }
+        .review-submit:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+        .review-done-stars { font-size: 22px; letter-spacing: 2px; margin-bottom: 6px; }
+        .review-done-comment {
+            font-size: 13px; color: #374151; font-style: italic;
+            background: #fff; border-radius: 8px; padding: 8px 12px;
+            border: 1px solid #bbf7d0; margin-top: 6px;
+        }
+        .review-done-date { font-size: 11px; color: #6b7280; margin-top: 6px; }
     </style>
 </head>
 <body>
@@ -440,6 +493,17 @@
                     const cancelBtn = canCancel ? `
                         <button class="btn-cancel" onclick="cancelOrder(${order.id})">✕ Hủy đơn</button>` : '<div></div>';
 
+                    // Review box (chỉ hiện khi Đã giao)
+                    const isDone = order.status === 'Đã giao' || order.status === 'Hoàn thành';
+                    const reviewHtml = isDone ? `<div class="review-box" id="review-box-${order.id}">
+                        <div class="review-title">⭐ Đánh giá đơn hàng này</div>
+                        <div class="stars-row" id="stars-${order.id}">
+                            ${[1,2,3,4,5].map(s => `<button class="star-btn" data-val="${s}" onclick="setStar(${order.id},${s})">★</button>`).join('')}
+                        </div>
+                        <textarea class="review-textarea" id="comment-${order.id}" placeholder="Nhận xét của bạn về đơn hàng này (tùy chọn)..." rows="3"></textarea>
+                        <button class="review-submit" id="submit-review-${order.id}" onclick="submitReview(${order.id})">Gửi đánh giá ⭐</button>
+                    </div>` : '';
+
                     html += `
                         <div class="order-card">
                             <div class="order-header">
@@ -458,9 +522,14 @@
                                     <div class="total-amount">${(order.final_total || order.total || 0).toLocaleString()}đ</div>
                                 </div>
                             </div>
+                            ${reviewHtml}
                         </div>
                     `;
                 });
+
+                // Load trạng thái review cho đơn đã giao
+                orders.filter(o => o.status === 'Đã giao' || o.status === 'Hoàn thành')
+                      .forEach(o => loadReviewStatus(o.id));
 
                 container.innerHTML = html;
 
@@ -495,6 +564,76 @@
             }
         }
 
+
+        // ─── REVIEW FUNCTIONS ───
+        var reviewStars = {};  // { orderId: starValue }
+
+        function setStar(orderId, val) {
+            reviewStars[orderId] = val;
+            var btns = document.querySelectorAll('#stars-' + orderId + ' .star-btn');
+            btns.forEach(b => {
+                if (parseInt(b.dataset.val) <= val) b.classList.add('active');
+                else b.classList.remove('active');
+            });
+        }
+
+        async function loadReviewStatus(orderId) {
+            try {
+                const res = await fetch('/orders/' + orderId + '/review');
+                const data = await res.json();
+                if (data.reviewed) {
+                    renderReviewDone(orderId, data.rating, data.comment, data.created_at);
+                }
+            } catch(e) {}
+        }
+
+        function renderReviewDone(orderId, rating, comment, date) {
+            const box = document.getElementById('review-box-' + orderId);
+            if (!box) return;
+            const stars = '★'.repeat(rating) + '☆'.repeat(5 - rating);
+            box.classList.add('done');
+            box.innerHTML = `
+                <div class="review-title">✅ Đã đánh giá</div>
+                <div class="review-done-stars" style="color:#f59e0b">${stars}</div>
+                ${comment ? `<div class="review-done-comment">"${comment}"</div>` : ''}
+                <div class="review-done-date">Gửi lúc ${date}</div>
+            `;
+        }
+
+        async function submitReview(orderId) {
+            const rating = reviewStars[orderId];
+            if (!rating) { alert('Vui lòng chọn số sao!'); return; }
+            const comment = document.getElementById('comment-' + orderId).value.trim();
+            const btn = document.getElementById('submit-review-' + orderId);
+            const token = localStorage.getItem('access_token');
+
+            btn.disabled = true;
+            btn.textContent = '⏳ Đang gửi...';
+
+            try {
+                const res = await fetch('/orders/' + orderId + '/review', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + token
+                    },
+                    body: JSON.stringify({ rating, comment })
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    const now = new Date().toLocaleString('vi-VN');
+                    renderReviewDone(orderId, rating, comment, now);
+                } else {
+                    alert(data.detail || 'Gửi đánh giá thất bại!');
+                    btn.disabled = false;
+                    btn.textContent = 'Gửi đánh giá ⭐';
+                }
+            } catch(e) {
+                alert('Lỗi kết nối!');
+                btn.disabled = false;
+                btn.textContent = 'Gửi đánh giá ⭐';
+            }
+        }
         // Tự động tải khi mở trang + cứ 10 giây tự cập nhật trạng thái
         document.addEventListener('DOMContentLoaded', () => {
             displayOrders();

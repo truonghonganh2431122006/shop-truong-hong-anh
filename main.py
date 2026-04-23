@@ -301,6 +301,17 @@ class OrderItem(Base):
     product = relationship("Product")
 
 
+
+class Review(Base):
+    __tablename__ = "reviews"
+    id         = Column(Integer, primary_key=True, index=True)
+    order_id   = Column(Integer, ForeignKey("orders.id"), unique=True, nullable=False)
+    rating     = Column(Integer, nullable=False)   # 1-5 sao
+    comment    = Column(Text, default="")
+    created_at = Column(DateTime, default=now_vn)
+
+    order = relationship("Order")
+
 # ===================== SCHEMAS =====================
 class RegisterSchema(BaseModel):
     email: EmailStr
@@ -368,6 +379,12 @@ class OrderCreateSchema(BaseModel):
 
 class OrderStatusUpdateSchema(BaseModel):
     status: str
+
+
+class ReviewCreateSchema(BaseModel):
+    rating:  int = Field(ge=1, le=5)
+    comment: str = ""
+
 
 
 # ===================== DB INIT =====================
@@ -1597,6 +1614,55 @@ def get_total_revenue(
     }
 
 
+
+# ===================== REVIEW (ĐÁNH GIÁ ĐƠN HÀNG) =====================
+
+@app.post("/orders/{order_id}/review")
+def create_review(
+    order_id: int,
+    data: ReviewCreateSchema,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    order = db.query(Order).filter(Order.id == order_id, Order.user_id == user.id).first()
+    if not order:
+        raise HTTPException(status_code=404, detail="Không tìm thấy đơn hàng")
+    if order.status != "Đã giao":
+        raise HTTPException(status_code=400, detail="Chỉ đánh giá được đơn đã giao")
+    existing = db.query(Review).filter(Review.order_id == order_id).first()
+    if existing:
+        # Cho phép cập nhật lại đánh giá
+        existing.rating  = data.rating
+        existing.comment = data.comment.strip()
+        existing.created_at = now_vn()
+        db.commit()
+        return {"message": "Đã cập nhật đánh giá", "rating": existing.rating}
+    review = Review(
+        order_id=order_id,
+        rating=data.rating,
+        comment=data.comment.strip()
+    )
+    db.add(review)
+    db.commit()
+    return {"message": "Đánh giá thành công", "rating": review.rating}
+
+
+@app.get("/orders/{order_id}/review")
+def get_review(
+    order_id: int,
+    db: Session = Depends(get_db)
+):
+    review = db.query(Review).filter(Review.order_id == order_id).first()
+    if not review:
+        return {"reviewed": False}
+    return {
+        "reviewed":  True,
+        "rating":    review.rating,
+        "comment":   review.comment,
+        "created_at": review.created_at.strftime("%H:%M %d/%m/%Y") if review.created_at else ""
+    }
+
+
 # ===================== CHATBOT AI (GEMINI PROXY) =====================
 import httpx
 import asyncio
@@ -1639,74 +1705,3 @@ def build_chatbot_system(db: Session) -> str:
 class ChatMessage(BaseModel):
     role: str       # "user" hoặc "assistant"
     content: str
-
-class ChatRequest(BaseModel):
-    messages: List[ChatMessage]
-
-@app.post("/api/chat")
-async def chat_proxy(req: ChatRequest, db: Session = Depends(get_db)):
-    """Proxy gọi Gemini API, inject sản phẩm thực tế từ DB vào system prompt."""
-    if not req.messages:
-        raise HTTPException(status_code=400, detail="Tin nhắn trống")
-
-    # Lấy system prompt ĐỘNG có danh sách sản phẩm thực
-    system_prompt = build_chatbot_system(db)
-
-    # Gộp system + prompt đầu tiên (theo cấu trúc bạn cung cấp)
-    gemini_contents = []
-    for m in req.messages:
-        role = "model" if m.role == "assistant" else "user"
-        gemini_contents.append({"role": role, "parts": [{"text": m.content}]})
-
-    payload = {
-        "system_instruction": {"parts": [{"text": system_prompt}]},
-        "contents": gemini_contents,
-    }
-
-    url = f"{GEMINI_URL}?key={GEMINI_API_KEY}"
-
-    MAX_RETRY = 3
-    for attempt in range(MAX_RETRY):
-        try:
-            async with httpx.AsyncClient(timeout=30.0) as client:
-                res = await client.post(
-                    url,
-                    json=payload,
-                    headers={"Content-Type": "application/json"},
-                )
-            data = res.json()
-            print(f">>> [CHAT] Gemini status: {res.status_code} (lần {attempt+1})")
-
-            if res.status_code == 429:
-                wait = 2 ** attempt
-                print(f">>> [CHAT] 429 - chờ {wait}s rồi thử lại...")
-                await asyncio.sleep(wait)
-                continue
-
-            if res.status_code != 200:
-                err = data.get("error", {}).get("message", "Lỗi Gemini API")
-                print(f">>> [CHAT] Lỗi {res.status_code}: {err}")
-                raise HTTPException(status_code=res.status_code, detail=err)
-
-            reply = data["candidates"][0]["content"]["parts"][0]["text"]
-            print(f">>> [CHAT] OK - gemini-2.5-flash")
-            return {"reply": reply}
-
-        except httpx.TimeoutException:
-            if attempt < MAX_RETRY - 1:
-                await asyncio.sleep(1)
-                continue
-            raise HTTPException(status_code=504, detail="AI phản hồi quá chậm, thử lại nhé!")
-        except HTTPException:
-            raise
-        except Exception as e:
-            print(f">>> [CHAT] Exception: {str(e)}")
-            raise HTTPException(status_code=500, detail=str(e))
-
-    raise HTTPException(status_code=503, detail="AI đang bận, vui lòng thử lại sau!")
-
-
-# --- PHẢI NẰM Ở CUỐI FILE main.py ---
-if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 10000))
-    uvicorn.run(app, host="0.0.0.0", port=port)

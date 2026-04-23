@@ -536,11 +536,12 @@
               <th>Tổng tiền</th>
               <th>Ngày đặt</th>
               <th>Trạng thái</th>
+              <th>⭐ Đánh giá</th>
               <th>Thao tác</th>
             </tr>
           </thead>
           <tbody id="orderTableBody">
-            <tr><td colspan="9" style="text-align:center;padding:40px;color:var(--text-muted)">Đang tải dữ liệu...</td></tr>
+            <tr><td colspan="10" style="text-align:center;padding:40px;color:var(--text-muted)">Đang tải dữ liệu...</td></tr>
           </tbody>
         </table>
         </div><!-- end overflow-x:auto -->
@@ -720,7 +721,7 @@
             });
 
             if (res.status === 401 || res.status === 403) {
-                tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;color:orange;padding:20px">Phiên đăng nhập hết hạn.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="10" style="text-align:center;color:orange;padding:20px">Phiên đăng nhập hết hạn.</td></tr>';
                 return;
             }
 
@@ -731,7 +732,7 @@
             if (countEl) countEl.textContent = `(${orders.length} đơn)`;
 
             if (!orders || orders.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:40px;color:var(--text-muted)">Hiện chưa có đơn hàng nào.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="10" style="text-align:center;padding:40px;color:var(--text-muted)">Hiện chưa có đơn hàng nào.</td></tr>';
                 return;
             }
 
@@ -762,6 +763,9 @@
                         <td><b style="color:var(--danger)">${totalStr}</b></td>
                         <td><small>${dateStr}</small></td>
                         <td><span class="order-status ${sClass}">${ord.status || 'Chờ xác nhận'}</span></td>
+                        <td id="admin-review-${ord.id}" style="font-size:13px;min-width:100px">
+                            <span style="color:#d1d5db;font-size:11px">Đang tải...</span>
+                        </td>
                         <td>
                             <select onchange="updateOrderStatus(${ord.id}, this.value); this.blur();" 
                                 style="
@@ -794,7 +798,7 @@
             if (showAlert) showToast('✅ Đã tải lại danh sách đơn hàng!');
         } catch (err) { 
             console.error("Lỗi:", err);
-            tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;color:red;padding:20px">Lỗi kết nối: ${err.message}</td></tr>`; 
+            tbody.innerHTML = `<tr><td colspan="10" style="text-align:center;color:red;padding:20px">Lỗi kết nối: ${err.message}</td></tr>`; 
         } finally {
             if (btn) { btn.disabled = false; btn.textContent = '🔄 Làm mới'; }
         }
@@ -1133,9 +1137,3 @@
     }
 
     // ===== KHỞI ĐỘNG =====
-    checkAuth().then(() => {
-        loadOrders();
-    });
-</script>
-</body>
-</html>
