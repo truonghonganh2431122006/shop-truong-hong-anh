@@ -25975,6 +25975,190 @@
 })();
 </script>
 <!-- ============ END SHOPPING AI ============ -->
+
+<!-- ============ RESPONSIVE + DRAGGABLE CHATBOT ============ -->
+<style>
+/* ══════════════════════════════════════════
+   RESPONSIVE — Desktop / iPad / Mobile
+══════════════════════════════════════════ */
+
+/* ── Cursor kéo trên header chatbot ── */
+#ha-hdr, #sa-hdr { cursor: grab; user-select: none; }
+#ha-hdr:active, #sa-hdr:active { cursor: grabbing; }
+
+/* ── Mobile: chatbot full width ── */
+@media (max-width: 480px) {
+  /* FAB buttons */
+  #ha-fab { bottom:16px; right:16px; width:52px; height:52px; }
+  #sa-fab { bottom:16px; right:80px; width:52px; height:52px; }
+
+  /* Hồng Anh AI window */
+  #ha-win {
+    width: calc(100vw - 16px) !important;
+    height: calc(100vh - 100px) !important;
+    bottom: 80px !important;
+    right: 8px !important;
+    left: 8px !important;
+    border-radius: 16px !important;
+    max-width: none !important;
+    max-height: none !important;
+  }
+
+  /* Shopping AI window */
+  #sa-win {
+    width: calc(100vw - 16px) !important;
+    height: calc(100vh - 100px) !important;
+    bottom: 80px !important;
+    right: 8px !important;
+    left: 8px !important;
+    border-radius: 16px !important;
+    max-width: none !important;
+    max-height: none !important;
+  }
+
+  /* Product grid: 2 cột trên điện thoại */
+  #product-list-container.listproduct {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 8px !important;
+    width: 100% !important;
+    padding: 0 8px !important;
+  }
+
+  /* Header search bar */
+  .main-search { width: 100% !important; }
+
+  /* Ẩn bớt menu item dài trên mobile */
+  .box-search { max-width: 100% !important; }
+}
+
+/* ── iPad / Tablet ── */
+@media (min-width: 481px) and (max-width: 1024px) {
+  /* FAB buttons */
+  #ha-fab { bottom:20px; right:20px; }
+  #sa-fab { bottom:20px; right:88px; }
+
+  /* Hồng Anh AI */
+  #ha-win {
+    width: 340px !important;
+    bottom: 90px !important;
+    right: 16px !important;
+  }
+
+  /* Shopping AI */
+  #sa-win {
+    width: 340px !important;
+    bottom: 90px !important;
+    right: 16px !important;
+  }
+
+  /* Product grid: 3 cột trên iPad */
+  #product-list-container.listproduct {
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 10px !important;
+  }
+}
+
+/* ── Khi đang kéo: tắt transition để mượt ── */
+#ha-win.dragging, #sa-win.dragging {
+  transition: none !important;
+  opacity: 0.96 !important;
+  box-shadow: 0 24px 64px rgba(0,0,0,0.28) !important;
+}
+</style>
+
+<script>
+/* ══════════════════════════════════════════
+   DRAGGABLE CHATBOT WINDOWS
+   Kéo bằng header, giới hạn trong viewport
+══════════════════════════════════════════ */
+(function(){
+  function makeDraggable(winId, headerId) {
+    var win = document.getElementById(winId);
+    var hdr = document.getElementById(headerId);
+    if (!win || !hdr) return;
+
+    var isDragging = false;
+    var startX, startY, origLeft, origTop;
+
+    function getPos() {
+      var rect = win.getBoundingClientRect();
+      return { left: rect.left, top: rect.top };
+    }
+
+    function onDown(e) {
+      // Không kéo nếu click vào nút close
+      if (e.target.closest && e.target.closest('#ha-x, #sa-x')) return;
+      // Mobile: chỉ kéo bằng 1 ngón
+      var point = e.touches ? e.touches[0] : e;
+
+      isDragging = true;
+      var pos = getPos();
+      origLeft = pos.left;
+      origTop  = pos.top;
+      startX = point.clientX;
+      startY = point.clientY;
+
+      // Chuyển sang position absolute từ fixed với tọa độ hiện tại
+      win.style.left   = origLeft + 'px';
+      win.style.top    = origTop  + 'px';
+      win.style.right  = 'auto';
+      win.style.bottom = 'auto';
+      win.classList.add('dragging');
+
+      e.preventDefault();
+    }
+
+    function onMove(e) {
+      if (!isDragging) return;
+      var point = e.touches ? e.touches[0] : e;
+      var dx = point.clientX - startX;
+      var dy = point.clientY - startY;
+
+      var newLeft = origLeft + dx;
+      var newTop  = origTop  + dy;
+
+      // Giới hạn trong viewport
+      var maxLeft = window.innerWidth  - win.offsetWidth;
+      var maxTop  = window.innerHeight - win.offsetHeight;
+      newLeft = Math.max(0, Math.min(newLeft, maxLeft));
+      newTop  = Math.max(0, Math.min(newTop,  maxTop));
+
+      win.style.left = newLeft + 'px';
+      win.style.top  = newTop  + 'px';
+      e.preventDefault();
+    }
+
+    function onUp() {
+      if (!isDragging) return;
+      isDragging = false;
+      win.classList.remove('dragging');
+    }
+
+    // Mouse events
+    hdr.addEventListener('mousedown',  onDown);
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup',   onUp);
+
+    // Touch events
+    hdr.addEventListener('touchstart', onDown, { passive: false });
+    document.addEventListener('touchmove',  onMove, { passive: false });
+    document.addEventListener('touchend',   onUp);
+  }
+
+  // Khởi tạo sau khi DOM ready
+  function initDraggable() {
+    makeDraggable('ha-win', 'ha-hdr');
+    makeDraggable('sa-win', 'sa-hdr');
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initDraggable);
+  } else {
+    initDraggable();
+  }
+})();
+</script>
+<!-- ============ END RESPONSIVE + DRAGGABLE ============ -->
     </body>
 
 </html>
