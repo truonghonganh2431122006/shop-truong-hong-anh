@@ -897,8 +897,8 @@
             // 1. Thêm dòng lấy token để không bị lỗi
             const token = localStorage.getItem("access_token");
             
-            // 2. Gọi API
-            const res = await fetch('/products', { 
+            // 2. Gọi API - include_inactive=true để admin thấy cả sản phẩm đã ẩn
+            const res = await fetch('/products?include_inactive=true', { 
                 headers: { 'Authorization': 'Bearer ' + token } 
             });
             const products = await res.json();
@@ -910,29 +910,31 @@
             }
 
             products.forEach(p => {
-                const statusText = p.is_active !== false ? "Đang bán" : "Đã ẩn";
-                const statusClass = p.is_active !== false ? "status-xong" : "status-cho";
-                const toggleIcon = p.is_active !== false ? "🚫 Ẩn" : "👁️ Hiện";
-                const toggleAction = p.is_active !== false ? "hide" : "show";
+                const isHidden = p.is_active === false;
+                const statusText = !isHidden ? "Đang bán" : "Đã ẩn";
+                const statusClass = !isHidden ? "status-xong" : "status-cho";
+                const toggleIcon = !isHidden ? "🚫 Ẩn" : "👁️ Hiện";
+                const toggleAction = !isHidden ? "hide" : "show";
+                const rowBg = isHidden ? 'background:rgba(245,158,11,0.08);' : '';
 
-                // 3. KHIÊN CHỐNG LỖI GIÁ TIỀN: Lỡ giá bị null thì để mặc định là 0
+                // Bảo vệ lỗi giá tiền null
                 const safePrice = (p.price || 0).toLocaleString('vi-VN');
                 const safeImg = p.image_url || 'https://via.placeholder.com/40';
 
                 tbody.innerHTML += `
-                    <tr>
+                    <tr style="${rowBg}">
                         <td>#${p.id}</td>
                         <td>
                             <div style="display:flex; align-items:center; gap:10px">
-                                <img src="${safeImg}" style="width:40px; height:40px; border-radius:6px; object-fit:cover; border:1px solid var(--border)">
-                                <span style="${p.is_active !== false ? '' : 'color:gray; text-decoration:line-through'}">${p.name}</span>
+                                <img src="${safeImg}" style="width:40px; height:40px; border-radius:6px; object-fit:cover; border:1px solid var(--border); ${isHidden ? 'opacity:0.4;' : ''}">
+                                <span style="${isHidden ? 'color:var(--text-muted); text-decoration:line-through;' : ''}">${p.name}</span>
                             </div>
                         </td>
                         <td><b style="color:var(--primary)">${safePrice}đ</b></td>
                         <td><b style="color:${p.stock < 10 ? '#ef4444' : p.stock < 30 ? '#f59e0b' : '#10b981'}">${p.stock ?? 100}</b></td>
                         <td><span class="order-status ${statusClass}">${statusText}</span></td>
                         <td>
-                            <button class="btn btn-ship" onclick="toggleProduct(${p.id}, '${toggleAction}')">${toggleIcon}</button>
+                            <button class="btn ${isHidden ? 'btn-done' : 'btn-ship'}" onclick="toggleProduct(${p.id}, '${toggleAction}')" title="${isHidden ? 'Hiện lại trên shop' : 'Ẩn khỏi shop'}">${toggleIcon}</button>
                             <button class="btn" style="background:#f59e0b; color:white" onclick="openEditProductModal(${p.id}, '${p.name.replace(/'/g,"\\'")}', ${p.price}, '${(p.image_url||'').replace(/'/g,"\\'")}', '${(p.description||'').replace(/'/g,"\\'")}', ${p.stock ?? 100})">✏️</button>
                             <button class="btn" style="background:#64748b; color:white" onclick="deleteProduct(${p.id})">🗑️</button>
                         </td>
