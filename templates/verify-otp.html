@@ -269,28 +269,31 @@ if (!email) {
 // Ô nhập OTP tự nhảy sang ô kế tiếp
 const inputs = Array.from(document.querySelectorAll('#otpInputs input'));
 inputs.forEach((input, idx) => {
+  // Chặn ký tự không phải số
   input.addEventListener('keydown', (e) => {
-    // Backspace: xóa và lùi ô
     if (e.key === 'Backspace') {
       e.preventDefault();
-      if (input.value) {
-        input.value = '';
-      } else if (idx > 0) {
-        inputs[idx - 1].value = '';
-        inputs[idx - 1].focus();
-      }
+      input.value = '';
+      if (idx > 0) inputs[idx - 1].focus();
       return;
     }
-    // Chỉ cho nhập số 0-9
-    if (!/^[0-9]$/.test(e.key) && !['Tab','ArrowLeft','ArrowRight'].includes(e.key)) {
+    if (e.key === 'Enter') {
       e.preventDefault();
-      return;
-    }
-    // Nếu ô đang có giá trị và nhập số mới → ghi đè rồi nhảy ô tiếp
-    if (/^[0-9]$/.test(e.key)) {
-      e.preventDefault();
-      input.value = e.key;
       if (idx < inputs.length - 1) inputs[idx + 1].focus();
+      else document.getElementById('verifyBtn').click();
+      return;
+    }
+    if (['Tab','ArrowLeft','ArrowRight'].includes(e.key)) return;
+    if (!/^[0-9]$/.test(e.key)) { e.preventDefault(); return; }
+  });
+  // Sau khi ký tự vào ô → tự nhảy
+  input.addEventListener('input', () => {
+    const val = input.value.replace(/[^0-9]/g, '');
+    input.value = val.slice(-1); // chỉ giữ 1 số
+    if (input.value && idx < inputs.length - 1) {
+      inputs[idx + 1].focus();
+    } else if (input.value && idx === inputs.length - 1) {
+      document.getElementById('verifyBtn').click();
     }
   });
   input.addEventListener('paste', (e) => {
@@ -300,7 +303,6 @@ inputs.forEach((input, idx) => {
     const nextIdx = Math.min(text.length, inputs.length - 1);
     inputs[nextIdx].focus();
   });
-  // Click vào ô nào thì focus đúng ô đó
   input.addEventListener('focus', () => input.select());
 });
 inputs[0].focus();
