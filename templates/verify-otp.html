@@ -269,19 +269,39 @@ if (!email) {
 // Ô nhập OTP tự nhảy sang ô kế tiếp
 const inputs = Array.from(document.querySelectorAll('#otpInputs input'));
 inputs.forEach((input, idx) => {
-  input.addEventListener('input', () => {
-    input.value = input.value.replace(/[^0-9]/g, '');
-    if (input.value && idx < inputs.length - 1) inputs[idx + 1].focus();
-  });
   input.addEventListener('keydown', (e) => {
-    if (e.key === 'Backspace' && !input.value && idx > 0) inputs[idx - 1].focus();
+    // Backspace: xóa và lùi ô
+    if (e.key === 'Backspace') {
+      e.preventDefault();
+      if (input.value) {
+        input.value = '';
+      } else if (idx > 0) {
+        inputs[idx - 1].value = '';
+        inputs[idx - 1].focus();
+      }
+      return;
+    }
+    // Chỉ cho nhập số 0-9
+    if (!/^[0-9]$/.test(e.key) && !['Tab','ArrowLeft','ArrowRight'].includes(e.key)) {
+      e.preventDefault();
+      return;
+    }
+    // Nếu ô đang có giá trị và nhập số mới → ghi đè rồi nhảy ô tiếp
+    if (/^[0-9]$/.test(e.key)) {
+      e.preventDefault();
+      input.value = e.key;
+      if (idx < inputs.length - 1) inputs[idx + 1].focus();
+    }
   });
   input.addEventListener('paste', (e) => {
     e.preventDefault();
     const text = (e.clipboardData.getData('text') || '').replace(/[^0-9]/g, '').slice(0, 6);
     text.split('').forEach((ch, i) => { if (inputs[i]) inputs[i].value = ch; });
-    inputs[Math.min(text.length, inputs.length) - 1]?.focus();
+    const nextIdx = Math.min(text.length, inputs.length - 1);
+    inputs[nextIdx].focus();
   });
+  // Click vào ô nào thì focus đúng ô đó
+  input.addEventListener('focus', () => input.select());
 });
 inputs[0].focus();
 
