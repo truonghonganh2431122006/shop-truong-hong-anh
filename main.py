@@ -67,10 +67,12 @@ ADMIN_EMAIL = "admin@gmail.com"
 ADMIN_PASSWORD = "admin123"
 
 # ===================== EMAIL / OTP CONFIG =====================
-# Vào Render -> Environment -> thêm biến BREVO_API_KEY với key lấy từ brevo.com
-BREVO_API_KEY  = os.getenv("BREVO_API_KEY", "")
+# QUAN TRỌNG: KHÔNG để cứng App Password trong code khi đẩy lên GitHub công khai.
+# Vào Render -> Environment -> thêm 2 biến EMAIL_SENDER và EMAIL_APP_PASSWORD với
+# giá trị thật, rồi XOÁ 2 giá trị mặc định bên dưới (hoặc để trống).
+BREVO_API_KEY = os.getenv("BREVO_API_KEY", "")
 EMAIL_SENDER   = os.getenv("EMAIL_SENDER", "truonghonganh.shop@gmail.com")
-SENDER_NAME    = "Shop Trương Hồng Anh"
+SENDER_NAME    = "Shop Truong Hong Anh"
 
 OTP_EXPIRE_MINUTES = 5
 OTP_MAX_ATTEMPTS = 5
@@ -87,51 +89,53 @@ def generate_otp_code() -> str:
 
 
 def send_otp_email(to_email: str, otp_code: str):
-    """Gửi OTP qua Brevo API (HTTPS) — Render không chặn cổng 443."""
+    """Gui OTP qua Brevo API HTTPS - Render khong chan cong 443."""
     if not BREVO_API_KEY:
-        raise HTTPException(status_code=500, detail="Chưa cấu hình BREVO_API_KEY trên Render!")
+        raise HTTPException(status_code=500, detail="Chua cau hinh BREVO_API_KEY tren Render!")
 
-    html_body = f"""
-    <div style="font-family:Arial,sans-serif;max-width:480px;margin:auto;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.10)">
-      <div style="background:linear-gradient(135deg,#f97316,#ea580c);padding:28px 32px">
-        <h2 style="color:#fff;margin:0;font-size:22px">🛍️ Shop Trương Hồng Anh</h2>
-        <p style="color:rgba(255,255,255,0.85);margin:6px 0 0;font-size:14px">Xác thực tài khoản đăng ký</p>
-      </div>
-      <div style="padding:32px">
-        <p style="color:#374151;font-size:15px">Xin chào! Bạn vừa yêu cầu đăng ký tài khoản.</p>
-        <p style="color:#374151;font-size:15px">Mã OTP xác thực của bạn là:</p>
-        <div style="text-align:center;margin:24px 0">
-          <span style="font-size:40px;font-weight:700;letter-spacing:10px;color:#f97316;background:#fff7ed;padding:16px 24px;border-radius:12px;border:2px dashed #fed7aa">{otp_code}</span>
-        </div>
-        <p style="color:#6b7280;font-size:13px;text-align:center">⏰ Mã có hiệu lực trong <b>{OTP_EXPIRE_MINUTES} phút</b></p>
-        <p style="color:#ef4444;font-size:12px;text-align:center;margin-top:8px">Không chia sẻ mã này cho bất kỳ ai!</p>
-      </div>
-      <div style="background:#f9fafb;padding:16px 32px;text-align:center">
-        <p style="color:#9ca3af;font-size:12px;margin:0">© 2025 Shop Trương Hồng Anh · Thái Nguyên, Việt Nam</p>
-      </div>
-    </div>
-    """
+    html_body = (
+        "<div style='font-family:Arial,sans-serif;max-width:480px;margin:auto;"
+        "background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.10)'>"
+        "<div style='background:linear-gradient(135deg,#f97316,#ea580c);padding:28px 32px'>"
+        "<h2 style='color:#fff;margin:0;font-size:22px'>Shop Truong Hong Anh</h2>"
+        "<p style='color:rgba(255,255,255,0.85);margin:6px 0 0;font-size:14px'>Xac thuc tai khoan dang ky</p>"
+        "</div>"
+        "<div style='padding:32px'>"
+        "<p style='color:#374151;font-size:15px'>Xin chao! Ma OTP xac thuc cua ban la:</p>"
+        "<div style='text-align:center;margin:24px 0'>"
+        f"<span style='font-size:40px;font-weight:700;letter-spacing:10px;color:#f97316;"
+        f"background:#fff7ed;padding:16px 24px;border-radius:12px;border:2px dashed #fed7aa'>{otp_code}</span>"
+        "</div>"
+        f"<p style='color:#6b7280;font-size:13px;text-align:center'>Ma co hieu luc trong <b>{OTP_EXPIRE_MINUTES} phut</b></p>"
+        "<p style='color:#ef4444;font-size:12px;text-align:center;margin-top:8px'>Khong chia se ma nay cho bat ky ai!</p>"
+        "</div>"
+        "<div style='background:#f9fafb;padding:16px 32px;text-align:center'>"
+        "<p style='color:#9ca3af;font-size:12px;margin:0'>2025 Shop Truong Hong Anh</p>"
+        "</div></div>"
+    )
 
-    payload = {{
-        "sender": {{"name": SENDER_NAME, "email": EMAIL_SENDER}},
-        "to": [{{"email": to_email}}],
-        "subject": f"🔐 Mã OTP xác thực - Shop Trương Hồng Anh",
+    brevo_payload = {
+        "sender": {"name": SENDER_NAME, "email": EMAIL_SENDER},
+        "to": [{"email": to_email}],
+        "subject": "Ma OTP xac thuc - Shop Truong Hong Anh",
         "htmlContent": html_body
-    }}
-    headers = {{
+    }
+    headers = {
         "accept": "application/json",
         "api-key": BREVO_API_KEY,
         "content-type": "application/json"
-    }}
+    }
     try:
         res = http_requests.post(
             "https://api.brevo.com/v3/smtp/email",
-            json=payload, headers=headers, timeout=12
+            json=brevo_payload,
+            headers=headers,
+            timeout=12
         )
         if res.status_code not in (200, 201):
-            raise HTTPException(status_code=500, detail=f"Brevo lỗi {res.status_code}: {res.text[:200]}")
+            raise HTTPException(status_code=500, detail=f"Brevo loi {res.status_code}: {res.text[:200]}")
     except http_requests.exceptions.RequestException as e:
-        raise HTTPException(status_code=500, detail=f"Không gửi được email OTP: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Khong gui duoc email OTP: {str(e)}")
 
 # Roles / Status
 ROLE_USER = "USER"
