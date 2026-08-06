@@ -25,6 +25,9 @@ from jose import jwt, JWTError
 
 from datetime import datetime, timedelta, date, timezone
 from zoneinfo import ZoneInfo
+import random
+import smtplib
+from email.mime.text import MIMEText
 
 VN_TZ = ZoneInfo("Asia/Ho_Chi_Minh")
 
@@ -63,6 +66,51 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 60
 # Gán trực tiếp email và password bạn muốn dùng
 ADMIN_EMAIL = "admin@gmail.com"
 ADMIN_PASSWORD = "admin123"
+
+# ===================== EMAIL / OTP CONFIG =====================
+# QUAN TRỌNG: KHÔNG để cứng App Password trong code khi đẩy lên GitHub công khai.
+# Vào Render -> Environment -> thêm 2 biến EMAIL_SENDER và EMAIL_APP_PASSWORD với
+# giá trị thật, rồi XOÁ 2 giá trị mặc định bên dưới (hoặc để trống).
+EMAIL_SENDER = os.getenv("EMAIL_SENDER", "truonghonganh.shop@gmail.com")
+EMAIL_APP_PASSWORD = os.getenv("EMAIL_APP_PASSWORD", "spxp opxw rykn ecem")
+SMTP_HOST = "smtp.gmail.com"
+SMTP_PORT = 587
+
+OTP_EXPIRE_MINUTES = 5
+OTP_MAX_ATTEMPTS = 5
+OTP_RESEND_COOLDOWN_SECONDS = 30
+
+# Lưu tạm thông tin đăng ký chờ xác thực OTP (email -> dict)
+# Lưu ý: đây là bộ nhớ RAM, nếu server restart thì các đăng ký đang chờ sẽ mất
+# (không ảnh hưởng user đã xác thực xong, vì họ đã được lưu vào DB thật).
+PENDING_REGISTRATIONS: Dict[str, Dict[str, Any]] = {}
+
+
+def generate_otp_code() -> str:
+    return f"{random.randint(0, 999999):06d}"
+
+
+def send_otp_email(to_email: str, otp_code: str):
+    subject = "Mã xác thực đăng ký - ShopOnline"
+    body = (
+        f"Xin chào,\n\n"
+        f"Mã xác thực (OTP) của bạn là: {otp_code}\n"
+        f"Mã có hiệu lực trong {OTP_EXPIRE_MINUTES} phút.\n\n"
+        f"Nếu bạn không yêu cầu đăng ký, vui lòng bỏ qua email này.\n\n"
+        f"— ShopOnline"
+    )
+    msg = MIMEText(body, "plain", "utf-8")
+    msg["Subject"] = subject
+    msg["From"] = EMAIL_SENDER
+    msg["To"] = to_email
+
+    try:
+        with smtplib.SMTP(SMTP_HOST, SMTP_PORT, timeout=10) as server:
+            server.starttls()
+            server.login(EMAIL_SENDER, EMAIL_APP_PASSWORD)
+            server.sendmail(EMAIL_SENDER, [to_email], msg.as_string())
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Không gửi được email OTP: {e}")
 
 # Roles / Status
 ROLE_USER = "USER"
@@ -123,6 +171,10 @@ def login_p():
 @app.get("/register")
 def reg_p():
     return FileResponse(str(BASE_DIR / "templates" / "register.html"))
+
+@app.get("/verify-otp")
+def verify_otp_p():
+    return FileResponse(str(BASE_DIR / "templates" / "verify-otp.html"))
 
 @app.get("/admin")
 def admin_p():
@@ -323,6 +375,20 @@ class LoginSchema(BaseModel):
     password: str
 
 
+class SendOtpSchema(BaseModel):
+    email: EmailStr
+    password: str
+
+
+class VerifyOtpSchema(BaseModel):
+    email: EmailStr
+    otp: str
+
+
+class ResendOtpSchema(BaseModel):
+    email: EmailStr
+
+
 class AdminKeySchema(BaseModel):
     admin_key: str
 
@@ -497,6 +563,91 @@ def register(data: RegisterSchema, db: Session = Depends(get_db)):
 
 def _normalize_email(email: str) -> str:
     return (email or "").strip().lower()
+
+
+# ===================== AUTH: ĐĂNG KÝ QUA OTP EMAIL =====================
+@app.post("/auth/send-otp")
+def send_otp(data: SendOtpSchema, db: Session = Depends(get_db)):
+    ensure_password_ok(data.password)
+    email_norm = _normalize_email(data.email)
+
+    if db.query(User).filter(User.email == data.email).first():
+        raise HTTPException(status_code=400, detail="Email đã tồn tại")
+
+    if ADMIN_EMAIL and email_norm == _normalize_email(ADMIN_EMAIL):
+        raise HTTPException(status_code=400, detail="Email này không dùng để đăng ký")
+
+    otp_code = generate_otp_code()
+    PENDING_REGISTRATIONS[email_norm] = {
+        "email": data.email,
+        "password_hash": hash_password(data.password),
+        "otp": otp_code,
+        "expires_at": now_vn() + timedelta(minutes=OTP_EXPIRE_MINUTES),
+        "attempts": 0,
+        "last_sent_at": now_vn(),
+    }
+
+    send_otp_email(data.email, otp_code)
+    return {"message": "Đã gửi mã OTP đến email của bạn"}
+
+
+@app.post("/auth/verify-otp")
+def verify_otp(data: VerifyOtpSchema, db: Session = Depends(get_db)):
+    email_norm = _normalize_email(data.email)
+    pending = PENDING_REGISTRATIONS.get(email_norm)
+
+    if not pending:
+        raise HTTPException(status_code=400, detail="Không tìm thấy yêu cầu đăng ký, vui lòng đăng ký lại")
+
+    if now_vn() > pending["expires_at"]:
+        del PENDING_REGISTRATIONS[email_norm]
+        raise HTTPException(status_code=400, detail="Mã OTP đã hết hạn, vui lòng đăng ký lại")
+
+    if pending["otp"] != data.otp.strip():
+        pending["attempts"] += 1
+        if pending["attempts"] >= OTP_MAX_ATTEMPTS:
+            del PENDING_REGISTRATIONS[email_norm]
+            raise HTTPException(status_code=400, detail="Sai mã quá nhiều lần, vui lòng đăng ký lại")
+        raise HTTPException(status_code=400, detail="Mã OTP không đúng")
+
+    # OTP đúng -> tạo tài khoản thật trong DB
+    if db.query(User).filter(User.email == pending["email"]).first():
+        del PENDING_REGISTRATIONS[email_norm]
+        raise HTTPException(status_code=400, detail="Email đã tồn tại")
+
+    user = User(
+        email=pending["email"],
+        password=pending["password_hash"],
+        role=ROLE_USER,
+        status=STATUS_ACTIVE,
+    )
+    db.add(user)
+    db.commit()
+    del PENDING_REGISTRATIONS[email_norm]
+    return {"message": "Xác thực thành công! Tài khoản đã được tạo"}
+
+
+@app.post("/auth/resend-otp")
+def resend_otp(data: ResendOtpSchema):
+    email_norm = _normalize_email(data.email)
+    pending = PENDING_REGISTRATIONS.get(email_norm)
+
+    if not pending:
+        raise HTTPException(status_code=400, detail="Không tìm thấy yêu cầu đăng ký, vui lòng đăng ký lại")
+
+    elapsed = (now_vn() - pending["last_sent_at"]).total_seconds()
+    if elapsed < OTP_RESEND_COOLDOWN_SECONDS:
+        wait = int(OTP_RESEND_COOLDOWN_SECONDS - elapsed)
+        raise HTTPException(status_code=429, detail=f"Vui lòng đợi {wait}s trước khi gửi lại")
+
+    otp_code = generate_otp_code()
+    pending["otp"] = otp_code
+    pending["expires_at"] = now_vn() + timedelta(minutes=OTP_EXPIRE_MINUTES)
+    pending["attempts"] = 0
+    pending["last_sent_at"] = now_vn()
+
+    send_otp_email(pending["email"], otp_code)
+    return {"message": "Đã gửi lại mã OTP mới"}
 
 
 # --- Sửa hàm LOGIN để phân quyền và trả về Redirect ---

@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Xác thực OTP - ShopOnline</title>
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --bg: #f8f9fa;
+  --card: #ffffff;
+  --text: #1a1a2e;
+  --text-secondary: #6b7280;
+  --input-bg: #f3f4f6;
+  --input-border: #d1d5db;
+  --primary: #f97316;
+  --primary-hover: #ea580c;
+  --error: #ef4444;
+  --shadow: 0 25px 60px rgba(0,0,0,0.12);
+  --transition: 0.3s ease;
+}
+
+.dark {
+  --bg: #0f0f1a;
+  --card: #1a1a2e;
+  --text: #f1f1f1;
+  --text-secondary: #9ca3af;
+  --input-bg: #16213e;
+  --input-border: #2a2a4a;
+  --shadow: 0 25px 60px rgba(0,0,0,0.4);
+}
+
+body {
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background var(--transition);
+  overflow: hidden;
+  background: var(--bg);
+}
+
+.bg-gradient {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  background: linear-gradient(-45deg, #f97316, #8b5cf6, #3b82f6, #06b6d4, #f97316, #ec4899);
+  background-size: 400% 400%;
+  animation: gradientFlow 12s ease infinite;
+}
+
+@keyframes gradientFlow {
+  0%   { background-position: 0% 50%; }
+  25%  { background-position: 50% 100%; }
+  50%  { background-position: 100% 50%; }
+  75%  { background-position: 50% 0%; }
+  100% { background-position: 0% 50%; }
+}
+
+.card {
+  position: relative;
+  z-index: 10;
+  width: 440px;
+  max-width: 92vw;
+  background: var(--card);
+  border-radius: 24px;
+  box-shadow: var(--shadow);
+  padding: 44px 40px;
+  animation: cardEntry 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  opacity: 0;
+  transform: translateY(24px) scale(0.97);
+  transition: background var(--transition);
+}
+
+@keyframes cardEntry {
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #f97316, #8b5cf6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  margin: 0 auto 20px;
+}
+
+h1 {
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--text);
+  text-align: center;
+  margin-bottom: 8px;
+}
+
+.subtitle {
+  font-size: 14px;
+  color: var(--text-secondary);
+  text-align: center;
+  line-height: 1.6;
+  margin-bottom: 8px;
+}
+
+.email-highlight {
+  font-weight: 700;
+  color: var(--primary);
+}
+
+.otp-inputs {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin: 28px 0 6px;
+}
+
+.otp-inputs input {
+  width: 46px;
+  height: 56px;
+  text-align: center;
+  font-size: 24px;
+  font-weight: 700;
+  border: 2px solid var(--input-border);
+  border-radius: 12px;
+  background: var(--input-bg);
+  color: var(--text);
+  outline: none;
+  transition: all var(--transition);
+}
+
+.otp-inputs input:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 4px rgba(249, 115, 22, 0.15);
+}
+
+.error-text {
+  color: var(--error);
+  font-size: 13px;
+  text-align: center;
+  min-height: 18px;
+  margin-bottom: 12px;
+}
+
+.btn-submit {
+  width: 100%;
+  padding: 15px;
+  border: none;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #f97316, #ea580c);
+  color: #fff;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all var(--transition);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.btn-submit:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(249, 115, 22, 0.35); }
+.btn-submit:disabled { cursor: not-allowed; opacity: 0.7; transform: none; }
+
+.spinner {
+  width: 18px;
+  height: 18px;
+  border: 2.5px solid rgba(255,255,255,0.3);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.resend-row {
+  text-align: center;
+  margin-top: 20px;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.resend-link {
+  color: var(--primary);
+  font-weight: 700;
+  cursor: pointer;
+  text-decoration: none;
+}
+.resend-link.disabled {
+  color: var(--text-secondary);
+  cursor: not-allowed;
+  text-decoration: none;
+}
+
+.back-link {
+  display: block;
+  text-align: center;
+  margin-top: 24px;
+  font-size: 13px;
+  color: var(--text-secondary);
+  text-decoration: none;
+}
+.back-link:hover { color: var(--primary); }
+
+.toast {
+  position: fixed;
+  top: 30px;
+  right: 30px;
+  z-index: 100;
+  padding: 16px 28px;
+  border-radius: 14px;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  box-shadow: 0 15px 40px rgba(0,0,0,0.2);
+  animation: toastIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  background: linear-gradient(135deg, #10b981, #059669);
+}
+.toast.error-toast { background: linear-gradient(135deg, #ef4444, #dc2626); }
+
+@keyframes toastIn { from { opacity: 0; transform: translateX(50px) scale(0.95); } to { opacity: 1; transform: translateX(0) scale(1); } }
+@keyframes toastOut { to { opacity: 0; transform: translateX(50px) scale(0.95); } }
+</style>
+</head>
+<body>
+
+<div class="bg-gradient"></div>
+
+<div class="card">
+  <div class="icon">📧</div>
+  <h1>Xác thực email của bạn</h1>
+  <p class="subtitle">
+    Tớ đã gửi mã gồm 6 số đến <span class="email-highlight" id="emailDisplay">email của bạn</span>.
+    Nhập mã bên dưới để hoàn tất đăng ký nhé.
+  </p>
+
+  <div class="otp-inputs" id="otpInputs">
+    <input type="text" inputmode="numeric" maxlength="1" autocomplete="one-time-code">
+    <input type="text" inputmode="numeric" maxlength="1">
+    <input type="text" inputmode="numeric" maxlength="1">
+    <input type="text" inputmode="numeric" maxlength="1">
+    <input type="text" inputmode="numeric" maxlength="1">
+    <input type="text" inputmode="numeric" maxlength="1">
+  </div>
+  <div class="error-text" id="otpError"></div>
+
+  <button type="button" class="btn-submit" id="verifyBtn">
+    <span id="btnContent">Xác nhận</span>
+  </button>
+
+  <div class="resend-row">
+    Chưa nhận được mã? <a class="resend-link" id="resendLink">Gửi lại mã</a>
+  </div>
+
+  <a href="/register" class="back-link">← Quay lại đăng ký</a>
+</div>
+
+<script>
+const params = new URLSearchParams(window.location.search);
+const email = params.get('email') || '';
+document.getElementById('emailDisplay').textContent = email || 'email của bạn';
+
+if (!email) {
+  showToast('❌ Thiếu thông tin email, vui lòng đăng ký lại', true);
+}
+
+// Ô nhập OTP tự nhảy sang ô kế tiếp
+const inputs = Array.from(document.querySelectorAll('#otpInputs input'));
+inputs.forEach((input, idx) => {
+  input.addEventListener('input', () => {
+    input.value = input.value.replace(/[^0-9]/g, '');
+    if (input.value && idx < inputs.length - 1) inputs[idx + 1].focus();
+  });
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Backspace' && !input.value && idx > 0) inputs[idx - 1].focus();
+  });
+  input.addEventListener('paste', (e) => {
+    e.preventDefault();
+    const text = (e.clipboardData.getData('text') || '').replace(/[^0-9]/g, '').slice(0, 6);
+    text.split('').forEach((ch, i) => { if (inputs[i]) inputs[i].value = ch; });
+    inputs[Math.min(text.length, inputs.length) - 1]?.focus();
+  });
+});
+inputs[0].focus();
+
+const verifyBtn = document.getElementById('verifyBtn');
+const btnContent = document.getElementById('btnContent');
+const otpError = document.getElementById('otpError');
+
+verifyBtn.addEventListener('click', async () => {
+  const otp = inputs.map(i => i.value).join('');
+  otpError.textContent = '';
+
+  if (otp.length !== 6) {
+    otpError.textContent = '⚠ Vui lòng nhập đủ 6 số';
+    return;
+  }
+  if (!email) {
+    otpError.textContent = '⚠ Thiếu email, vui lòng đăng ký lại';
+    return;
+  }
+
+  verifyBtn.disabled = true;
+  btnContent.innerHTML = '<div class="spinner"></div> Đang xác nhận...';
+
+  try {
+    const res = await fetch('/auth/verify-otp', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, otp })
+    });
+    const data = await res.json();
+
+    if (res.ok) {
+      showToast('✅ ' + (data.message || 'Xác thực thành công!'));
+      setTimeout(() => { window.location.href = '/login'; }, 1400);
+    } else {
+      otpError.textContent = '⚠ ' + (data.detail || 'Mã OTP không đúng');
+      verifyBtn.disabled = false;
+      btnContent.textContent = 'Xác nhận';
+    }
+  } catch (err) {
+    showToast('❌ Lỗi kết nối Server!', true);
+    verifyBtn.disabled = false;
+    btnContent.textContent = 'Xác nhận';
+  }
+});
+
+// Gửi lại mã, khóa nút 30 giây
+const resendLink = document.getElementById('resendLink');
+let cooldown = 0;
+let cooldownTimer = null;
+
+resendLink.addEventListener('click', async () => {
+  if (resendLink.classList.contains('disabled') || !email) return;
+
+  try {
+    const res = await fetch('/auth/resend-otp', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email })
+    });
+    const data = await res.json();
+
+    if (res.ok) {
+      showToast('✅ Đã gửi lại mã OTP mới');
+      startCooldown(30);
+    } else {
+      showToast('❌ ' + (data.detail || 'Không gửi được mã'), true);
+    }
+  } catch (err) {
+    showToast('❌ Lỗi kết nối Server!', true);
+  }
+});
+
+function startCooldown(seconds) {
+  cooldown = seconds;
+  resendLink.classList.add('disabled');
+  updateResendText();
+  cooldownTimer = setInterval(() => {
+    cooldown--;
+    updateResendText();
+    if (cooldown <= 0) {
+      clearInterval(cooldownTimer);
+      resendLink.classList.remove('disabled');
+      resendLink.textContent = 'Gửi lại mã';
+    }
+  }, 1000);
+}
+
+function updateResendText() {
+  resendLink.textContent = `Gửi lại mã (${cooldown}s)`;
+}
+
+function showToast(message, isError = false) {
+  const existing = document.querySelector('.toast');
+  if (existing) existing.remove();
+  const toast = document.createElement('div');
+  toast.className = 'toast' + (isError ? ' error-toast' : '');
+  toast.textContent = message;
+  document.body.appendChild(toast);
+  setTimeout(() => {
+    toast.style.animation = 'toastOut 0.4s ease forwards';
+    setTimeout(() => toast.remove(), 400);
+  }, 3000);
+}
+</script>
+
+</body>
+</html>

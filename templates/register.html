@@ -371,12 +371,12 @@ registerForm.addEventListener('submit', async function(e) {
 
   // 3. Trạng thái Loading
   submitBtn.disabled = true;
-  submitBtn.innerHTML = '<div class="spinner"></div> Đang tạo tài khoản...';
+  submitBtn.innerHTML = '<div class="spinner"></div> Đang gửi mã OTP...';
 
   try {
-    // 4. Gửi yêu cầu đến Server Python
-    // Lưu ý: Đường dẫn /auth/register phải khớp với main.py của bạn
-    const res = await fetch("/auth/register", {
+    // 4. Gửi yêu cầu OTP đến Server Python (chưa tạo tài khoản ngay,
+    // chỉ tạo thật sau khi người dùng xác thực đúng mã OTP)
+    const res = await fetch("/auth/send-otp", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email, password })
@@ -385,13 +385,12 @@ registerForm.addEventListener('submit', async function(e) {
     const data = await res.json();
 
     if (res.ok) {
-      // THÀNH CÔNG
-      showToast('🎉 Đăng ký thành công! Đang chuyển hướng đăng nhập...', 'success');
-      
-      // Chuyển hướng sang trang đăng nhập sau 2 giây
+      // THÀNH CÔNG: đã gửi OTP, chuyển sang trang nhập mã
+      showToast('📧 ' + (data.message || 'Đã gửi mã OTP đến email!'), 'success');
+
       setTimeout(() => {
-        window.location.href = "/login";
-      }, 2000);
+        window.location.href = "/verify-otp?email=" + encodeURIComponent(email);
+      }, 1500);
 
     } else {
       // THẤT BẠI (Ví dụ: Email đã tồn tại)
