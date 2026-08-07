@@ -662,7 +662,84 @@ body {
       Chưa có tài khoản? <a href="/register">Đăng ký tài khoản</a>
     </p>
   
+<!-- ══ MODAL QUÊN MẬT KHẨU ══ -->
+<div class="modal-overlay" id="forgotModal">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeForgot()">✕</button>
 
+    <!-- BƯỚC 1: Nhập email -->
+    <div class="modal-step active" id="fp-step1">
+      <div class="modal-title">🔑 Quên mật khẩu?</div>
+      <div class="modal-sub">Nhập email đã đăng ký — tớ sẽ gửi mã OTP để xác nhận.</div>
+      <div class="modal-alert" id="fp-alert1"></div>
+      <div class="modal-field">
+        <label>Email</label>
+        <input type="email" id="fp-email" placeholder="your@email.com"
+               onkeydown="if(event.key==='Enter') fpSendOTP()">
+      </div>
+      <button class="modal-btn" id="fp-btn1" onclick="fpSendOTP()">
+        📧 Gửi mã OTP
+      </button>
+    </div>
+
+    <!-- BƯỚC 2: Nhập OTP -->
+    <div class="modal-step" id="fp-step2">
+      <div class="modal-title">📬 Nhập mã OTP</div>
+      <div class="modal-sub">Mã 6 số đã gửi về <b id="fp-email-show"></b></div>
+      <div class="modal-alert" id="fp-alert2"></div>
+      <div class="modal-otp-row" id="fp-otp-row">
+        <input class="modal-otp-box" maxlength="1" id="fp-o1">
+        <input class="modal-otp-box" maxlength="1" id="fp-o2">
+        <input class="modal-otp-box" maxlength="1" id="fp-o3">
+        <input class="modal-otp-box" maxlength="1" id="fp-o4">
+        <input class="modal-otp-box" maxlength="1" id="fp-o5">
+        <input class="modal-otp-box" maxlength="1" id="fp-o6">
+      </div>
+      <div class="modal-resend">
+        <span id="fp-countdown"></span>
+        <button id="fp-resend-btn" onclick="fpResendOTP()" disabled>Gửi lại mã</button>
+      </div>
+      <button class="modal-btn" id="fp-btn2" onclick="fpVerifyOTP()" style="margin-top:14px">
+        ✅ Xác nhận OTP
+      </button>
+    </div>
+
+    <!-- BƯỚC 3: Đặt mật khẩu mới -->
+    <div class="modal-step" id="fp-step3">
+      <div class="modal-title">🔒 Đặt mật khẩu mới</div>
+      <div class="modal-sub">Nhập mật khẩu mới cho tài khoản của bạn.</div>
+      <div class="modal-alert" id="fp-alert3"></div>
+      <div class="modal-field">
+        <label>Mật khẩu mới</label>
+        <div class="pw-wrap-modal">
+          <input type="password" id="fp-pw1" placeholder="Tối thiểu 6 ký tự">
+          <button class="pw-toggle-modal" onclick="fpTogglePw('fp-pw1',this)" type="button">👁️</button>
+        </div>
+      </div>
+      <div class="modal-field">
+        <label>Xác nhận mật khẩu</label>
+        <div class="pw-wrap-modal">
+          <input type="password" id="fp-pw2" placeholder="Nhập lại mật khẩu"
+                 onkeydown="if(event.key==='Enter') fpResetPassword()">
+          <button class="pw-toggle-modal" onclick="fpTogglePw('fp-pw2',this)" type="button">👁️</button>
+        </div>
+      </div>
+      <button class="modal-btn" id="fp-btn3" onclick="fpResetPassword()">
+        💾 Lưu mật khẩu mới
+      </button>
+    </div>
+
+    <!-- BƯỚC 4: Thành công -->
+    <div class="modal-step" id="fp-step4" style="text-align:center;padding:16px 0">
+      <div style="font-size:56px;margin-bottom:12px">🎉</div>
+      <div class="modal-title" style="color:#10b981">Đổi mật khẩu thành công!</div>
+      <div class="modal-sub" style="margin-top:8px">Bạn có thể đăng nhập bằng mật khẩu mới ngay bây giờ.</div>
+      <button class="modal-btn" onclick="closeForgot()" style="background:linear-gradient(135deg,#10b981,#059669)">
+        🚀 Đăng nhập ngay
+      </button>
+    </div>
+  </div>
+</div>
 </div>
 </div>
 
@@ -832,11 +909,14 @@ fpOtpIds.forEach(function(id, i) {
       else if (i > 0) { document.getElementById(fpOtpIds[i-1]).value = ''; document.getElementById(fpOtpIds[i-1]).focus(); }
       return;
     }
-    if (/^[0-9]$/.test(e.key)) {
-      e.preventDefault(); this.value = e.key;
-      if (i < fpOtpIds.length - 1) document.getElementById(fpOtpIds[i+1]).focus();
-    }
-    if (e.key === 'Enter') fpVerifyOTP();
+    if (e.key === 'Enter') { fpVerifyOTP(); return; }
+    if (['Tab','ArrowLeft','ArrowRight'].includes(e.key)) return;
+    if (!/^[0-9]$/.test(e.key)) { e.preventDefault(); return; }
+  });
+  box.addEventListener('input', function() {
+    var val = this.value.replace(/[^0-9]/g, '');
+    this.value = val.slice(-1);
+    if (this.value && i < fpOtpIds.length - 1) document.getElementById(fpOtpIds[i+1]).focus();
   });
   box.addEventListener('paste', function(e) {
     e.preventDefault();
@@ -844,6 +924,7 @@ fpOtpIds.forEach(function(id, i) {
     fpOtpIds.forEach(function(id2,j){ document.getElementById(id2).value = text[j]||''; });
     document.getElementById(fpOtpIds[Math.min(text.length,5)]).focus();
   });
+  box.addEventListener('focus', function() { this.select(); });
 });
 
 async function fpVerifyOTP() {
@@ -934,85 +1015,6 @@ function fpStartTimer(seconds) {
   }, 1000);
 }
 </script>
-
-<!-- ══ MODAL QUÊN MẬT KHẨU ══ -->
-<div class="modal-overlay" id="forgotModal">
-  <div class="modal-box">
-    <button class="modal-close" onclick="closeForgot()">✕</button>
-
-    <!-- BƯỚC 1: Nhập email -->
-    <div class="modal-step active" id="fp-step1">
-      <div class="modal-title">🔑 Quên mật khẩu?</div>
-      <div class="modal-sub">Nhập email đã đăng ký — tớ sẽ gửi mã OTP để xác nhận.</div>
-      <div class="modal-alert" id="fp-alert1"></div>
-      <div class="modal-field">
-        <label>Email</label>
-        <input type="email" id="fp-email" placeholder="your@email.com"
-               onkeydown="if(event.key==='Enter') fpSendOTP()">
-      </div>
-      <button class="modal-btn" id="fp-btn1" onclick="fpSendOTP()">
-        📧 Gửi mã OTP
-      </button>
-    </div>
-
-    <!-- BƯỚC 2: Nhập OTP -->
-    <div class="modal-step" id="fp-step2">
-      <div class="modal-title">📬 Nhập mã OTP</div>
-      <div class="modal-sub">Mã 6 số đã gửi về <b id="fp-email-show"></b></div>
-      <div class="modal-alert" id="fp-alert2"></div>
-      <div class="modal-otp-row" id="fp-otp-row">
-        <input class="modal-otp-box" maxlength="1" id="fp-o1">
-        <input class="modal-otp-box" maxlength="1" id="fp-o2">
-        <input class="modal-otp-box" maxlength="1" id="fp-o3">
-        <input class="modal-otp-box" maxlength="1" id="fp-o4">
-        <input class="modal-otp-box" maxlength="1" id="fp-o5">
-        <input class="modal-otp-box" maxlength="1" id="fp-o6">
-      </div>
-      <div class="modal-resend">
-        <span id="fp-countdown"></span>
-        <button id="fp-resend-btn" onclick="fpResendOTP()" disabled>Gửi lại mã</button>
-      </div>
-      <button class="modal-btn" id="fp-btn2" onclick="fpVerifyOTP()" style="margin-top:14px">
-        ✅ Xác nhận OTP
-      </button>
-    </div>
-
-    <!-- BƯỚC 3: Đặt mật khẩu mới -->
-    <div class="modal-step" id="fp-step3">
-      <div class="modal-title">🔒 Đặt mật khẩu mới</div>
-      <div class="modal-sub">Nhập mật khẩu mới cho tài khoản của bạn.</div>
-      <div class="modal-alert" id="fp-alert3"></div>
-      <div class="modal-field">
-        <label>Mật khẩu mới</label>
-        <div class="pw-wrap-modal">
-          <input type="password" id="fp-pw1" placeholder="Tối thiểu 6 ký tự">
-          <button class="pw-toggle-modal" onclick="fpTogglePw('fp-pw1',this)" type="button">👁️</button>
-        </div>
-      </div>
-      <div class="modal-field">
-        <label>Xác nhận mật khẩu</label>
-        <div class="pw-wrap-modal">
-          <input type="password" id="fp-pw2" placeholder="Nhập lại mật khẩu"
-                 onkeydown="if(event.key==='Enter') fpResetPassword()">
-          <button class="pw-toggle-modal" onclick="fpTogglePw('fp-pw2',this)" type="button">👁️</button>
-        </div>
-      </div>
-      <button class="modal-btn" id="fp-btn3" onclick="fpResetPassword()">
-        💾 Lưu mật khẩu mới
-      </button>
-    </div>
-
-    <!-- BƯỚC 4: Thành công -->
-    <div class="modal-step" id="fp-step4" style="text-align:center;padding:16px 0">
-      <div style="font-size:56px;margin-bottom:12px">🎉</div>
-      <div class="modal-title" style="color:#10b981">Đổi mật khẩu thành công!</div>
-      <div class="modal-sub" style="margin-top:8px">Bạn có thể đăng nhập bằng mật khẩu mới ngay bây giờ.</div>
-      <button class="modal-btn" onclick="closeForgot()" style="background:linear-gradient(135deg,#10b981,#059669)">
-        🚀 Đăng nhập ngay
-      </button>
-    </div>
-  </div>
-</div>
 
 </body>
 </html>
