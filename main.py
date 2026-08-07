@@ -82,6 +82,7 @@ OTP_RESEND_COOLDOWN_SECONDS = 30
 # Lưu ý: đây là bộ nhớ RAM, nếu server restart thì các đăng ký đang chờ sẽ mất
 # (không ảnh hưởng user đã xác thực xong, vì họ đã được lưu vào DB thật).
 PENDING_REGISTRATIONS: Dict[str, Dict[str, Any]] = {}
+PENDING_RESETS: Dict[str, Dict[str, Any]] = {}  # Quên mật khẩu
 
 
 def generate_otp_code() -> str:
@@ -413,6 +414,14 @@ class VerifyOtpSchema(BaseModel):
 class ResendOtpSchema(BaseModel):
     email: EmailStr
 
+class ForgotPasswordSchema(BaseModel):
+    email: EmailStr
+
+class ResetPasswordSchema(BaseModel):
+    email: EmailStr
+    otp: str
+    new_password: str
+
 
 class AdminKeySchema(BaseModel):
     admin_key: str
@@ -673,6 +682,127 @@ def resend_otp(data: ResendOtpSchema):
 
     send_otp_email(pending["email"], otp_code)
     return {"message": "Đã gửi lại mã OTP mới"}
+
+
+
+# ===================== QUÊN MẬT KHẨU =====================
+
+@app.post("/auth/forgot-password")
+def forgot_password(data: ForgotPasswordSchema, db: Session = Depends(get_db)):
+    email_norm = _normalize_email(data.email)
+    user = db.query(User).filter(User.email == email_norm).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="Email này chưa được đăng ký!")
+    if user.status == STATUS_BANNED:
+        raise HTTPException(status_code=403, detail="Tài khoản đã bị khoá!")
+
+    # Kiểm tra cooldown
+    existing = PENDING_RESETS.get(email_norm)
+    if existing:
+        elapsed = (now_vn() - existing["last_sent_at"]).total_seconds()
+        if elapsed < OTP_RESEND_COOLDOWN_SECONDS:
+            wait = int(OTP_RESEND_COOLDOWN_SECONDS - elapsed)
+            raise HTTPException(status_code=429, detail=f"Vui lòng đợi {wait}s trước khi gửi lại")
+
+    otp_code = generate_otp_code()
+    PENDING_RESETS[email_norm] = {
+        "otp":         otp_code,
+        "expires_at":  now_vn() + timedelta(minutes=OTP_EXPIRE_MINUTES),
+        "attempts":    0,
+        "last_sent_at": now_vn(),
+    }
+
+    # Gửi email OTP
+    html_body = (
+        "<div style='font-family:Arial,sans-serif;max-width:480px;margin:auto;"
+        "background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.10)'>"
+        "<div style='background:linear-gradient(135deg,#3b82f6,#1d4ed8);padding:28px 32px'>"
+        "<h2 style='color:#fff;margin:0;font-size:22px'>Shop Truong Hong Anh</h2>"
+        "<p style='color:rgba(255,255,255,0.85);margin:6px 0 0;font-size:14px'>Dat lai mat khau</p>"
+        "</div>"
+        "<div style='padding:32px'>"
+        "<p style='color:#374151;font-size:15px'>Ban vua yeu cau dat lai mat khau.</p>"
+        "<p style='color:#374151;font-size:15px'>Ma OTP xac thuc cua ban la:</p>"
+        "<div style='text-align:center;margin:24px 0'>"
+        f"<span style='font-size:40px;font-weight:700;letter-spacing:10px;color:#3b82f6;"
+        f"background:#eff6ff;padding:16px 24px;border-radius:12px;border:2px dashed #bfdbfe'>{otp_code}</span>"
+        "</div>"
+        f"<p style='color:#6b7280;font-size:13px;text-align:center'>Ma co hieu luc trong <b>{OTP_EXPIRE_MINUTES} phut</b></p>"
+        "<p style='color:#ef4444;font-size:12px;text-align:center;margin-top:8px'>Khong chia se ma nay cho bat ky ai!</p>"
+        "</div>"
+        "<div style='background:#f9fafb;padding:16px 32px;text-align:center'>"
+        "<p style='color:#9ca3af;font-size:12px;margin:0'>2025 Shop Truong Hong Anh</p>"
+        "</div></div>"
+    )
+    brevo_payload = {
+        "sender": {"name": SENDER_NAME, "email": EMAIL_SENDER},
+        "to": [{"email": data.email}],
+        "subject": "Ma OTP dat lai mat khau - Shop Truong Hong Anh",
+        "htmlContent": html_body
+    }
+    headers = {
+        "accept": "application/json",
+        "api-key": BREVO_API_KEY,
+        "content-type": "application/json"
+    }
+    try:
+        res = http_requests.post(
+            "https://api.brevo.com/v3/smtp/email",
+            json=brevo_payload, headers=headers, timeout=12
+        )
+        if res.status_code not in (200, 201):
+            raise HTTPException(status_code=500, detail=f"Brevo loi: {res.text[:200]}")
+    except http_requests.exceptions.RequestException as e:
+        raise HTTPException(status_code=500, detail=f"Khong gui duoc email: {str(e)}")
+
+    return {"message": "Da gui ma OTP ve email cua ban!"}
+
+
+
+@app.post("/auth/verify-reset-otp")
+def verify_reset_otp(data: VerifyOTPSchema, db: Session = Depends(get_db)):
+    email_norm = _normalize_email(data.email)
+    pending = PENDING_RESETS.get(email_norm)
+    if not pending:
+        raise HTTPException(status_code=400, detail="OTP khong hop le hoac da het han!")
+    if now_vn() > pending["expires_at"]:
+        PENDING_RESETS.pop(email_norm, None)
+        raise HTTPException(status_code=400, detail="OTP da het han! Vui long gui lai.")
+    if data.otp.strip() != pending["otp"]:
+        pending["attempts"] += 1
+        if pending["attempts"] >= OTP_MAX_ATTEMPTS:
+            PENDING_RESETS.pop(email_norm, None)
+            raise HTTPException(status_code=400, detail="Sai OTP qua nhieu lan!")
+        raise HTTPException(status_code=400, detail="Ma OTP khong dung!")
+    return {"message": "OTP hop le!"}
+
+
+@app.post("/auth/reset-password")
+def reset_password(data: ResetPasswordSchema, db: Session = Depends(get_db)):
+    email_norm = _normalize_email(data.email)
+    pending = PENDING_RESETS.get(email_norm)
+
+    if not pending:
+        raise HTTPException(status_code=400, detail="OTP không hợp lệ hoặc đã hết hạn!")
+    if now_vn() > pending["expires_at"]:
+        PENDING_RESETS.pop(email_norm, None)
+        raise HTTPException(status_code=400, detail="OTP đã hết hạn! Vui lòng gửi lại.")
+    if data.otp.strip() != pending["otp"]:
+        pending["attempts"] += 1
+        if pending["attempts"] >= OTP_MAX_ATTEMPTS:
+            PENDING_RESETS.pop(email_norm, None)
+            raise HTTPException(status_code=400, detail="Sai OTP quá nhiều lần! Vui lòng thử lại.")
+        raise HTTPException(status_code=400, detail="Mã OTP không đúng!")
+
+    ensure_password_ok(data.new_password)
+    user = db.query(User).filter(User.email == email_norm).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="Không tìm thấy tài khoản!")
+
+    user.password = hash_password(data.new_password)
+    db.commit()
+    PENDING_RESETS.pop(email_norm, None)
+    return {"message": "Đặt lại mật khẩu thành công! Vui lòng đăng nhập."}
 
 
 # --- Sửa hàm LOGIN để phân quyền và trả về Redirect ---

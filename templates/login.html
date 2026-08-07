@@ -495,6 +495,96 @@ body {
   .login-container { border-radius: 20px; }
   .form-side { padding: 28px 20px; }
 }
+
+/* ══════════ MODAL QUÊN MẬT KHẨU ══════════ */
+.modal-overlay {
+  display: none; position: fixed; inset: 0; z-index: 999;
+  background: rgba(0,0,0,0.5); backdrop-filter: blur(4px);
+  align-items: center; justify-content: center;
+}
+.modal-overlay.open { display: flex; }
+.modal-box {
+  background: #fff; border-radius: 20px; padding: 36px 32px;
+  width: 420px; max-width: 94vw; position: relative;
+  box-shadow: 0 24px 64px rgba(0,0,0,0.2);
+  animation: modalIn 0.3s cubic-bezier(.34,1.56,.64,1);
+}
+.dark .modal-box { background: #1a1a2e; }
+@keyframes modalIn { from { opacity:0; transform:scale(0.92) translateY(16px); } to { opacity:1; transform:none; } }
+.modal-close {
+  position: absolute; top: 14px; right: 16px;
+  background: none; border: none; font-size: 22px;
+  cursor: pointer; color: #9ca3af; line-height: 1;
+}
+.modal-close:hover { color: #ef4444; }
+.modal-step { display: none; }
+.modal-step.active { display: block; }
+.modal-title {
+  font-size: 20px; font-weight: 800; color: var(--text);
+  margin-bottom: 6px;
+}
+.modal-sub {
+  font-size: 13px; color: var(--text-secondary);
+  margin-bottom: 22px; line-height: 1.6;
+}
+.modal-field { margin-bottom: 16px; }
+.modal-field label {
+  display: block; font-size: 11px; font-weight: 700;
+  color: var(--text-secondary); margin-bottom: 6px;
+  text-transform: uppercase; letter-spacing: 0.5px;
+}
+.modal-field input {
+  width: 100%; padding: 12px 14px;
+  background: var(--input-bg); border: 1.5px solid var(--input-border);
+  border-radius: 10px; font-size: 14px; color: var(--text);
+  outline: none; transition: border-color 0.2s; font-family: inherit;
+}
+.modal-field input:focus { border-color: var(--primary); }
+.modal-otp-row {
+  display: flex; gap: 8px; justify-content: center; margin: 16px 0;
+}
+.modal-otp-box {
+  width: 46px; height: 54px; text-align: center;
+  font-size: 22px; font-weight: 700;
+  border: 2px solid var(--input-border); border-radius: 10px;
+  background: var(--input-bg); color: var(--text);
+  outline: none; transition: all 0.2s;
+}
+.modal-otp-box:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(249,115,22,0.15);
+}
+.modal-btn {
+  width: 100%; padding: 13px;
+  background: linear-gradient(135deg, #f97316, #ea580c);
+  color: #fff; font-size: 14px; font-weight: 700;
+  border: none; border-radius: 12px; cursor: pointer;
+  font-family: inherit; transition: all 0.2s; margin-top: 4px;
+  box-shadow: 0 4px 14px rgba(249,115,22,0.3);
+}
+.modal-btn:hover { transform: translateY(-2px); }
+.modal-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+.modal-alert {
+  padding: 10px 14px; border-radius: 8px; font-size: 13px;
+  margin-bottom: 14px; display: none;
+}
+.modal-alert.error { background:#fef2f2; border:1px solid #fecaca; color:#dc2626; }
+.modal-alert.success { background:#f0fdf4; border:1px solid #bbf7d0; color:#16a34a; }
+.modal-resend {
+  text-align: center; font-size: 12px; color: var(--text-secondary);
+  margin-top: 10px;
+}
+.modal-resend button {
+  background: none; border: none; color: var(--primary);
+  font-size: 12px; cursor: pointer; font-weight: 700;
+  text-decoration: underline; font-family: inherit;
+}
+.modal-resend button:disabled { color: var(--text-secondary); cursor: not-allowed; text-decoration: none; }
+.pw-wrap-modal { position: relative; }
+.pw-toggle-modal {
+  position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+  background: none; border: none; cursor: pointer; font-size: 16px; color: #9ca3af;
+}
 </style>
 </head>
 <body>
@@ -559,7 +649,7 @@ body {
         <label class="remember-me">
           <input type="checkbox" id="remember"> Ghi nhớ đăng nhập
         </label>
-        <a href="#" class="forgot-link">Quên mật khẩu?</a>
+        <a href="#" class="forgot-link" onclick="openForgot(); return false;">Quên mật khẩu?</a>
       </div>
 
       <!-- Submit -->
@@ -571,7 +661,86 @@ body {
     <p class="register-text">
       Chưa có tài khoản? <a href="/register">Đăng ký tài khoản</a>
     </p>
+  
+<!-- ══ MODAL QUÊN MẬT KHẨU ══ -->
+<div class="modal-overlay" id="forgotModal">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeForgot()">✕</button>
+
+    <!-- BƯỚC 1: Nhập email -->
+    <div class="modal-step active" id="fp-step1">
+      <div class="modal-title">🔑 Quên mật khẩu?</div>
+      <div class="modal-sub">Nhập email đã đăng ký — tớ sẽ gửi mã OTP để xác nhận.</div>
+      <div class="modal-alert" id="fp-alert1"></div>
+      <div class="modal-field">
+        <label>Email</label>
+        <input type="email" id="fp-email" placeholder="your@email.com"
+               onkeydown="if(event.key==='Enter') fpSendOTP()">
+      </div>
+      <button class="modal-btn" id="fp-btn1" onclick="fpSendOTP()">
+        📧 Gửi mã OTP
+      </button>
+    </div>
+
+    <!-- BƯỚC 2: Nhập OTP -->
+    <div class="modal-step" id="fp-step2">
+      <div class="modal-title">📬 Nhập mã OTP</div>
+      <div class="modal-sub">Mã 6 số đã gửi về <b id="fp-email-show"></b></div>
+      <div class="modal-alert" id="fp-alert2"></div>
+      <div class="modal-otp-row" id="fp-otp-row">
+        <input class="modal-otp-box" maxlength="1" id="fp-o1">
+        <input class="modal-otp-box" maxlength="1" id="fp-o2">
+        <input class="modal-otp-box" maxlength="1" id="fp-o3">
+        <input class="modal-otp-box" maxlength="1" id="fp-o4">
+        <input class="modal-otp-box" maxlength="1" id="fp-o5">
+        <input class="modal-otp-box" maxlength="1" id="fp-o6">
+      </div>
+      <div class="modal-resend">
+        <span id="fp-countdown"></span>
+        <button id="fp-resend-btn" onclick="fpResendOTP()" disabled>Gửi lại mã</button>
+      </div>
+      <button class="modal-btn" id="fp-btn2" onclick="fpVerifyOTP()" style="margin-top:14px">
+        ✅ Xác nhận OTP
+      </button>
+    </div>
+
+    <!-- BƯỚC 3: Đặt mật khẩu mới -->
+    <div class="modal-step" id="fp-step3">
+      <div class="modal-title">🔒 Đặt mật khẩu mới</div>
+      <div class="modal-sub">Nhập mật khẩu mới cho tài khoản của bạn.</div>
+      <div class="modal-alert" id="fp-alert3"></div>
+      <div class="modal-field">
+        <label>Mật khẩu mới</label>
+        <div class="pw-wrap-modal">
+          <input type="password" id="fp-pw1" placeholder="Tối thiểu 6 ký tự">
+          <button class="pw-toggle-modal" onclick="fpTogglePw('fp-pw1',this)" type="button">👁️</button>
+        </div>
+      </div>
+      <div class="modal-field">
+        <label>Xác nhận mật khẩu</label>
+        <div class="pw-wrap-modal">
+          <input type="password" id="fp-pw2" placeholder="Nhập lại mật khẩu"
+                 onkeydown="if(event.key==='Enter') fpResetPassword()">
+          <button class="pw-toggle-modal" onclick="fpTogglePw('fp-pw2',this)" type="button">👁️</button>
+        </div>
+      </div>
+      <button class="modal-btn" id="fp-btn3" onclick="fpResetPassword()">
+        💾 Lưu mật khẩu mới
+      </button>
+    </div>
+
+    <!-- BƯỚC 4: Thành công -->
+    <div class="modal-step" id="fp-step4" style="text-align:center;padding:16px 0">
+      <div style="font-size:56px;margin-bottom:12px">🎉</div>
+      <div class="modal-title" style="color:#10b981">Đổi mật khẩu thành công!</div>
+      <div class="modal-sub" style="margin-top:8px">Bạn có thể đăng nhập bằng mật khẩu mới ngay bây giờ.</div>
+      <button class="modal-btn" onclick="closeForgot()" style="background:linear-gradient(135deg,#10b981,#059669)">
+        🚀 Đăng nhập ngay
+      </button>
+    </div>
   </div>
+</div>
+</div>
 </div>
 
 <script>
@@ -663,6 +832,180 @@ darkToggle.addEventListener('click', () => {
     document.documentElement.classList.toggle('dark');
     darkToggle.textContent = document.documentElement.classList.contains('dark') ? '🌙' : '☀️';
 });
+
+// ══════════ QUÊN MẬT KHẨU ══════════
+var fpEmail = '';
+var fpOtpTimer = null;
+
+function openForgot() {
+  document.getElementById('forgotModal').classList.add('open');
+  fpGoStep(1);
+  setTimeout(() => document.getElementById('fp-email').focus(), 100);
+}
+function closeForgot() {
+  document.getElementById('forgotModal').classList.remove('open');
+  clearInterval(fpOtpTimer);
+}
+// Đóng khi click bên ngoài
+document.getElementById('forgotModal').addEventListener('click', function(e) {
+  if (e.target === this) closeForgot();
+});
+
+function fpGoStep(n) {
+  document.querySelectorAll('.modal-step').forEach(s => s.classList.remove('active'));
+  document.getElementById('fp-step' + n).classList.add('active');
+  ['fp-alert1','fp-alert2','fp-alert3'].forEach(id => {
+    var el = document.getElementById(id);
+    if (el) el.style.display = 'none';
+  });
+}
+
+function fpAlert(stepNum, msg, type) {
+  var el = document.getElementById('fp-alert' + stepNum);
+  el.textContent = msg; el.className = 'modal-alert ' + type; el.style.display = 'block';
+}
+
+function fpTogglePw(id, btn) {
+  var inp = document.getElementById(id);
+  inp.type = inp.type === 'password' ? 'text' : 'password';
+  btn.textContent = inp.type === 'password' ? '👁️' : '🙈';
+}
+
+// BƯỚC 1: Gửi OTP
+async function fpSendOTP() {
+  var email = document.getElementById('fp-email').value.trim();
+  if (!email) { fpAlert(1, '⚠️ Vui lòng nhập email!', 'error'); return; }
+  var btn = document.getElementById('fp-btn1');
+  btn.disabled = true; btn.textContent = '⏳ Đang gửi...';
+  try {
+    var res = await fetch('/auth/forgot-password', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email })
+    });
+    var data = await res.json();
+    if (!res.ok) { fpAlert(1, '❌ ' + data.detail, 'error'); return; }
+    fpEmail = email;
+    document.getElementById('fp-email-show').textContent = email;
+    fpGoStep(2);
+    fpStartTimer(5 * 60);
+    setTimeout(() => document.getElementById('fp-o1').focus(), 100);
+  } catch(e) { fpAlert(1, '❌ Lỗi kết nối!', 'error'); }
+  finally { btn.disabled = false; btn.textContent = '📧 Gửi mã OTP'; }
+}
+
+// BƯỚC 2: OTP boxes
+var fpOtpIds = ['fp-o1','fp-o2','fp-o3','fp-o4','fp-o5','fp-o6'];
+fpOtpIds.forEach(function(id, i) {
+  var box = document.getElementById(id);
+  box.addEventListener('keydown', function(e) {
+    if (e.key === 'Backspace') {
+      e.preventDefault();
+      if (this.value) this.value = '';
+      else if (i > 0) { document.getElementById(fpOtpIds[i-1]).value = ''; document.getElementById(fpOtpIds[i-1]).focus(); }
+      return;
+    }
+    if (/^[0-9]$/.test(e.key)) {
+      e.preventDefault(); this.value = e.key;
+      if (i < fpOtpIds.length - 1) document.getElementById(fpOtpIds[i+1]).focus();
+    }
+    if (e.key === 'Enter') fpVerifyOTP();
+  });
+  box.addEventListener('paste', function(e) {
+    e.preventDefault();
+    var text = (e.clipboardData.getData('text')||'').replace(/[^0-9]/g,'').slice(0,6);
+    fpOtpIds.forEach(function(id2,j){ document.getElementById(id2).value = text[j]||''; });
+    document.getElementById(fpOtpIds[Math.min(text.length,5)]).focus();
+  });
+});
+
+async function fpVerifyOTP() {
+  var otp = fpOtpIds.map(id => document.getElementById(id).value).join('');
+  if (otp.length < 6) { fpAlert(2, '⚠️ Vui lòng nhập đủ 6 số!', 'error'); return; }
+  var btn = document.getElementById('fp-btn2');
+  btn.disabled = true; btn.textContent = '⏳ Đang xác nhận...';
+  try {
+    // Xác thực OTP bằng cách gọi reset với pw tạm để kiểm tra (hoặc dùng endpoint riêng)
+    // Ở đây ta lưu otp vào biến để dùng ở bước 3
+    fpOtpCode = otp;
+    // Kiểm tra OTP trước (dùng endpoint reset với pw tạm)
+    var res = await fetch('/auth/verify-reset-otp', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: fpEmail, otp })
+    });
+    var data = await res.json();
+    if (!res.ok) {
+      fpAlert(2, '❌ ' + data.detail, 'error');
+      fpOtpIds.forEach(id => { document.getElementById(id).value=''; document.getElementById(id).style.borderColor='#ef4444'; });
+      setTimeout(() => { fpOtpIds.forEach(id => document.getElementById(id).style.borderColor=''); document.getElementById('fp-o1').focus(); }, 600);
+      return;
+    }
+    clearInterval(fpOtpTimer);
+    fpGoStep(3);
+    setTimeout(() => document.getElementById('fp-pw1').focus(), 100);
+  } catch(e) { fpAlert(2, '❌ Lỗi kết nối!', 'error'); }
+  finally { btn.disabled = false; btn.textContent = '✅ Xác nhận OTP'; }
+}
+
+// BƯỚC 3: Đặt mật khẩu mới
+var fpOtpCode = '';
+async function fpResetPassword() {
+  var pw1 = document.getElementById('fp-pw1').value;
+  var pw2 = document.getElementById('fp-pw2').value;
+  if (!pw1) { fpAlert(3, '⚠️ Vui lòng nhập mật khẩu mới!', 'error'); return; }
+  if (pw1.length < 6) { fpAlert(3, '⚠️ Mật khẩu tối thiểu 6 ký tự!', 'error'); return; }
+  if (pw1 !== pw2) { fpAlert(3, '⚠️ Mật khẩu nhập lại không khớp!', 'error'); return; }
+  var btn = document.getElementById('fp-btn3');
+  btn.disabled = true; btn.textContent = '⏳ Đang lưu...';
+  try {
+    var res = await fetch('/auth/reset-password', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: fpEmail, otp: fpOtpCode, new_password: pw1 })
+    });
+    var data = await res.json();
+    if (!res.ok) { fpAlert(3, '❌ ' + data.detail, 'error'); return; }
+    fpGoStep(4);
+  } catch(e) { fpAlert(3, '❌ Lỗi kết nối!', 'error'); }
+  finally { btn.disabled = false; btn.textContent = '💾 Lưu mật khẩu mới'; }
+}
+
+// Gửi lại OTP
+async function fpResendOTP() {
+  var btn = document.getElementById('fp-resend-btn');
+  btn.disabled = true;
+  try {
+    var res = await fetch('/auth/forgot-password', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: fpEmail })
+    });
+    var data = await res.json();
+    if (res.ok) { fpAlert(2, '✅ Đã gửi lại mã OTP!', 'success'); fpOtpIds.forEach(id => document.getElementById(id).value=''); document.getElementById('fp-o1').focus(); fpStartTimer(5*60); }
+    else fpAlert(2, '❌ ' + data.detail, 'error');
+  } catch(e) { fpAlert(2, '❌ Lỗi kết nối!', 'error'); }
+}
+
+// Timer đếm ngược
+function fpStartTimer(seconds) {
+  clearInterval(fpOtpTimer);
+  var r = seconds;
+  var countdown = document.getElementById('fp-countdown');
+  var resendBtn = document.getElementById('fp-resend-btn');
+  resendBtn.disabled = true;
+  fpOtpTimer = setInterval(function() {
+    r--;
+    var m = String(Math.floor(r/60)).padStart(2,'0');
+    var s = String(r%60).padStart(2,'0');
+    countdown.textContent = 'Hết hạn sau ' + m + ':' + s + ' · ';
+    if (r <= 0) {
+      clearInterval(fpOtpTimer);
+      countdown.textContent = '';
+      resendBtn.disabled = false;
+    }
+  }, 1000);
+}
 </script>
 
 </body>
