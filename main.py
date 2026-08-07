@@ -760,7 +760,7 @@ def forgot_password(data: ForgotPasswordSchema, db: Session = Depends(get_db)):
 
 
 @app.post("/auth/verify-reset-otp")
-def verify_reset_otp(data: VerifyOTPSchema, db: Session = Depends(get_db)):
+def verify_reset_otp(data: VerifyOtpSchema, db: Session = Depends(get_db)):
     email_norm = _normalize_email(data.email)
     pending = PENDING_RESETS.get(email_norm)
     if not pending:
