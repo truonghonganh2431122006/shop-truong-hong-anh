@@ -838,17 +838,21 @@ var fpEmail = '';
 var fpOtpTimer = null;
 
 function openForgot() {
-  document.getElementById('forgotModal').classList.add('open');
+  var modal = document.getElementById('forgotModal');
+  if (!modal) return;
+  modal.classList.add('open');
   fpGoStep(1);
-  setTimeout(() => document.getElementById('fp-email').focus(), 100);
+  setTimeout(function(){ var el=document.getElementById('fp-email'); if(el) el.focus(); }, 100);
 }
 function closeForgot() {
-  document.getElementById('forgotModal').classList.remove('open');
+  var modal = document.getElementById('forgotModal');
+  if (modal) modal.classList.remove('open');
   clearInterval(fpOtpTimer);
 }
-// Đóng khi click bên ngoài
-document.getElementById('forgotModal').addEventListener('click', function(e) {
-  if (e.target === this) closeForgot();
+// Đóng khi click bên ngoài modal
+window.addEventListener('click', function(e) {
+  var modal = document.getElementById('forgotModal');
+  if (e.target === modal) closeForgot();
 });
 
 function fpGoStep(n) {
