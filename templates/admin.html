@@ -488,6 +488,9 @@
         <button id="btn-revenue" onclick="showTab('revenue')">
           <span class="nav-icon">💰</span> Doanh thu
         </button>
+        <button id="btn-wishlist" onclick="showTab('wishlist')">
+          <span class="nav-icon">❤️</span> Yêu thích
+        </button>
       </div>
     </nav>
 
@@ -676,19 +679,21 @@
         document.getElementById('tab-products').style.display = 'none';
         document.getElementById('tab-users').style.display = 'none';
         document.getElementById('tab-revenue').style.display = 'none';
-        
+        document.getElementById('tab-wishlist').style.display = 'none';
+
         // Gỡ bỏ class active ở các nút
         document.getElementById('btn-orders').classList.remove('active');
         document.getElementById('btn-products').classList.remove('active');
         document.getElementById('btn-users').classList.remove('active');
         document.getElementById('btn-revenue').classList.remove('active');
+        document.getElementById('btn-wishlist').classList.remove('active');
 
         // Hiện tab được chọn
         document.getElementById('tab-' + tabName).style.display = 'block';
         document.getElementById('btn-' + tabName).classList.add('active');
 
         // Cập nhật tiêu đề trang
-        const titles = { orders: '📦 Đơn hàng', products: '🛍️ Sản phẩm', users: '👥 Tài khoản', revenue: '💰 Doanh thu' };
+        const titles = { orders: '📦 Đơn hàng', products: '🛍️ Sản phẩm', users: '👥 Tài khoản', revenue: '💰 Doanh thu', wishlist: '❤️ Yêu thích' };
         if (document.getElementById('pageTitle')) {
             document.getElementById('pageTitle').textContent = titles[tabName];
         }
@@ -698,6 +703,7 @@
         if(tabName === 'users') loadUsers();
         if(tabName === 'products') loadProducts();
         if(tabName === 'revenue') loadRevenue();
+        if(tabName === 'wishlist') loadWishlistStats();
         
         if (typeof closeSidebar === 'function') closeSidebar();
     }
@@ -827,6 +833,55 @@
             }
         } catch(e) {
             cell.innerHTML = '<span style="color:#d1d5db">—</span>';
+        }
+    }
+
+
+    // ── WISHLIST STATS ──
+    async function loadWishlistStats() {
+        const tbody = document.getElementById('wishlistTableBody');
+        if (!tbody) return;
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:40px;color:var(--text-muted);"><span>⏳ Đang tải...</span></td></tr>';
+        const token = localStorage.getItem('access_token');
+        try {
+            const res = await fetch('/admin/wishlist/stats', {
+                headers: { 'Authorization': 'Bearer ' + token }
+            });
+            const data = await res.json();
+            if (!res.ok) { tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:40px;color:red;">Lỗi tải dữ liệu</td></tr>'; return; }
+
+            document.getElementById('wishlistCount').textContent = '(' + data.length + ' sản phẩm)';
+
+            if (!data.length) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:40px;color:var(--text-muted);">Chưa có sản phẩm nào được yêu thích</td></tr>';
+                return;
+            }
+
+            const maxCount = data[0].wish_count || 1;
+            tbody.innerHTML = data.map((p, i) => {
+                const pct = Math.round((p.wish_count / maxCount) * 100);
+                const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : (i+1) + '.';
+                const stockColor = p.stock < 10 ? 'color:#ef4444;font-weight:700' : p.stock < 30 ? 'color:#f59e0b;font-weight:600' : 'color:#10b981';
+                return `<tr style="border-bottom:1px solid var(--border);">
+                    <td style="padding:10px 14px;">
+                        <img src="${p.image_url}" style="width:46px;height:46px;object-fit:contain;border-radius:8px;background:#f5f5f7;" onerror="this.src='https://placehold.co/46x46?text=SP'">
+                    </td>
+                    <td style="padding:10px 14px;">
+                        <div style="font-weight:600;font-size:13px;">${medal} ${p.name}</div>
+                        <div style="font-size:11px;color:var(--text-muted);margin-top:2px;">#${p.product_id}</div>
+                    </td>
+                    <td style="padding:10px 14px;text-align:center;">
+                        <div style="font-size:18px;font-weight:800;color:#e11d48;">${p.wish_count}</div>
+                        <div style="background:#f0f0f4;border-radius:10px;height:5px;margin-top:4px;overflow:hidden;">
+                            <div style="width:${pct}%;height:100%;background:linear-gradient(90deg,#f43f5e,#e11d48);border-radius:10px;"></div>
+                        </div>
+                    </td>
+                    <td style="padding:10px 14px;text-align:right;font-weight:700;color:#e8000d;font-size:13px;">${Number(p.price).toLocaleString('vi-VN')}đ</td>
+                    <td style="padding:10px 14px;text-align:center;font-size:13px;"><span style="${stockColor}">${p.stock}</span></td>
+                </tr>`;
+            }).join('');
+        } catch(e) {
+            tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:red;padding:20px;">Lỗi kết nối</td></tr>';
         }
     }
 
