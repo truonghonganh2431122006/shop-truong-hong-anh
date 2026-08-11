@@ -755,7 +755,7 @@
                 const medal = i===0?'🥇':i===1?'🥈':i===2?'🥉':(i+1)+'.';
                 const sc = p.stock<10?'color:#ef4444;font-weight:700':p.stock<30?'color:#f59e0b':'color:#10b981';
                 return '<tr style="border-bottom:1px solid var(--border);">'
-                    +'<td style="padding:10px 14px;"><img src="'+(p.image_url||'')+'" style="width:44px;height:44px;object-fit:contain;border-radius:8px;background:#f5f5f7;" onerror="this.src='https://placehold.co/44?text=SP'"></td>'
+                    +'<td style="padding:10px 14px;"><img src="'+(p.image_url||'')+'" style="width:44px;height:44px;object-fit:contain;border-radius:8px;background:#f5f5f7;" onerror="this.src=\'https://placehold.co/44?text=SP\'"></td>'
                     +'<td style="padding:10px 14px;font-weight:600;font-size:13px;">'+medal+' '+p.name+'</td>'
                     +'<td style="padding:10px 14px;text-align:center;">'
                         +'<div style="font-size:20px;font-weight:800;color:#e11d48;">'+p.wish_count+'</div>'
