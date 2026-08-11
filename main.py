@@ -390,13 +390,14 @@ class Review(Base):
 
     order = relationship("Order")
 
+
+
 class Wishlist(Base):
     __tablename__ = "wishlists"
     id         = Column(Integer, primary_key=True, index=True)
     user_id    = Column(Integer, ForeignKey("users.id"), nullable=False)
     product_id = Column(Integer, ForeignKey("products.id"), nullable=False)
     created_at = Column(DateTime, default=now_vn)
-
     user    = relationship("User")
     product = relationship("Product")
 
@@ -1980,94 +1981,65 @@ def get_review(
 
 
 
-# ===================== WISHLIST (YÊU THÍCH) =====================
+# ===================== WISHLIST =====================
 
 @app.post("/wishlist/toggle")
-def wishlist_toggle(
-    data: dict,
-    user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
-):
-    product_id = data.get("product_id")
-    if not product_id:
+def wishlist_toggle(data: dict, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    pid = data.get("product_id")
+    if not pid:
         raise HTTPException(status_code=400, detail="Thiếu product_id")
-    product = db.query(Product).filter(Product.id == product_id, Product.is_active == True).first()
-    if not product:
-        raise HTTPException(status_code=404, detail="Sản phẩm không tồn tại")
-
     existing = db.query(Wishlist).filter(
-        Wishlist.user_id == user.id,
-        Wishlist.product_id == product_id
+        Wishlist.user_id == user.id, Wishlist.product_id == int(pid)
     ).first()
-
     if existing:
         db.delete(existing)
         db.commit()
-        return {"action": "removed", "message": "Đã bỏ khỏi yêu thích"}
-    else:
-        db.add(Wishlist(user_id=user.id, product_id=product_id))
-        db.commit()
-        return {"action": "added", "message": "Đã thêm vào yêu thích"}
-
-
-@app.get("/wishlist")
-def get_wishlist(
-    user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
-):
-    items = db.query(Wishlist).filter(Wishlist.user_id == user.id).all()
-    result = []
-    for w in items:
-        p = w.product
-        if p and p.is_active:
-            result.append({
-                "id":         p.id,
-                "name":       p.name,
-                "price":      p.price,
-                "stock":      p.stock,
-                "image_url":  p.image_url,
-                "description": p.description or "",
-                "wished_at":  w.created_at.strftime("%d/%m/%Y") if w.created_at else ""
-            })
-    return result
+        return {"action": "removed"}
+    db.add(Wishlist(user_id=user.id, product_id=int(pid)))
+    db.commit()
+    return {"action": "added"}
 
 
 @app.get("/wishlist/ids")
-def get_wishlist_ids(
-    user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
-):
-    items = db.query(Wishlist.product_id).filter(Wishlist.user_id == user.id).all()
-    return [i[0] for i in items]
+def wishlist_ids(user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    rows = db.query(Wishlist.product_id).filter(Wishlist.user_id == user.id).all()
+    return [r[0] for r in rows]
+
+
+@app.get("/wishlist")
+def get_wishlist(user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    rows = db.query(Wishlist).filter(Wishlist.user_id == user.id).all()
+    result = []
+    for w in rows:
+        p = w.product
+        if p and p.is_active:
+            result.append({
+                "id": p.id, "name": p.name, "price": p.price,
+                "stock": p.stock, "image_url": p.image_url,
+                "description": p.description or ""
+            })
+    return result
 
 
 @app.get("/admin/wishlist/stats")
-def admin_wishlist_stats(
-    user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
-):
+def wishlist_stats(user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     if user.role not in ["ADMIN", "STAFF"]:
         raise HTTPException(status_code=403, detail="Không có quyền")
-
     from sqlalchemy import func
-    stats = db.query(
+    rows = db.query(
         Wishlist.product_id,
-        func.count(Wishlist.id).label("count")
+        func.count(Wishlist.id).label("cnt")
     ).group_by(Wishlist.product_id).order_by(func.count(Wishlist.id).desc()).limit(50).all()
-
     result = []
-    for s in stats:
-        p = db.query(Product).filter(Product.id == s.product_id).first()
+    for r in rows:
+        p = db.query(Product).filter(Product.id == r.product_id).first()
         if p:
             result.append({
-                "product_id":  p.id,
-                "name":        p.name,
-                "price":       p.price,
-                "image_url":   p.image_url,
-                "stock":       p.stock,
-                "wish_count":  s.count
+                "product_id": p.id, "name": p.name, "price": p.price,
+                "image_url": p.image_url, "stock": p.stock, "wish_count": r.cnt
             })
     return result
+
 
 # ===================== CHATBOT AI (GEMINI PROXY) =====================
 import httpx

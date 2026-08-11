@@ -602,8 +602,32 @@
           <p style="color:var(--text-muted);text-align:center;padding:40px;">Nhấn "Làm mới" hoặc chọn tab để tải dữ liệu...</p>
         </div>
       </div>
+
+      <!-- TAB YÊU THÍCH -->
+      <div id="tab-wishlist" class="card" style="display:none;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px;">
+          <h2 style="margin:0;">❤️ Sản phẩm được yêu thích <span id="wishlistCount" style="font-size:13px;color:var(--text-muted);font-weight:400;"></span></h2>
+          <button class="btn btn-ship" onclick="loadWishlistStats()">🔄 Làm mới</button>
+        </div>
+        <div style="overflow-x:auto;">
+          <table style="width:100%;border-collapse:collapse;">
+            <thead><tr>
+              <th style="text-align:left;padding:10px 14px;font-size:12px;color:var(--text-muted);border-bottom:2px solid var(--border);">Ảnh</th>
+              <th style="text-align:left;padding:10px 14px;font-size:12px;color:var(--text-muted);border-bottom:2px solid var(--border);">Tên sản phẩm</th>
+              <th style="text-align:center;padding:10px 14px;font-size:12px;color:var(--text-muted);border-bottom:2px solid var(--border);">❤️ Lượt thích</th>
+              <th style="text-align:right;padding:10px 14px;font-size:12px;color:var(--text-muted);border-bottom:2px solid var(--border);">Giá</th>
+              <th style="text-align:center;padding:10px 14px;font-size:12px;color:var(--text-muted);border-bottom:2px solid var(--border);">Tồn kho</th>
+            </tr></thead>
+            <tbody id="wishlistTableBody">
+              <tr><td colspan="5" style="text-align:center;padding:40px;color:var(--text-muted);">Nhấn làm mới để tải...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
     </div>
   </div>
+
 
   <!-- Toast -->
   <div class="toast" id="toast"></div>
@@ -679,14 +703,14 @@
         document.getElementById('tab-products').style.display = 'none';
         document.getElementById('tab-users').style.display = 'none';
         document.getElementById('tab-revenue').style.display = 'none';
-        document.getElementById('tab-wishlist').style.display = 'none';
-
+        if(document.getElementById('tab-wishlist')) document.getElementById('tab-wishlist').style.display = 'none';
+        
         // Gỡ bỏ class active ở các nút
         document.getElementById('btn-orders').classList.remove('active');
         document.getElementById('btn-products').classList.remove('active');
         document.getElementById('btn-users').classList.remove('active');
         document.getElementById('btn-revenue').classList.remove('active');
-        document.getElementById('btn-wishlist').classList.remove('active');
+        if(document.getElementById('btn-wishlist')) document.getElementById('btn-wishlist').classList.remove('active');
 
         // Hiện tab được chọn
         document.getElementById('tab-' + tabName).style.display = 'block';
@@ -706,6 +730,44 @@
         if(tabName === 'wishlist') loadWishlistStats();
         
         if (typeof closeSidebar === 'function') closeSidebar();
+    }
+
+
+    // ── WISHLIST STATS ──
+    async function loadWishlistStats() {
+        const tbody = document.getElementById('wishlistTableBody');
+        if (!tbody) return;
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:30px;color:var(--text-muted);">⏳ Đang tải...</td></tr>';
+        const tk = localStorage.getItem('access_token');
+        try {
+            const res = await fetch('/admin/wishlist/stats', { headers: { 'Authorization': 'Bearer ' + tk } });
+            if (!res.ok) throw new Error('Lỗi ' + res.status);
+            const data = await res.json();
+            const cnt = document.getElementById('wishlistCount');
+            if(cnt) cnt.textContent = '(' + data.length + ' sản phẩm)';
+            if (!data.length) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:40px;color:var(--text-muted);">Chưa có sản phẩm nào được yêu thích</td></tr>';
+                return;
+            }
+            const max = data[0].wish_count || 1;
+            tbody.innerHTML = data.map((p,i) => {
+                const pct = Math.round(p.wish_count / max * 100);
+                const medal = i===0?'🥇':i===1?'🥈':i===2?'🥉':(i+1)+'.';
+                const sc = p.stock<10?'color:#ef4444;font-weight:700':p.stock<30?'color:#f59e0b':'color:#10b981';
+                return '<tr style="border-bottom:1px solid var(--border);">'
+                    +'<td style="padding:10px 14px;"><img src="'+(p.image_url||'')+'" style="width:44px;height:44px;object-fit:contain;border-radius:8px;background:#f5f5f7;" onerror="this.src='https://placehold.co/44?text=SP'"></td>'
+                    +'<td style="padding:10px 14px;font-weight:600;font-size:13px;">'+medal+' '+p.name+'</td>'
+                    +'<td style="padding:10px 14px;text-align:center;">'
+                        +'<div style="font-size:20px;font-weight:800;color:#e11d48;">'+p.wish_count+'</div>'
+                        +'<div style="background:#f0f0f4;border-radius:10px;height:5px;margin-top:4px;overflow:hidden;">'
+                            +'<div style="width:'+pct+'%;height:100%;background:linear-gradient(90deg,#f43f5e,#e11d48);border-radius:10px;"></div></div></td>'
+                    +'<td style="padding:10px 14px;text-align:right;font-weight:700;color:#e8000d;font-size:13px;">'+Number(p.price).toLocaleString('vi-VN')+'đ</td>'
+                    +'<td style="padding:10px 14px;text-align:center;font-size:13px;"><span style="'+sc+'">'+p.stock+'</span></td>'
+                    +'</tr>';
+            }).join('');
+        } catch(e) {
+            tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:red;padding:20px;">Lỗi: '+e.message+'</td></tr>';
+        }
     }
 
 // 3. Quản lý Đơn hàng
@@ -833,55 +895,6 @@
             }
         } catch(e) {
             cell.innerHTML = '<span style="color:#d1d5db">—</span>';
-        }
-    }
-
-
-    // ── WISHLIST STATS ──
-    async function loadWishlistStats() {
-        const tbody = document.getElementById('wishlistTableBody');
-        if (!tbody) return;
-        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:40px;color:var(--text-muted);"><span>⏳ Đang tải...</span></td></tr>';
-        const token = localStorage.getItem('access_token');
-        try {
-            const res = await fetch('/admin/wishlist/stats', {
-                headers: { 'Authorization': 'Bearer ' + token }
-            });
-            const data = await res.json();
-            if (!res.ok) { tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:40px;color:red;">Lỗi tải dữ liệu</td></tr>'; return; }
-
-            document.getElementById('wishlistCount').textContent = '(' + data.length + ' sản phẩm)';
-
-            if (!data.length) {
-                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:40px;color:var(--text-muted);">Chưa có sản phẩm nào được yêu thích</td></tr>';
-                return;
-            }
-
-            const maxCount = data[0].wish_count || 1;
-            tbody.innerHTML = data.map((p, i) => {
-                const pct = Math.round((p.wish_count / maxCount) * 100);
-                const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : (i+1) + '.';
-                const stockColor = p.stock < 10 ? 'color:#ef4444;font-weight:700' : p.stock < 30 ? 'color:#f59e0b;font-weight:600' : 'color:#10b981';
-                return `<tr style="border-bottom:1px solid var(--border);">
-                    <td style="padding:10px 14px;">
-                        <img src="${p.image_url}" style="width:46px;height:46px;object-fit:contain;border-radius:8px;background:#f5f5f7;" onerror="this.src='https://placehold.co/46x46?text=SP'">
-                    </td>
-                    <td style="padding:10px 14px;">
-                        <div style="font-weight:600;font-size:13px;">${medal} ${p.name}</div>
-                        <div style="font-size:11px;color:var(--text-muted);margin-top:2px;">#${p.product_id}</div>
-                    </td>
-                    <td style="padding:10px 14px;text-align:center;">
-                        <div style="font-size:18px;font-weight:800;color:#e11d48;">${p.wish_count}</div>
-                        <div style="background:#f0f0f4;border-radius:10px;height:5px;margin-top:4px;overflow:hidden;">
-                            <div style="width:${pct}%;height:100%;background:linear-gradient(90deg,#f43f5e,#e11d48);border-radius:10px;"></div>
-                        </div>
-                    </td>
-                    <td style="padding:10px 14px;text-align:right;font-weight:700;color:#e8000d;font-size:13px;">${Number(p.price).toLocaleString('vi-VN')}đ</td>
-                    <td style="padding:10px 14px;text-align:center;font-size:13px;"><span style="${stockColor}">${p.stock}</span></td>
-                </tr>`;
-            }).join('');
-        } catch(e) {
-            tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:red;padding:20px;">Lỗi kết nối</td></tr>';
         }
     }
 
