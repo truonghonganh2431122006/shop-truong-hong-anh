@@ -458,7 +458,8 @@
     ::-webkit-scrollbar-thumb { background: var(--text-light); border-radius: 10px; }
     ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
   </style>
-<script src="https://cdn.jsdelivr.net/npm/chart.js">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
     // ── PHASE 5 FUNCTIONS ──
     function exportOrdersToCSV() {
         const list = window._lastOrders || [];
@@ -681,7 +682,7 @@
             <select id="cpUserId" style="padding:8px 12px;border:1px solid var(--border);border-radius:8px;background:var(--card-bg);color:var(--text);">
               <option value="">🌐 Công khai (mọi khách hàng)</option>
             </select>
-            <button onclick="createCouponSubmit()" class="btn" style="background:#10b981;color:#fff;padding:8px 16px;border-radius:8px;font-weight:600;border:none;cursor:pointer;">➕ Tạo Coupon</button>
+            <button onclick="createCouponSubmit()" class="btn" style="background:#10b981;color:#fff;padding:8px 16px;border-radius:8px;font-weight:600;border:none;cursor:pointer;">💾 Cập nhật</button>
           </div>
         </div>
 
@@ -817,7 +818,8 @@
     </div>
   </div>
 
-<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js">
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script>
+<script>
     
     // ── COUPON MANAGEMENT ──
     async function loadCouponUserOptions() {
@@ -1300,6 +1302,24 @@
         }
     }
 
+    
+    async function setVoucherForUser(userId, email) {
+        showTab('coupon');
+        const startTime = Date.now();
+        const pollSelect = setInterval(() => {
+            const sel = document.getElementById('cpUserId');
+            const codeInput = document.getElementById('cpCode');
+            if (sel) {
+                const hasOpt = Array.from(sel.options).some(opt => opt.value == String(userId));
+                if (hasOpt || Date.now() - startTime > 2500) {
+                    clearInterval(pollSelect);
+                    if (hasOpt) sel.value = String(userId);
+                    if (codeInput) codeInput.focus();
+                }
+            }
+        }, 100);
+    }
+
     // 4. Quản lý Tài khoản
     async function loadUsers() {
         const tbody = document.getElementById('userTableBody');
@@ -1315,17 +1335,20 @@
                 const btnBanClass = isBanned ? "btn-done" : "btn-logout";
                 const emailStyle = isBanned ? "style='color:gray; text-decoration:line-through'" : "";
 
+                const safeEmail = (u.email || '').replace(/'/g, "\\\'").replace(/"/g, '&quot;');
+                const setVoucherBtn = `<button class="btn" style="background:#0071e3;color:white;margin-right:4px;" onclick="setVoucherForUser(${u.id}, '${safeEmail}')">🎟️ Set voucher</button>`;
                 tbody.innerHTML += `
                     <tr>
                         <td>${u.id}</td>
                         <td ${emailStyle}>${u.email} ${isMe ? '<b>(Tôi)</b>' : ''}</td>
                         <td><b>${u.role}</b></td>
                         <td>
+                            ${setVoucherBtn}
                             ${!isMe && !isAdmin ? `
                                 <button class="btn ${btnBanClass}" onclick="toggleBan(${u.id})">${btnBanText}</button>
                                 <button class="btn" style="background:${u.role==='STAFF'?'#f59e0b':'#6366f1'}; color:white" onclick="appointStaff(${u.id},'${u.role}')">${u.role==='STAFF'?'⬇️ Hạ chức':'⭐ Nhân viên'}</button>
                                 <button class="btn" style="background:#64748b; color:white" onclick="deleteUser(${u.id})">Xóa</button>
-                            ` : '<span style="color:gray; font-size:11px">Hệ thống bảo vệ</span>'}
+                            ` : ''}
                         </td>
                     </tr>`;
             });

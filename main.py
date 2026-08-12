@@ -1214,7 +1214,13 @@ def get_my_coupons(user: User = Depends(get_current_user), db: Session = Depends
 @app.post("/admin/coupons")
 def create_coupon(data: CouponCreateSchema, admin: User = Depends(require_admin), db: Session = Depends(get_db)):
     data_dict = data.dict()
-    data_dict['code'] = data_dict['code'].strip().upper()
+    code = data_dict['code'].strip().upper()
+    data_dict['code'] = code
+    
+    existing = db.query(Coupon).filter(Coupon.code == code).first()
+    if existing:
+        raise HTTPException(status_code=400, detail="Mã giảm giá đã tồn tại")
+
     if data_dict.get("user_id"):
         target_u = db.query(User).filter(User.id == data_dict["user_id"]).first()
         if not target_u:
