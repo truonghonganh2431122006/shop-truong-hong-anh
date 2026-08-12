@@ -22971,53 +22971,71 @@
             function changeQty(idx, delta) { if (!cart[idx]) return; cart[idx].qty += delta; if (cart[idx].qty < 1) cart[idx].qty = 1; updateCartCount(); renderCart(); }
             function clearCart() { cart = []; updateCartCount(); renderCart(); }
 
-            // ===== VOUCHER MAP =====
-            var VOUCHERS = {
-                'GIAM10': { label: 'Giảm 10%', type: 'percent', value: 10 },
-                'SALE20': { label: 'Giảm 20%', type: 'percent', value: 20 },
-                'VIP30':  { label: 'Giảm 30%', type: 'percent', value: 30 },
-                'FREESHIP': { label: 'Miễn phí vận chuyển 30.000đ', type: 'fixed', value: 30000 },
-                'NEWUSER': { label: 'Tặng 50.000đ cho khách mới', type: 'fixed', value: 50000 },
-            };
+            // ===== VOUCHER HANDLERS (REAL BACKEND API) =====
             var appliedVoucher = null;
 
             async function loadCartVouchers() {
     const sel = document.getElementById('voucherInput');
     if (!sel) return;
     const tk = localStorage.getItem('access_token');
-    if (!tk) return;
+    
+    if (!tk) {
+        sel.innerHTML = '<option value="">🔒 Đăng nhập để xem mã giảm giá của bạn</option>';
+        return;
+    }
+
+    sel.innerHTML = '<option value="">⏳ Đang tải mã giảm giá...</option>';
     try {
         const res = await fetch('/coupons/mine', { headers: { 'Authorization': 'Bearer ' + tk } });
         if (res.ok) {
             const coupons = await res.json();
-            if (coupons.length) {
-                sel.innerHTML = '<option value="">-- Chọn mã giảm giá --</option>' +
-                    coupons.map(c => {
-                        const valStr = c.discount_type === 'percent' ? `${c.discount_value}%` : `${cleanPrice(c.discount_value)}đ`;
-                        const personalStr = c.personal ? ' (Dành riêng cho bạn)' : '';
-                        return `<option value="${c.code}">${c.code} - ${c.label} (Giảm ${valStr}${personalStr})</option>`;
-                    }).join('');
+            if (coupons && coupons.length > 0) {
+                let optionsHtml = '<option value="">-- Chọn mã giảm giá --</option>';
+                optionsHtml += coupons.map(c => {
+                    const valStr = c.discount_type === 'percent' ? `${c.discount_value}%` : `${cleanPrice(c.discount_value)}đ`;
+                    const prefix = c.personal ? '🎁 [Dành riêng cho bạn] ' : '🌐 ';
+                    return `<option value="${c.code}">${prefix}${c.code} – ${c.label} (Giảm ${valStr})</option>`;
+                }).join('');
+                sel.innerHTML = optionsHtml;
+            } else {
+                sel.innerHTML = '<option value="">-- Không có mã giảm giá khả dụng --</option>';
             }
+            if (appliedVoucher) {
+                sel.value = appliedVoucher.code;
+            }
+        } else {
+            sel.innerHTML = '<option value="">-- Không thể tải mã giảm giá --</option>';
         }
-    } catch(e) {}
+    } catch(e) {
+        sel.innerHTML = '<option value="">-- Lỗi tải mã giảm giá --</option>';
+    }
 }
 
 async function applyVoucher() {
-    var code = (document.getElementById('voucherInput') || {}).value || '';
+    var sel = document.getElementById('voucherInput');
+    var code = (sel ? sel.value : '') || '';
     code = code.trim().toUpperCase();
-    if (!code) return;
+    if (!code) {
+        alert('Vui lòng chọn hoặc nhập mã giảm giá!');
+        return;
+    }
     const tk = localStorage.getItem('access_token');
     const headers = {};
     if (tk) headers['Authorization'] = 'Bearer ' + tk;
     try {
         const res = await fetch('/coupons/validate?code=' + encodeURIComponent(code), { headers: headers });
-        if (!res.ok) throw new Error((await res.json()).detail || 'Mã không hợp lệ');
+        if (!res.ok) {
+            const err = await res.json();
+            throw new Error(err.detail || 'Mã không hợp lệ');
+        }
         const v = await res.json();
         appliedVoucher = { code: v.code, type: v.discount_type, value: v.discount_value, label: v.label };
-        document.getElementById('voucherMsg').innerHTML = '<span style="color:green">✅ Áp dụng thành công: ' + v.label + '</span>';
+        var msgEl = document.getElementById('voucherMsg');
+        if (msgEl) msgEl.innerHTML = '<span style="color:green">✅ Áp dụng thành công: ' + v.label + '</span>';
     } catch (e) {
         appliedVoucher = null;
-        document.getElementById('voucherMsg').innerHTML = '<span style="color:red">❌ ' + e.message + '</span>';
+        var msgEl = document.getElementById('voucherMsg');
+        if (msgEl) msgEl.innerHTML = '<span style="color:red">❌ ' + e.message + '</span>';
     }
     updateCartSummary();
 }
@@ -23088,12 +23106,7 @@ async function applyVoucher() {
                 html += '<div style="font-size:13px;font-weight:600;margin-bottom:8px">🎟 Chọn Voucher giảm giá</div>';
                 html += '<div style="display:flex;gap:8px">';
                 html += '<select id="voucherInput" style="flex:1;padding:8px 10px;border:1px solid #ddd;border-radius:6px;font-size:13px">';
-                html += '<option value="">-- Chọn mã giảm giá --</option>';
-                html += '<option value="GIAM10">GIAM10 – Giảm 10%</option>';
-                html += '<option value="SALE20">SALE20 – Giảm 20%</option>';
-                html += '<option value="VIP30">VIP30 – Giảm 30%</option>';
-                html += '<option value="FREESHIP">FREESHIP – Miễn phí ship 30.000đ</option>';
-                html += '<option value="NEWUSER">NEWUSER – Tặng 50.000đ khách mới</option>';
+                html += '<option value="">⏳ Đang tải mã giảm giá...</option>';
                 html += '</select>';
                 html += '<button onclick="window._applyVoucher()" style="padding:8px 14px;background:#ffed00;border:none;border-radius:6px;font-weight:bold;cursor:pointer;font-size:13px">Áp dụng</button>';
                 html += '</div>';
@@ -23134,6 +23147,7 @@ async function applyVoucher() {
                 };
                 window._applyVoucher = applyVoucher;
                 updateCartSummary();
+                loadCartVouchers();
                 // Khôi phục voucher nếu đã áp
                 if (appliedVoucher) {
                     var vi = document.getElementById('voucherInput');
