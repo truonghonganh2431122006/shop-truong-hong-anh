@@ -1067,44 +1067,40 @@
 
     // 2. Chuyển Tab (Đã tích hợp load dữ liệu sản phẩm)
     function showTab(tabName) {
-        // Ẩn tất cả các tab
-        document.getElementById('tab-orders').style.display = 'none';
-        document.getElementById('tab-products').style.display = 'none';
-        document.getElementById('tab-users').style.display = 'none';
-        document.getElementById('tab-revenue').style.display = 'none';
-        if(document.getElementById('tab-wishlist')) document.getElementById('tab-wishlist').style.display = 'none';
-        
-        // Gỡ bỏ class active ở các nút
-        document.getElementById('btn-orders').classList.remove('active');
-        document.getElementById('btn-products').classList.remove('active');
-        document.getElementById('btn-users').classList.remove('active');
-        document.getElementById('btn-revenue').classList.remove('active');
-        if(document.getElementById('btn-wishlist')) document.getElementById('btn-wishlist').classList.remove('active');
+        const allTabs = ['orders', 'products', 'users', 'revenue', 'wishlist', 'flashsale', 'coupon'];
+        allTabs.forEach(t => {
+            const tabEl = document.getElementById('tab-' + t);
+            const btnEl = document.getElementById('btn-' + t);
+            if (tabEl) tabEl.style.display = 'none';
+            if (btnEl) btnEl.classList.remove('active');
+        });
 
-        // Hiện tab được chọn
-        document.getElementById('tab-' + tabName).style.display = 'block';
-        document.getElementById('btn-' + tabName).classList.add('active');
+        const activeTab = document.getElementById('tab-' + tabName);
+        const activeBtn = document.getElementById('btn-' + tabName);
+        if (activeTab) activeTab.style.display = 'block';
+        if (activeBtn) activeBtn.classList.add('active');
 
-        // Cập nhật tiêu đề trang
-        if(document.getElementById('tab-coupon')) document.getElementById('tab-coupon').style.display = 'none';
-        if(document.getElementById('btn-coupon')) document.getElementById('btn-coupon').classList.remove('active');
-        if(document.getElementById('tab-flashsale')) document.getElementById('tab-flashsale').style.display = 'none';
-        if(document.getElementById('btn-flashsale')) document.getElementById('btn-flashsale').classList.remove('active');
-
-        const titles = { orders: '📦 Đơn hàng', products: '🛍️ Sản phẩm', users: '👥 Tài khoản', revenue: '💰 Doanh thu', wishlist: '❤️ Yêu thích', flashsale: '⚡ Flash Sale', coupon: '🏷️ Mã giảm giá' };
+        const titles = {
+            orders: '📦 Đơn hàng',
+            products: '🛍️ Sản phẩm',
+            users: '👥 Tài khoản',
+            revenue: '💰 Doanh thu',
+            wishlist: '❤️ Yêu thích',
+            flashsale: '⚡ Flash Sale',
+            coupon: '🏷️ Mã giảm giá'
+        };
         if (document.getElementById('pageTitle')) {
-            document.getElementById('pageTitle').textContent = titles[tabName];
+            document.getElementById('pageTitle').textContent = titles[tabName] || 'Quản lý';
         }
 
-        // Gọi hàm load dữ liệu tương ứng
-        if(tabName === 'orders') loadOrders();
-        if(tabName === 'users') loadUsers();
-        if(tabName === 'products') loadProducts();
-        if(tabName === 'revenue') loadRevenue();
-        if(tabName === 'wishlist') loadWishlistStats();
-        if(tabName === 'flashsale') loadFlashSales();
-        if(tabName === 'coupon') loadCoupons();
-        
+        if (tabName === 'orders') loadOrders();
+        if (tabName === 'users') loadUsers();
+        if (tabName === 'products') loadProducts();
+        if (tabName === 'revenue') loadRevenue();
+        if (tabName === 'wishlist') loadWishlistStats();
+        if (tabName === 'flashsale') loadFlashSales();
+        if (tabName === 'coupon') loadCoupons();
+
         if (typeof closeSidebar === 'function') closeSidebar();
     }
 
