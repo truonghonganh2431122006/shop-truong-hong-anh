@@ -138,6 +138,34 @@ def send_otp_email(to_email: str, otp_code: str):
     except http_requests.exceptions.RequestException as e:
         raise HTTPException(status_code=500, detail=f"Khong gui duoc email OTP: {str(e)}")
 
+def send_order_confirmation_email(to_email: str, order_id: int, items: list, total: int):
+    if not BREVO_API_KEY:
+        return  # không chặn luồng tạo đơn nếu thiếu config email
+    rows_html = "".join(
+        f"<tr><td style='padding:8px'>{it['name']}</td>"
+        f"<td style='padding:8px;text-align:center'>{it['quantity']}</td>"
+        f"<td style='padding:8px;text-align:right'>{it['unit_price']:,}đ</td></tr>"
+        for it in items
+    )
+    html_body = (
+        "<div style='font-family:Arial,sans-serif;max-width:520px;margin:auto'>"
+        f"<h2>Đơn hàng #{order_id} đã được xác nhận!</h2>"
+        f"<table style='width:100%;border-collapse:collapse'>{rows_html}</table>"
+        f"<p style='font-weight:700;text-align:right;margin-top:12px'>Tổng: {total:,}đ</p>"
+        "<p>Cảm ơn bạn đã mua hàng tại Shop Trương Hồng Anh!</p></div>"
+    )
+    brevo_payload = {
+        "sender": {"name": SENDER_NAME, "email": EMAIL_SENDER},
+        "to": [{"email": to_email}],
+        "subject": f"Xác nhận đơn hàng #{order_id} - Shop Trương Hồng Anh",
+        "htmlContent": html_body,
+    }
+    headers = {"accept": "application/json", "api-key": BREVO_API_KEY, "content-type": "application/json"}
+    try:
+        http_requests.post("https://api.brevo.com/v3/smtp/email", json=brevo_payload, headers=headers, timeout=12)
+    except Exception as e:
+        print(f">>> [LỖI GỬI EMAIL ĐƠN HÀNG]: {e}")
+
 # Roles / Status
 ROLE_USER = "USER"
 ROLE_STAFF = "STAFF"
@@ -322,6 +350,30 @@ class Product(Base):
 
     created_at = Column(DateTime, default=datetime.utcnow)
 
+
+class Coupon(Base):
+    __tablename__ = "coupons"
+    id = Column(Integer, primary_key=True)
+    code = Column(String, unique=True, index=True, nullable=False)
+    label = Column(String, default="")
+    discount_type = Column(String, default="percent")  # "percent" hoặc "fixed"
+    discount_value = Column(Integer, nullable=False)
+    is_active = Column(Boolean, default=True)
+    expires_at = Column(DateTime, nullable=True)
+    created_at = Column(DateTime, default=now_vn)
+
+
+class FlashSale(Base):
+    __tablename__ = "flash_sales"
+    id = Column(Integer, primary_key=True)
+    product_id = Column(Integer, ForeignKey("products.id"), nullable=False)
+    sale_price = Column(Integer, nullable=False)   # giá sale, VND
+    start_time = Column(DateTime, nullable=False)
+    end_time = Column(DateTime, nullable=False)
+    is_active = Column(Boolean, default=True)
+    created_at = Column(DateTime, default=now_vn)
+
+
 # Tìm đến phần Schema (BaseModel) và sửa lại cho chuẩn:
 class OrderItemCreate(BaseModel):
     product_id: int
@@ -475,6 +527,22 @@ class ProductUpdateSchema(BaseModel):
     is_active: Optional[bool] = None
 
 
+class CouponCreateSchema(BaseModel):
+    code: str
+    label: str = ""
+    discount_type: str = "percent"
+    discount_value: int
+    expires_at: Optional[datetime] = None
+
+
+class FlashSaleCreateSchema(BaseModel):
+    product_id: int
+    sale_price: int
+    start_time: datetime
+    end_time: datetime
+
+
+
 class CartItemSchema(BaseModel):
     product_id: int
     quantity: int = Field(ge=1)
@@ -486,6 +554,8 @@ class OrderCreateSchema(BaseModel):
     shipping_address: Optional[str] = ""
     phone_number: Optional[str] = ""
     customer_name: Optional[str] = ""
+    voucher_code: Optional[str] = None
+
 
 
 class OrderStatusUpdateSchema(BaseModel):
@@ -526,7 +596,29 @@ def seed_admin():
         db.close()
 
 
-seed_admin()
+def seed_initial_data():
+    seed_admin()
+    db = SessionLocal()
+    try:
+        welcome = db.query(Coupon).filter(Coupon.code == "WELCOME10").first()
+        if not welcome:
+            c = Coupon(
+                code="WELCOME10",
+                label="Giảm 10% đơn đầu tiên",
+                discount_type="percent",
+                discount_value=10,
+                is_active=True
+            )
+            db.add(c)
+            db.commit()
+    except Exception:
+        db.rollback()
+    finally:
+        db.close()
+
+
+seed_initial_data()
+
 
 
 # ===================== DEPENDENCIES =====================
@@ -1070,7 +1162,84 @@ def delete_category(category_id: int, admin: User = Depends(require_admin), db: 
     return {"message": "Xóa category thành công"}
 
 
+# ===================== COUPONS =====================
+@app.get("/coupons/validate")
+def validate_coupon(code: str, db: Session = Depends(get_db)):
+    c = db.query(Coupon).filter(Coupon.code == code.strip().upper(), Coupon.is_active == True).first()
+    if not c:
+        raise HTTPException(status_code=404, detail="Mã giảm giá không hợp lệ")
+    if c.expires_at and c.expires_at < now_vn():
+        raise HTTPException(status_code=400, detail="Mã đã hết hạn")
+    return {"code": c.code, "label": c.label, "discount_type": c.discount_type, "discount_value": c.discount_value}
+
+@app.post("/admin/coupons")
+def create_coupon(data: CouponCreateSchema, admin: User = Depends(require_admin), db: Session = Depends(get_db)):
+    data_dict = data.dict()
+    data_dict['code'] = data_dict['code'].strip().upper()
+    c = Coupon(**data_dict)
+    db.add(c)
+    db.commit()
+    db.refresh(c)
+    return c
+
+@app.get("/admin/coupons")
+def list_coupons(admin: User = Depends(require_admin), db: Session = Depends(get_db)):
+    return db.query(Coupon).order_by(Coupon.id.desc()).all()
+
+@app.delete("/admin/coupons/{coupon_id}")
+def delete_coupon(coupon_id: int, admin: User = Depends(require_admin), db: Session = Depends(get_db)):
+    c = db.query(Coupon).filter(Coupon.id == coupon_id).first()
+    if not c:
+        raise HTTPException(status_code=404, detail="Không tìm thấy")
+    db.delete(c)
+    db.commit()
+    return {"message": "Đã xoá"}
+
+
+# ===================== FLASH SALES =====================
+@app.get("/flash-sales/active")
+def get_active_flash_sales(db: Session = Depends(get_db)):
+    now = now_vn()
+    sales = db.query(FlashSale).filter(
+        FlashSale.is_active == True,
+        FlashSale.start_time <= now,
+        FlashSale.end_time >= now,
+    ).all()
+    return [{
+        "product_id": s.product_id,
+        "sale_price": s.sale_price,
+        "end_time": s.end_time.isoformat(),
+    } for s in sales]
+
+@app.post("/admin/flash-sales")
+def create_flash_sale(data: FlashSaleCreateSchema, admin: User = Depends(require_admin), db: Session = Depends(get_db)):
+    fs = FlashSale(**data.dict())
+    db.add(fs)
+    db.commit()
+    db.refresh(fs)
+    return fs
+
+@app.get("/admin/flash-sales")
+def list_flash_sales(admin: User = Depends(require_admin), db: Session = Depends(get_db)):
+    return db.query(FlashSale).order_by(FlashSale.id.desc()).all()
+
+@app.delete("/admin/flash-sales/{sale_id}")
+def delete_flash_sale(sale_id: int, admin: User = Depends(require_admin), db: Session = Depends(get_db)):
+    fs = db.query(FlashSale).filter(FlashSale.id == sale_id).first()
+    if not fs:
+        raise HTTPException(status_code=404, detail="Không tìm thấy")
+    db.delete(fs)
+    db.commit()
+    return {"message": "Đã xoá"}
+
+
+@app.get("/admin/products/low-stock")
+def get_low_stock_products(threshold: int = 10, admin: User = Depends(require_admin), db: Session = Depends(get_db)):
+    return db.query(Product).filter(Product.stock < threshold, Product.is_active == True).all()
+
+
 # ===================== PRODUCTS (PUBLIC) =====================
+
 
 # --- 1. Khai báo cấu trúc dữ liệu gửi lên (Thêm cái này trên các hàm @app) ---
 class ImportProductItem(BaseModel):
@@ -1319,11 +1488,37 @@ def create_order(data: OrderCreateSchema, user: User = Depends(get_current_user)
         db.add(order)
         db.flush()
 
+        # Server-side discount & coupon verification
+        now = now_vn()
+        valid_coupon = None
+        if data.voucher_code:
+            c = db.query(Coupon).filter(Coupon.code == data.voucher_code.strip().upper(), Coupon.is_active == True).first()
+            if c and (not c.expires_at or c.expires_at >= now):
+                valid_coupon = c
+
         for it in data.items:
             p = product_map[it.product_id]
             p.stock -= it.quantity # Trừ kho
             
-            saved_price = int(it.unit_price) if it.unit_price is not None else p.price
+            # Check active flash sale for product
+            fs = db.query(FlashSale).filter(
+                FlashSale.product_id == p.id,
+                FlashSale.is_active == True,
+                FlashSale.start_time <= now,
+                FlashSale.end_time >= now,
+            ).first()
+            base_price = fs.sale_price if fs else p.price
+            
+            # Apply coupon if valid
+            if valid_coupon:
+                if valid_coupon.discount_type == "percent":
+                    saved_price = int(base_price * max(0, (100 - valid_coupon.discount_value)) / 100)
+                elif valid_coupon.discount_type == "fixed":
+                    saved_price = max(0, base_price - valid_coupon.discount_value)
+                else:
+                    saved_price = base_price
+            else:
+                saved_price = base_price
             
             oi = OrderItem(
                 order_id=order.id,
@@ -1334,6 +1529,12 @@ def create_order(data: OrderCreateSchema, user: User = Depends(get_current_user)
             db.add(oi)
 
         db.commit() 
+        try:
+            email_items = [{"name": product_map[it.product_id].name, "quantity": it.quantity, "unit_price": oi.unit_price} for it, oi in zip(data.items, order.items)]
+            total_val = sum(it["unit_price"] * it["quantity"] for it in email_items)
+            send_order_confirmation_email(user.email, order.id, email_items, total_val)
+        except Exception:
+            pass  # tuyệt đối không để lỗi email làm hỏng response tạo đơn
         return {"message": "Tạo đơn hàng thành công", "order_id": order.id, "id": order.id, "status": "Chờ xác nhận"}
 
     except Exception as e:

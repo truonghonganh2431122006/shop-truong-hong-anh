@@ -458,6 +458,48 @@
     ::-webkit-scrollbar-thumb { background: var(--text-light); border-radius: 10px; }
     ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
   </style>
+<script src="https://cdn.jsdelivr.net/npm/chart.js">
+    // ── PHASE 5 FUNCTIONS ──
+    function exportOrdersToCSV() {
+        const list = window._lastOrders || [];
+        if (!list.length) { alert("Không có đơn hàng để xuất!"); return; }
+        const headers = ['Mã đơn','Khách hàng','SĐT','Địa chỉ','Tổng tiền','Trạng thái','Ngày tạo'];
+        const rows = list.map(o => [o.id, o.customer_name||o.email||'', o.phone_number||'', o.shipping_address||'', o.total||0, o.status||'', o.created_at||'']);
+        let csv = '\uFEFF' + [headers, ...rows].map(r => r.map(c => `"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
+        const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = 'don_hang_' + new Date().toISOString().slice(0,10) + '.csv';
+        link.click();
+    }
+
+    let revenueChartInstance = null;
+    function renderRevenueChart(labels, dataValues) {
+        const canvas = document.getElementById('revenueChart');
+        if (!canvas) return;
+        if (revenueChartInstance) { revenueChartInstance.destroy(); }
+        const ctx = canvas.getContext('2d');
+        revenueChartInstance = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Doanh thu (VNĐ)',
+                    data: dataValues,
+                    backgroundColor: 'rgba(16, 185, 129, 0.6)',
+                    borderColor: '#10b981',
+                    borderWidth: 2,
+                    borderRadius: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: { legend: { display: true } },
+                scales: { y: { beginAtZero: true } }
+            }
+        });
+    }
+</script>
 </head>
 <body>
 
@@ -491,6 +533,12 @@
         <button id="btn-wishlist" onclick="showTab('wishlist')">
           <span class="nav-icon">❤️</span> Yêu thích
         </button>
+        <button id="btn-flashsale" onclick="showTab('flashsale')">
+          <span class="nav-icon">⚡</span> Flash Sale
+        </button>
+        <button id="btn-coupon" onclick="showTab('coupon')">
+          <span class="nav-icon">🏷️</span> Mã giảm giá
+        </button>
       </div>
     </nav>
 
@@ -523,6 +571,7 @@
       <div id="tab-orders" class="card">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; flex-wrap:wrap; gap:10px;">
           <h2 style="margin:0;">Danh sách đơn đặt hàng <span id="orderCount" style="font-size:13px;color:var(--text-muted);font-weight:400;"></span></h2>
+          <button class="btn" onclick="exportOrdersToCSV()" style="background:#10b981;color:#fff;display:flex;align-items:center;gap:6px;border:none;padding:8px 14px;border-radius:8px;cursor:pointer;font-weight:600;">📥 Xuất Excel</button>
           <button class="btn btn-ship" onclick="loadOrders(true)" id="btnRefreshOrders" style="display:flex;align-items:center;gap:6px;">
             🔄 Làm mới
           </button>
@@ -551,6 +600,11 @@
       </div><!-- end tab-orders -->
 
       <div id="tab-products" class="card" style="display:none;">
+        <!-- Low Stock Alert Block -->
+        <div id="lowStockAlert" style="display:none;background:#fef2f2;border:1px solid #fca5a5;padding:12px 16px;border-radius:10px;margin-bottom:16px;">
+          <strong style="color:#ef4444;font-size:14px;">⚠️ Cảnh báo sản phẩm tồn kho thấp (< 10):</strong>
+          <div id="lowStockList" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;"></div>
+        </div>
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
           <h2>Danh sách sản phẩm kho</h2>
           <button class="btn btn-done" onclick="openAddProductModal()">+ Thêm sản phẩm mới</button>
@@ -600,6 +654,93 @@
         </div>
         <div id="revenueContent">
           <p style="color:var(--text-muted);text-align:center;padding:40px;">Nhấn "Làm mới" hoặc chọn tab để tải dữ liệu...</p>
+        </div>
+      </div>
+
+      <!-- TAB MÃ GIẢM GIÁ -->
+      <div id="tab-coupon" class="card" style="display:none;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px;">
+          <h2 style="margin:0;">🏷️ Quản lý Mã giảm giá</h2>
+          <button class="btn btn-ship" onclick="loadCoupons()">🔄 Làm mới</button>
+        </div>
+        
+        <!-- Form Tạo Coupon -->
+        <div style="background:var(--bg);padding:16px;border-radius:12px;border:1px solid var(--border);margin-bottom:20px;">
+          <h3 style="margin-top:0;margin-bottom:12px;font-size:15px;color:var(--text)">➕ Tạo Mã giảm giá mới</h3>
+          <div style="display:flex;flex-wrap:wrap;gap:12px;align-items:center;">
+            <input id="cpCode" type="text" placeholder="Mã giảm giá (ví dụ: WELCOME10)" style="padding:8px 12px;border:1px solid var(--border);border-radius:8px;background:var(--card-bg);color:var(--text);font-weight:700;text-transform:uppercase;">
+            <input id="cpLabel" type="text" placeholder="Mô tả / Tiêu đề" style="padding:8px 12px;border:1px solid var(--border);border-radius:8px;background:var(--card-bg);color:var(--text);flex:1;min-width:180px;">
+            <select id="cpType" style="padding:8px 12px;border:1px solid var(--border);border-radius:8px;background:var(--card-bg);color:var(--text);">
+              <option value="percent">Giảm theo %</option>
+              <option value="fixed">Giảm số tiền cố định (VNĐ)</option>
+            </select>
+            <input id="cpValue" type="number" placeholder="Giá trị (% hoặc VNĐ)" style="padding:8px 12px;border:1px solid var(--border);border-radius:8px;background:var(--card-bg);color:var(--text);width:150px;">
+            <label style="font-size:12px;color:var(--text-muted)">Hết hạn:</label>
+            <input id="cpExpiresAt" type="datetime-local" style="padding:8px 12px;border:1px solid var(--border);border-radius:8px;background:var(--card-bg);color:var(--text);">
+            <button onclick="createCouponSubmit()" class="btn" style="background:#10b981;color:#fff;padding:8px 16px;border-radius:8px;font-weight:600;border:none;cursor:pointer;">➕ Tạo Coupon</button>
+          </div>
+        </div>
+
+        <!-- Bảng Danh sách Coupon -->
+        <div style="overflow-x:auto;">
+          <table style="width:100%;border-collapse:collapse;">
+            <thead>
+              <tr>
+                <th style="text-align:left;padding:10px;color:var(--text-muted);border-bottom:2px solid var(--border);">ID</th>
+                <th style="text-align:left;padding:10px;color:var(--text-muted);border-bottom:2px solid var(--border);">Mã</th>
+                <th style="text-align:left;padding:10px;color:var(--text-muted);border-bottom:2px solid var(--border);">Mô tả</th>
+                <th style="text-align:center;padding:10px;color:var(--text-muted);border-bottom:2px solid var(--border);">Mức giảm</th>
+                <th style="text-align:center;padding:10px;color:var(--text-muted);border-bottom:2px solid var(--border);">Hết hạn</th>
+                <th style="text-align:center;padding:10px;color:var(--text-muted);border-bottom:2px solid var(--border);">Thao tác</th>
+              </tr>
+            </thead>
+            <tbody id="couponTableBody">
+              <tr><td colspan="6" style="text-align:center;padding:30px;color:var(--text-muted);">Nhấn làm mới để tải...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+            <!-- TAB FLASH SALE -->
+      <div id="tab-flashsale" class="card" style="display:none;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px;">
+          <h2 style="margin:0;">⚡ Quản lý Flash Sale</h2>
+          <button class="btn btn-ship" onclick="loadFlashSales()">🔄 Làm mới</button>
+        </div>
+        
+        <!-- Form Tạo Flash Sale -->
+        <div style="background:var(--bg);padding:16px;border-radius:12px;border:1px solid var(--border);margin-bottom:20px;">
+          <h3 style="margin-top:0;margin-bottom:12px;font-size:15px;color:var(--text)">➕ Tạo Flash Sale mới</h3>
+          <div style="display:flex;flex-wrap:wrap;gap:12px;align-items:center;">
+            <select id="fsProductId" style="padding:8px 12px;border:1px solid var(--border);border-radius:8px;background:var(--card-bg);color:var(--text);flex:1;min-width:200px;">
+              <option value="">-- Chọn sản phẩm --</option>
+            </select>
+            <input id="fsSalePrice" type="number" placeholder="Giá sale (VNĐ)" style="padding:8px 12px;border:1px solid var(--border);border-radius:8px;background:var(--card-bg);color:var(--text);width:150px;">
+            <label style="font-size:12px;color:var(--text-muted)">Bắt đầu:</label>
+            <input id="fsStartTime" type="datetime-local" style="padding:8px 12px;border:1px solid var(--border);border-radius:8px;background:var(--card-bg);color:var(--text);">
+            <label style="font-size:12px;color:var(--text-muted)">Kết thúc:</label>
+            <input id="fsEndTime" type="datetime-local" style="padding:8px 12px;border:1px solid var(--border);border-radius:8px;background:var(--card-bg);color:var(--text);">
+            <button onclick="createFlashSaleSubmit()" class="btn" style="background:#ef4444;color:#fff;padding:8px 16px;border-radius:8px;font-weight:600;border:none;cursor:pointer;">⚡ Tạo Flash Sale</button>
+          </div>
+        </div>
+
+        <!-- Bảng Danh sách Flash Sale -->
+        <div style="overflow-x:auto;">
+          <table style="width:100%;border-collapse:collapse;">
+            <thead>
+              <tr>
+                <th style="text-align:left;padding:10px;color:var(--text-muted);border-bottom:2px solid var(--border);">ID</th>
+                <th style="text-align:left;padding:10px;color:var(--text-muted);border-bottom:2px solid var(--border);">Sản phẩm</th>
+                <th style="text-align:right;padding:10px;color:var(--text-muted);border-bottom:2px solid var(--border);">Giá Sale</th>
+                <th style="text-align:center;padding:10px;color:var(--text-muted);border-bottom:2px solid var(--border);">Bắt đầu</th>
+                <th style="text-align:center;padding:10px;color:var(--text-muted);border-bottom:2px solid var(--border);">Kết thúc</th>
+                <th style="text-align:center;padding:10px;color:var(--text-muted);border-bottom:2px solid var(--border);">Thao tác</th>
+              </tr>
+            </thead>
+            <tbody id="flashSaleTableBody">
+              <tr><td colspan="6" style="text-align:center;padding:30px;color:var(--text-muted);">Nhấn làm mới để tải...</td></tr>
+            </tbody>
+          </table>
         </div>
       </div>
 
@@ -671,7 +812,206 @@
     </div>
   </div>
 
-<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js">
+    
+    // ── COUPON MANAGEMENT ──
+    async function loadCoupons() {
+        const tbody = document.getElementById('couponTableBody');
+        if (!tbody) return;
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:30px;color:var(--text-muted);">⏳ Đang tải...</td></tr>';
+        const tk = localStorage.getItem('access_token');
+        try {
+            const res = await fetch('/admin/coupons', { headers: { 'Authorization': 'Bearer ' + tk } });
+            if (!res.ok) throw new Error('Lỗi ' + res.status);
+            const coupons = await res.json();
+            if (!coupons.length) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:40px;color:var(--text-muted);">Chưa có mã giảm giá nào</td></tr>';
+                return;
+            }
+            tbody.innerHTML = coupons.map(c => {
+                const valStr = c.discount_type === 'percent' ? `${c.discount_value}%` : `${cleanPrice(c.discount_value)}đ`;
+                const expStr = c.expires_at ? new Date(c.expires_at).toLocaleString('vi-VN') : 'Không giới hạn';
+                return `<tr style="border-bottom:1px solid var(--border);">
+                    <td style="padding:10px;">${c.id}</td>
+                    <td style="padding:10px;font-weight:700;color:var(--ha-blue,#0071e3);">${c.code}</td>
+                    <td style="padding:10px;">${c.label || ''}</td>
+                    <td style="padding:10px;text-align:center;font-weight:700;color:#10b981;">${valStr}</td>
+                    <td style="padding:10px;text-align:center;font-size:12px;">${expStr}</td>
+                    <td style="padding:10px;text-align:center;">
+                        <button onclick="deleteCouponSubmit(${c.id})" style="background:#ef4444;color:#fff;border:none;padding:4px 10px;border-radius:6px;cursor:pointer;font-size:12px;">🗑️ Xoá</button>
+                    </td>
+                </tr>`;
+            }).join('');
+        } catch(e) {
+            tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:30px;color:#ef4444;">❌ ${e.message}</td></tr>`;
+        }
+    }
+
+    async function createCouponSubmit() {
+        const tk = localStorage.getItem('access_token');
+        const code = document.getElementById('cpCode').value.trim();
+        const label = document.getElementById('cpLabel').value.trim();
+        const discountType = document.getElementById('cpType').value;
+        const discountValue = parseInt(document.getElementById('cpValue').value);
+        const expiresAt = document.getElementById('cpExpiresAt').value;
+
+        if (!code || !discountValue) {
+            alert('Vui lòng nhập Mã và Mức giảm!');
+            return;
+        }
+
+        try {
+            const res = await fetch('/admin/coupons', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + tk
+                },
+                body: JSON.stringify({
+                    code: code,
+                    label: label,
+                    discount_type: discountType,
+                    discount_value: discountValue,
+                    expires_at: expiresAt ? new Date(expiresAt).toISOString() : null
+                })
+            });
+            if (!res.ok) {
+                const err = await res.json();
+                throw new Error(err.detail || 'Không thể tạo Coupon');
+            }
+            alert('✅ Tạo Mã giảm giá thành công!');
+            document.getElementById('cpCode').value = '';
+            document.getElementById('cpLabel').value = '';
+            document.getElementById('cpValue').value = '';
+            loadCoupons();
+        } catch(e) {
+            alert('❌ ' + e.message);
+        }
+    }
+
+    async function deleteCouponSubmit(id) {
+        if (!confirm('Bạn có chắc chắn muốn xoá Mã giảm giá này?')) return;
+        const tk = localStorage.getItem('access_token');
+        try {
+            const res = await fetch('/admin/coupons/' + id, {
+                method: 'DELETE',
+                headers: { 'Authorization': 'Bearer ' + tk }
+            });
+            if (!res.ok) throw new Error('Không thể xoá');
+            alert('✅ Đã xoá Coupon!');
+            loadCoupons();
+        } catch(e) {
+            alert('❌ ' + e.message);
+        }
+    }
+
+    // ── FLASH SALE MANAGEMENT ──
+    async function loadFlashSales() {
+        const tbody = document.getElementById('flashSaleTableBody');
+        if (!tbody) return;
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:30px;color:var(--text-muted);">⏳ Đang tải...</td></tr>';
+        const tk = localStorage.getItem('access_token');
+        
+        const sel = document.getElementById('fsProductId');
+        if (sel && sel.options.length <= 1) {
+            try {
+                const pRes = await fetch('/products');
+                const prods = await pRes.json();
+                prods.forEach(p => {
+                    sel.options[sel.options.length] = new Option(`${p.name} (${cleanPrice(p.price)}đ)`, p.id);
+                });
+            } catch(e) {}
+        }
+
+        try {
+            const [fsRes, prodRes] = await Promise.all([
+                fetch('/admin/flash-sales', { headers: { 'Authorization': 'Bearer ' + tk } }),
+                fetch('/products')
+            ]);
+            if (!fsRes.ok) throw new Error('Lỗi ' + fsRes.status);
+            const sales = await fsRes.json();
+            const prods = await prodRes.json();
+            const prodMap = {};
+            prods.forEach(p => { prodMap[p.id] = p; });
+
+            if (!sales.length) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:40px;color:var(--text-muted);">Chưa có chương trình Flash Sale nào</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = sales.map(s => {
+                const p = prodMap[s.product_id] || { name: 'ID #' + s.product_id };
+                const st = new Date(s.start_time).toLocaleString('vi-VN');
+                const et = new Date(s.end_time).toLocaleString('vi-VN');
+                return `<tr style="border-bottom:1px solid var(--border);">
+                    <td style="padding:10px;">${s.id}</td>
+                    <td style="padding:10px;font-weight:600;">${p.name}</td>
+                    <td style="padding:10px;text-align:right;color:#ef4444;font-weight:700;">${cleanPrice(s.sale_price)}đ</td>
+                    <td style="padding:10px;text-align:center;font-size:12px;">${st}</td>
+                    <td style="padding:10px;text-align:center;font-size:12px;">${et}</td>
+                    <td style="padding:10px;text-align:center;">
+                        <button onclick="deleteFlashSaleSubmit(${s.id})" style="background:#ef4444;color:#fff;border:none;padding:4px 10px;border-radius:6px;cursor:pointer;font-size:12px;">🗑️ Xoá</button>
+                    </td>
+                </tr>`;
+            }).join('');
+        } catch(e) {
+            tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:30px;color:#ef4444;">❌ ${e.message}</td></tr>`;
+        }
+    }
+
+    async function createFlashSaleSubmit() {
+        const tk = localStorage.getItem('access_token');
+        const productId = parseInt(document.getElementById('fsProductId').value);
+        const salePrice = parseInt(document.getElementById('fsSalePrice').value);
+        const startTime = document.getElementById('fsStartTime').value;
+        const endTime = document.getElementById('fsEndTime').value;
+
+        if (!productId || !salePrice || !startTime || !endTime) {
+            alert('Vui lòng nhập đầy đủ thông tin Flash Sale!');
+            return;
+        }
+
+        try {
+            const res = await fetch('/admin/flash-sales', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + tk
+                },
+                body: JSON.stringify({
+                    product_id: productId,
+                    sale_price: salePrice,
+                    start_time: new Date(startTime).toISOString(),
+                    end_time: new Date(endTime).toISOString()
+                })
+            });
+            if (!res.ok) {
+                const err = await res.json();
+                throw new Error(err.detail || 'Không thể tạo Flash Sale');
+            }
+            alert('✅ Tạo Flash Sale thành công!');
+            loadFlashSales();
+        } catch(e) {
+            alert('❌ ' + e.message);
+        }
+    }
+
+    async function deleteFlashSaleSubmit(id) {
+        if (!confirm('Bạn có chắc chắn muốn xoá chương trình Flash Sale này?')) return;
+        const tk = localStorage.getItem('access_token');
+        try {
+            const res = await fetch('/admin/flash-sales/' + id, {
+                method: 'DELETE',
+                headers: { 'Authorization': 'Bearer ' + tk }
+            });
+            if (!res.ok) throw new Error('Không thể xoá');
+            alert('✅ Đã xoá Flash Sale!');
+            loadFlashSales();
+        } catch(e) {
+            alert('❌ ' + e.message);
+        }
+    }
+</script><script>
     // Lấy token từ bộ nhớ trình duyệt
     const token = localStorage.getItem("access_token");
     let currentAdminEmail = "";
@@ -717,7 +1057,12 @@
         document.getElementById('btn-' + tabName).classList.add('active');
 
         // Cập nhật tiêu đề trang
-        const titles = { orders: '📦 Đơn hàng', products: '🛍️ Sản phẩm', users: '👥 Tài khoản', revenue: '💰 Doanh thu', wishlist: '❤️ Yêu thích' };
+        if(document.getElementById('tab-coupon')) document.getElementById('tab-coupon').style.display = 'none';
+        if(document.getElementById('btn-coupon')) document.getElementById('btn-coupon').classList.remove('active');
+        if(document.getElementById('tab-flashsale')) document.getElementById('tab-flashsale').style.display = 'none';
+        if(document.getElementById('btn-flashsale')) document.getElementById('btn-flashsale').classList.remove('active');
+
+        const titles = { orders: '📦 Đơn hàng', products: '🛍️ Sản phẩm', users: '👥 Tài khoản', revenue: '💰 Doanh thu', wishlist: '❤️ Yêu thích', flashsale: '⚡ Flash Sale', coupon: '🏷️ Mã giảm giá' };
         if (document.getElementById('pageTitle')) {
             document.getElementById('pageTitle').textContent = titles[tabName];
         }
@@ -728,6 +1073,8 @@
         if(tabName === 'products') loadProducts();
         if(tabName === 'revenue') loadRevenue();
         if(tabName === 'wishlist') loadWishlistStats();
+        if(tabName === 'flashsale') loadFlashSales();
+        if(tabName === 'coupon') loadCoupons();
         
         if (typeof closeSidebar === 'function') closeSidebar();
     }
@@ -794,6 +1141,7 @@
             }
 
             const orders = await res.json();
+            window._lastOrders = orders;
             tbody.innerHTML = '';
 
             const countEl = document.getElementById('orderCount');
@@ -986,7 +1334,25 @@
     }
 
     // 5. Quản lý Sản phẩm (LẤY DỮ LIỆU TỪ SHOP)
-    async function loadProducts() {
+    async function checkLowStock() {
+    const tk = localStorage.getItem('access_token');
+    const alertBox = document.getElementById('lowStockAlert');
+    const listDiv = document.getElementById('lowStockList');
+    if (!alertBox || !listDiv) return;
+    try {
+        const res = await fetch('/admin/products/low-stock?threshold=10', { headers: { 'Authorization': 'Bearer ' + tk } });
+        if (res.ok) {
+            const items = await res.json();
+            if (items.length) {
+                alertBox.style.display = 'block';
+                listDiv.innerHTML = items.map(p => `<span style="background:#fee2e2;color:#991b1b;padding:4px 8px;border-radius:6px;font-size:12px;font-weight:600;">${p.name}: Chỉ còn ${p.stock}</span>`).join('');
+            } else { alertBox.style.display = 'none'; }
+        }
+    } catch(e) {}
+}
+
+async function loadProducts() {
+        checkLowStock();
         const tbody = document.getElementById('productTableBody');
         if (!tbody) return;
         tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:20px">🔄 Đang tải sản phẩm...</td></tr>';
