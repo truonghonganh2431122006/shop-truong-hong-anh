@@ -22101,7 +22101,14 @@
     <!-- ════ END FILTER ════ -->
 
     <div class="box-common__content">
-        <div id="product-list-container" class="listproduct slider-flashsale">
+        <div id="ha-flashsale-banner" style="display:none;margin:20px 0;background:linear-gradient(135deg, #ff416c, #ff4b2b);border-radius:16px;padding:20px;color:#fff;box-shadow:0 8px 24px rgba(255,75,43,0.3);">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px;">
+        <h2 style="margin:0;font-size:22px;font-weight:800;display:flex;align-items:center;gap:8px;">⚡ FLASH SALE ĐANG DIỄN RA</h2>
+        <div id="ha-banner-timer" style="font-weight:700;font-size:14px;background:rgba(0,0,0,0.3);padding:6px 14px;border-radius:20px;">⏰ Đang diễn ra</div>
+      </div>
+      <div id="ha-banner-products" style="display:flex;gap:16px;overflow-x:auto;padding-bottom:8px;"></div>
+    </div>
+    <div id="product-list-container" class="listproduct slider-flashsale">
             </div>
         
         <div class="readmore" style="text-align: center; margin: 30px 0; width: 100%;">
@@ -22972,12 +22979,36 @@
             };
             var appliedVoucher = null;
 
-            async function applyVoucher() {
+            async function loadCartVouchers() {
+    const sel = document.getElementById('voucherInput');
+    if (!sel) return;
+    const tk = localStorage.getItem('access_token');
+    if (!tk) return;
+    try {
+        const res = await fetch('/coupons/mine', { headers: { 'Authorization': 'Bearer ' + tk } });
+        if (res.ok) {
+            const coupons = await res.json();
+            if (coupons.length) {
+                sel.innerHTML = '<option value="">-- Chọn mã giảm giá --</option>' +
+                    coupons.map(c => {
+                        const valStr = c.discount_type === 'percent' ? `${c.discount_value}%` : `${cleanPrice(c.discount_value)}đ`;
+                        const personalStr = c.personal ? ' (Dành riêng cho bạn)' : '';
+                        return `<option value="${c.code}">${c.code} - ${c.label} (Giảm ${valStr}${personalStr})</option>`;
+                    }).join('');
+            }
+        }
+    } catch(e) {}
+}
+
+async function applyVoucher() {
     var code = (document.getElementById('voucherInput') || {}).value || '';
     code = code.trim().toUpperCase();
     if (!code) return;
+    const tk = localStorage.getItem('access_token');
+    const headers = {};
+    if (tk) headers['Authorization'] = 'Bearer ' + tk;
     try {
-        const res = await fetch('/coupons/validate?code=' + encodeURIComponent(code));
+        const res = await fetch('/coupons/validate?code=' + encodeURIComponent(code), { headers: headers });
         if (!res.ok) throw new Error((await res.json()).detail || 'Mã không hợp lệ');
         const v = await res.json();
         appliedVoucher = { code: v.code, type: v.discount_type, value: v.discount_value, label: v.label };
@@ -47185,9 +47216,9 @@
 
                     // Vẽ nội dung bên trong
                     itemDiv.innerHTML = `
-                        <div style="position:absolute;top:8px;left:8px;z-index:5;" onclick="event.stopPropagation();">
-                            <label style="font-size:11px;background:rgba(255,255,255,0.9);padding:2px 6px;border-radius:4px;cursor:pointer;display:flex;align-items:center;gap:4px;">
-                                <input type="checkbox" onchange="toggleCompare(${p.id}, '${safeName}', ${effectivePrice}, '${imgUrl}', '${(p.description||'').replace(/'/g, "\'").replace(/"/g, '&quot;')}', this.checked)" ${compareList.some(c=>c.id===p.id)?'checked':''}> So sánh
+                        <div style="position:absolute;top:8px;right:8px;z-index:5;" onclick="event.stopPropagation();">
+                            <label style="font-size:11px;background:rgba(255,255,255,0.92);padding:2px 8px;border-radius:12px;border:1px solid rgba(0,0,0,0.1);box-shadow:0 2px 6px rgba(0,0,0,0.15);cursor:pointer;display:flex;align-items:center;gap:4px;color:#333;">
+                                <input type="checkbox" id="chk-card-${p.id}" onchange="toggleCompare(${p.id}, '${safeName}', ${effectivePrice}, '${imgUrl}', '${(p.description||'').replace(/'/g, "\'").replace(/"/g, '&quot;')}', this.checked)" ${compareList.some(c=>c.id===p.id)?'checked':''}> So sánh
                             </label>
                         </div>
                         ${fsBadge}
@@ -47245,9 +47276,16 @@
                 console.log("Đã nạp thành công " + products.length + " sản phẩm!");
                 // Lưu vào global để Shopping AI truy cập
                 window.allProducts = products.map(function(p){
-                    return { id: p.id, name: p.name, price: p.price,
-                             img: p.image_url || 'https://placehold.co/200x200?text=No+Image',
-                             description: p.description || '' };
+                    var imgVal = p.image_url || 'https://placehold.co/200x200?text=No+Image';
+                    return {
+                        id: p.id,
+                        name: p.name,
+                        price: p.price,
+                        img: imgVal,
+                        image_url: imgVal,
+                        category_id: p.category_id,
+                        description: p.description || ''
+                    };
                 });
                 // Khởi động phân trang và lọc sau khi sản phẩm đã render
                 if (window.haInitPaging) setTimeout(window.haInitPaging, 100);
@@ -49208,22 +49246,155 @@ function renderRecentlyViewed() {
     } catch(e) {}
 }
 
-// 4.2 Product Comparison
+// 3.3 Specs Generator
+function generateProductSpecs(name, desc, id) {
+    name = (name || '').toLowerCase();
+    var pid = id || 1;
+    var specs = {};
+
+    var getRand = function(arr, offset) {
+        var idx = Math.abs((pid * 17 + (offset || 0) * 31) % arr.length);
+        return arr[idx];
+    };
+
+    if (name.includes('điện thoại') || name.includes('iphone') || name.includes('samsung') || name.includes('xiaomi') || name.includes('oppo') || name.includes('realme') || name.includes('vivo') || name.includes('phone')) {
+        specs['Màn hình'] = getRand(['6.7" OLED Super Retina XDR 120Hz', '6.5" AMOLED FHD+ 120Hz', '6.1" Dynamic AMOLED 2X 120Hz', '6.67" CrystalRes AMOLED 120Hz'], 1);
+        specs['Chipset / CPU'] = getRand(['Apple A17 Pro 6 nhân', 'Snapdragon 8 Gen 3', 'MediaTek Dimensity 9200+', 'Apple A16 Bionic'], 2);
+        specs['RAM'] = getRand(['8 GB', '12 GB', '16 GB', '6 GB'], 3);
+        specs['Bộ nhớ trong'] = getRand(['128 GB', '256 GB', '512 GB'], 4);
+        specs['Camera sau'] = getRand(['48 MP + 12 MP + 12 MP (Ống kính tiềm vọng 5x)', '50 MP + 50 MP + 50 MP Hasselblad', '200 MP + 50 MP + 12 MP + 10 MP'], 5);
+        specs['Dung lượng Pin'] = getRand(['4422 mAh, Sạc 25W', '5000 mAh, Sạc siêu nhanh 67W', '4850 mAh, Sạc không dây MagSafe', '5000 mAh, Sạc 120W'], 6);
+        specs['Hệ điều hành'] = name.includes('iphone') ? 'iOS 17' : 'Android 14 (HyperOS / One UI)';
+    } else if (name.includes('laptop') || name.includes('macbook') || name.includes('thinkpad') || name.includes('asus') || name.includes('dell') || name.includes('hp') || name.includes('lenovo') || name.includes('acer') || name.includes('msi')) {
+        specs['Màn hình'] = getRand(['14.2" Liquid Retina XDR (3024 x 1964)', '15.6" OLED 2.8K 120Hz', '16.0" WQXGA IPS 165Hz', '13.6" Liquid Retina IPS'], 1);
+        specs['CPU'] = getRand(['Apple M3 Pro (11-core CPU, 14-core GPU)', 'Intel Core i7-13700H (14 nhân 20 luồng)', 'AMD Ryzen 7 7840HS (8 nhân 16 luồng)', 'Apple M3 (8-core CPU)'], 2);
+        specs['RAM'] = getRand(['16 GB LPDDR5', '32 GB Unified Memory', '16 GB DDR5 5600MHz'], 3);
+        specs['Ổ cứng'] = getRand(['512 GB SSD NVMe PCIe 4.0', '1 TB SSD PCIe 4.0', '256 GB SSD Ultra-fast'], 4);
+        specs['Card đồ họa'] = getRand(['Intel Iris Xe Graphics', 'NVIDIA GeForce RTX 4060 8GB', 'Apple 14-core GPU', 'AMD Radeon 780M'], 5);
+        specs['Trọng lượng'] = getRand(['1.24 kg', '1.60 kg', '1.39 kg', '2.10 kg'], 6);
+        specs['Hệ điều hành'] = name.includes('macbook') ? 'macOS Sonoma' : 'Windows 11 Home Bản quyền';
+    } else if (name.includes('ipad') || name.includes('máy tính bảng') || name.includes('tablet') || name.includes('tab')) {
+        specs['Màn hình'] = getRand(['11.0" Liquid Retina (2388 x 1668)', '12.9" Mini-LED Liquid Retina XDR', '10.9" IPS LCD Ultra-clear'], 1);
+        specs['Chipset'] = getRand(['Apple M2 (8-core CPU)', 'Snapdragon 8 Gen 2', 'Apple M1'], 2);
+        specs['RAM / Bộ nhớ'] = getRand(['8 GB RAM / 128 GB', '8 GB RAM / 256 GB', '16 GB RAM / 512 GB'], 3);
+        specs['Kết nối'] = getRand(['Wi-Fi 6E + 5G Cellular', 'Wi-Fi 6 High-speed'], 4);
+        specs['Hệ điều hành'] = name.includes('ipad') ? 'iPadOS 17' : 'Android 14';
+    } else if (name.includes('đồng hồ') || name.includes('watch') || name.includes('band')) {
+        specs['Màn hình'] = getRand(['1.4" AMOLED Always-On Display', '1.9" Retina OLED (1000 nits)', '1.43" Sapphire Crystal'], 1);
+        specs['Thời lượng Pin'] = getRand(['Đến 36 giờ (Chế độ thường)', 'Đến 7 ngày sử dụng liên tục', 'Đến 14 ngày (Chế độ tiết kiệm)'], 2);
+        specs['Chống nước'] = getRand(['5 ATM (Bơi lội thoải mái)', 'IP68 / WR50', '10 ATM (Lặn nông)'], 3);
+        specs['Cảm biến'] = 'Nhịp tim 24/7, SpO2, Điện tâm đồ ECG, Đo giấc ngủ, VO2 Max';
+        specs['Kết nối'] = getRand(['Bluetooth 5.3, GPS tích hợp, NFC', 'Bluetooth 5.3, eSIM 4G LTE'], 4);
+    } else if (name.includes('tai nghe') || name.includes('airpods') || name.includes('buds') || name.includes('headphone') || name.includes('loa') || name.includes('sạc') || name.includes('cáp') || name.includes('bàn phím') || name.includes('chuột')) {
+        specs['Kết nối'] = getRand(['Bluetooth 5.3 (Khoảng cách 10m)', 'Wireless 2.4GHz + Bluetooth 5.2', 'USB Type-C Hỗ trợ sạc nhanh PD 65W'], 1);
+        specs['Thời lượng Pin'] = getRand(['6 giờ (Tai nghe) + 30 giờ (Hộp sạc)', 'Lên đến 40 giờ phát nhạc liên tục', 'Không dùng pin (Cắm dây)'], 2);
+        specs['Tính năng nổi bật'] = getRand(['Chống ồn chủ động ANC & Xuyên âm', 'Âm thanh Spatial Audio 3D', 'Chống nước IPX4, Mic thu âm chống ồn AI'], 3);
+    } else {
+        specs['Màn hình / Kích thước'] = getRand(['HD+ Sắc nét', 'Thiết kế hiện đại, nhỏ gọn'], 1);
+        specs['Tính năng chính'] = 'Đa năng, Tối ưu hiệu suất, Tiết kiệm năng lượng';
+        specs['Kết nối'] = getRand(['Bluetooth 5.0 / USB Type-C', 'Wi-Fi / Cắm dây trực tiếp'], 2);
+    }
+
+    specs['Bảo hành'] = '12 tháng chính hãng';
+    specs['Tình trạng'] = 'Mới 100%, nguyên seal';
+
+    return specs;
+}
+
+// 3.4 & 3.5 Product Specs Box & Modal Hook
+function renderProductSpecsBox(id, name, price, img, desc) {
+    let box = document.getElementById('ha-specs-box');
+    if (!box) {
+        box = document.createElement('div');
+        box.id = 'ha-specs-box';
+        box.style.cssText = 'margin-top:16px;padding:16px;background:var(--ha-bg,#f9f9f9);border:1px solid var(--ha-border,#e5e7eb);border-radius:12px;';
+        
+        let targetBtn = document.getElementById('modal-wl-btn-x') || document.getElementById('modalBuyBtn') || document.querySelector('.modal-overlay .btn-buy');
+        if (targetBtn && targetBtn.parentNode) {
+            targetBtn.parentNode.insertBefore(box, targetBtn.nextSibling);
+        } else {
+            let container = document.querySelector('.modal-overlay > div') || document.querySelector('.modal-content');
+            if (container) container.appendChild(box);
+        }
+    }
+
+    const specs = generateProductSpecs(name, desc, id);
+    const rows = Object.keys(specs).map(k => `
+        <tr style="border-bottom:1px solid var(--ha-border,#e5e7eb);">
+            <td style="padding:6px 10px;font-weight:600;color:var(--ha-text,#374151);width:40%;font-size:12px;">${k}</td>
+            <td style="padding:6px 10px;color:var(--ha-sub,#4b5563);font-size:12px;">${specs[k]}</td>
+        </tr>
+    `).join('');
+
+    const isChecked = compareList.some(c => c.id === id);
+    const safeN = (name || '').replace(/'/g, "\'").replace(/"/g, '&quot;');
+    const safeDesc = (desc || '').replace(/'/g, "\'").replace(/"/g, '&quot;');
+
+    box.innerHTML = `
+        <h4 style="margin:0 0 10px;font-size:14px;color:var(--ha-text,#111827);display:flex;align-items:center;gap:6px;">📋 Thông số kỹ thuật</h4>
+        <table style="width:100%;border-collapse:collapse;margin-bottom:12px;background:#fff;border-radius:8px;overflow:hidden;">
+            ${rows}
+        </table>
+        <div style="display:flex;flex-direction:column;gap:8px;">
+            <label style="font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:8px;color:var(--ha-text,#1f2937);">
+                <input type="checkbox" id="ha-spec-chk-${id}" onchange="toggleCompare(${id}, '${safeN}', ${price}, '${img}', '${safeDesc}', this.checked)" ${isChecked ? 'checked' : ''}>
+                ⚖️ Chọn sản phẩm này để so sánh
+            </label>
+            <button id="ha-spec-compare-btn" onclick="openCompareModal()" style="display:${compareList.length >= 2 ? 'block' : 'none'};background:var(--ha-yellow,#ffc107);color:#000;border:none;padding:10px 16px;border-radius:8px;font-weight:700;cursor:pointer;width:100%;font-size:13px;">
+                ⚖️ So sánh ngay (${compareList.length})
+            </button>
+        </div>
+    `;
+    syncSpecCompareUI();
+}
+
+(function(){
+    var oldShow = window.showProductModal;
+    window.showProductModal = function(name, price, img, desc, id) {
+        if (typeof oldShow === 'function') {
+            oldShow.apply(this, arguments);
+        }
+        setTimeout(function() {
+            if (typeof renderProductSpecsBox === 'function') {
+                renderProductSpecsBox(id, name, price, img, desc);
+            }
+        }, 150);
+    };
+})();
+
+// 4.2 & 3.6 & 3.7 Product Comparison
 let compareList = [];
-function toggleCompare(id, name, price, img, desc, isChecked) {
+function toggleCompare(id, name, price, img, desc, isChecked, specs) {
     if (isChecked) {
         if (compareList.length >= 3) {
             alert('Bạn chỉ có thể so sánh tối đa 3 sản phẩm cùng lúc!');
             if (typeof displayProducts === 'function') displayProducts();
+            syncSpecCompareUI();
             return;
         }
         if (!compareList.some(c => c.id === id)) {
-            compareList.push({ id, name, price, img, desc });
+            const finalSpecs = specs || generateProductSpecs(name, desc, id);
+            compareList.push({ id, name, price, img, desc, specs: finalSpecs });
         }
     } else {
         compareList = compareList.filter(c => c.id !== id);
     }
     updateCompareBar();
+    syncSpecCompareUI();
+}
+
+function syncSpecCompareUI() {
+    let btn = document.getElementById('ha-spec-compare-btn');
+    if (btn) {
+        btn.style.display = compareList.length >= 2 ? 'block' : 'none';
+        btn.innerText = `⚖️ So sánh ngay (${compareList.length})`;
+    }
+    compareList.forEach(c => {
+        let chkModal = document.getElementById(`ha-spec-chk-${c.id}`);
+        if (chkModal) chkModal.checked = true;
+        let chkCard = document.getElementById(`chk-card-${c.id}`);
+        if (chkCard) chkCard.checked = true;
+    });
 }
 
 function updateCompareBar() {
@@ -49243,11 +49414,12 @@ function updateCompareBar() {
         <div style="font-weight:600;">⚖️ Đã chọn ${compareList.length}/3 sản phẩm để so sánh</div>
         <div style="display:flex;gap:12px;">
             <button onclick="openCompareModal()" style="background:var(--ha-yellow,#ffc107);color:#000;border:none;padding:8px 18px;border-radius:6px;font-weight:700;cursor:pointer;">So sánh ngay (${compareList.length})</button>
-            <button onclick="compareList=[];updateCompareBar();if(typeof displayProducts==='function')displayProducts();" style="background:none;border:1px solid #fff;color:#fff;padding:8px 12px;border-radius:6px;cursor:pointer;">Clear</button>
+            <button onclick="compareList=[];updateCompareBar();syncSpecCompareUI();if(typeof displayProducts==='function')displayProducts();" style="background:none;border:1px solid #fff;color:#fff;padding:8px 12px;border-radius:6px;cursor:pointer;">Clear</button>
         </div>
     `;
 }
 
+// 3.8 Detailed Compare Modal with Specs Table
 function openCompareModal() {
     let modal = document.getElementById('ha-compare-modal');
     if (!modal) {
@@ -49258,21 +49430,55 @@ function openCompareModal() {
         document.body.appendChild(modal);
     }
     modal.style.display = 'flex';
-    const cols = compareList.map(c => `
+
+    compareList.forEach(c => {
+        if (!c.specs) c.specs = generateProductSpecs(c.name, c.desc, c.id);
+    });
+
+    const topCols = compareList.map(c => `
         <td style="padding:16px;width:${100/compareList.length}%;vertical-align:top;border-right:1px solid var(--ha-border,#ddd);text-align:center;">
             <img src="${c.img}" style="width:120px;height:120px;object-fit:contain;margin-bottom:12px;">
             <h4 style="font-size:15px;margin:8px 0;color:var(--ha-text,#333);">${c.name}</h4>
             <div style="font-weight:700;color:var(--ha-red,#e60023);font-size:16px;margin-bottom:12px;">${cleanPrice(c.price)} ₫</div>
-            <p style="font-size:13px;color:var(--ha-sub,#666);text-align:left;max-height:150px;overflow-y:auto;">${c.desc || 'Không có mô tả'}</p>
+            <p style="font-size:13px;color:var(--ha-sub,#666);text-align:left;max-height:100px;overflow-y:auto;margin:0;">${c.desc || 'Không có mô tả'}</p>
         </td>
     `).join('');
 
+    let allKeys = [];
+    compareList.forEach(c => {
+        if (c.specs) {
+            Object.keys(c.specs).forEach(k => {
+                if (!allKeys.includes(k)) allKeys.push(k);
+            });
+        }
+    });
+
+    const specRows = allKeys.map(k => {
+        const itemCols = compareList.map(c => `
+            <td style="padding:10px;text-align:center;font-size:13px;border-right:1px solid var(--ha-border,#ddd);color:var(--ha-text,#333);">
+                ${(c.specs && c.specs[k]) ? c.specs[k] : '—'}
+            </td>
+        `).join('');
+        return `
+            <tr style="border-bottom:1px solid var(--ha-border,#eee);">
+                <td style="padding:10px;font-weight:600;background:var(--ha-bg,#f9f9f9);font-size:13px;width:160px;color:var(--ha-text,#111);">${k}</td>
+                ${itemCols}
+            </tr>
+        `;
+    }).join('');
+
     modal.innerHTML = `
-        <div style="background:var(--ha-white,#fff);border-radius:16px;padding:24px;max-width:900px;width:100%;max-height:90vh;overflow-y:auto;position:relative;">
+        <div style="background:var(--ha-white,#fff);border-radius:16px;padding:24px;max-width:960px;width:100%;max-height:90vh;overflow-y:auto;position:relative;">
             <button onclick="document.getElementById('ha-compare-modal').style.display='none';" style="position:absolute;top:16px;right:16px;border:none;background:none;font-size:24px;cursor:pointer;">✕</button>
-            <h2 style="margin-top:0;margin-bottom:20px;font-size:20px;color:var(--ha-text,#333);">⚖️ Bảng so sánh sản phẩm</h2>
-            <table style="width:100%;border-collapse:collapse;">
-                <tr>${cols}</tr>
+            <h2 style="margin-top:0;margin-bottom:20px;font-size:20px;color:var(--ha-text,#333);">⚖️ Bảng so sánh sản phẩm chi tiết</h2>
+            
+            <table style="width:100%;border-collapse:collapse;margin-bottom:20px;background:#fff;border:1px solid var(--ha-border,#ddd);">
+                <tr>${topCols}</tr>
+            </table>
+
+            <h3 style="font-size:16px;margin:20px 0 12px;color:var(--ha-text,#111);">📋 So sánh Thông số kỹ thuật</h3>
+            <table style="width:100%;border-collapse:collapse;border:1px solid var(--ha-border,#ddd);">
+                ${specRows}
             </table>
         </div>
     `;
@@ -49323,6 +49529,62 @@ window.addEventListener('load', function() {
             localStorage.setItem('ha_welcome_shown', '1');
         }, 1200);
     }
+});
+
+// 3.10 Flash Sale Banner Loader
+async function loadFlashSaleBanner() {
+    const banner = document.getElementById('ha-flashsale-banner');
+    const container = document.getElementById('ha-banner-products');
+    if (!banner || !container) return;
+    try {
+        const res = await fetch('/flash-sales/active');
+        if (!res.ok) { banner.style.display = 'none'; return; }
+        const sales = await res.json();
+        if (!sales.length) { banner.style.display = 'none'; return; }
+
+        banner.style.display = 'block';
+
+        const firstSale = sales[0];
+        if (firstSale.end_time) {
+            const timerEl = document.getElementById('ha-banner-timer');
+            const updateTimer = () => {
+                const diff = new Date(firstSale.end_time) - new Date();
+                if (diff <= 0) {
+                    if (timerEl) timerEl.innerText = '⏰ Kết thúc';
+                } else {
+                    const h = String(Math.floor(diff / 3600000)).padStart(2, '0');
+                    const m = String(Math.floor((diff % 3600000) / 60000)).padStart(2, '0');
+                    const s = String(Math.floor((diff % 60000) / 1000)).padStart(2, '0');
+                    if (timerEl) timerEl.innerText = `⏳ Kết thúc trong: ${h}:${m}:${s}`;
+                }
+            };
+            updateTimer();
+            setInterval(updateTimer, 1000);
+        }
+
+        container.innerHTML = sales.map(s => {
+            const p = s.product;
+            if (!p) return '';
+            const img = p.image_url || 'https://placehold.co/150x150?text=SP';
+            const safeN = (p.name || '').replace(/'/g, "\'").replace(/"/g, '&quot;');
+            return `
+                <div onclick="showProductModal('${safeN}', ${s.sale_price}, '${img}', '${(p.description||'').replace(/'/g, "\'").replace(/"/g, '&quot;')}', ${p.id})" style="width:160px;flex-shrink:0;background:#fff;color:#333;border-radius:12px;padding:12px;cursor:pointer;text-align:center;box-shadow:0 4px 12px rgba(0,0,0,0.15);position:relative;">
+                    <span style="position:absolute;top:8px;left:8px;background:#e60023;color:#fff;font-size:10px;font-weight:800;padding:2px 6px;border-radius:4px;">FLASH SALE</span>
+                    <img src="${img}" style="width:100px;height:100px;object-fit:contain;margin-bottom:8px;">
+                    <div style="font-size:13px;font-weight:600;height:36px;overflow:hidden;margin-bottom:6px;">${p.name}</div>
+                    <div style="font-size:14px;font-weight:800;color:#e60023;">${cleanPrice(s.sale_price)}đ</div>
+                    <div style="font-size:11px;text-decoration:line-through;color:#888;">${cleanPrice(p.price)}đ</div>
+                </div>
+            `;
+        }).join('');
+    } catch(e) {
+        banner.style.display = 'none';
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    loadFlashSaleBanner();
+    loadCartVouchers();
 });
 </script>
 </body>

@@ -1,5 +1,5 @@
 
-from fastapi import FastAPI, HTTPException, Depends, Request, Query
+from fastapi import FastAPI, HTTPException, Depends, Request, Query, Header
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from fastapi.responses import FileResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
@@ -358,6 +358,7 @@ class Coupon(Base):
     label = Column(String, default="")
     discount_type = Column(String, default="percent")  # "percent" hoặc "fixed"
     discount_value = Column(Integer, nullable=False)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=True)
     is_active = Column(Boolean, default=True)
     expires_at = Column(DateTime, nullable=True)
     created_at = Column(DateTime, default=now_vn)
@@ -532,6 +533,7 @@ class CouponCreateSchema(BaseModel):
     label: str = ""
     discount_type: str = "percent"
     discount_value: int
+    user_id: Optional[int] = None
     expires_at: Optional[datetime] = None
 
 
@@ -628,6 +630,26 @@ def get_db():
         yield db
     finally:
         db.close()
+
+
+def get_current_user_optional(authorization: Optional[str] = Header(default=None), db: Session = Depends(get_db)) -> Optional[User]:
+    if not authorization:
+        return None
+    try:
+        parts = authorization.split()
+        if len(parts) != 2 or parts[0].lower() != "bearer":
+            return None
+        token = parts[1]
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        email = payload.get("sub")
+        if not email:
+            return None
+        user = db.query(User).filter(User.email == email).first()
+        if not user or user.status == STATUS_BANNED:
+            return None
+        return user
+    except Exception:
+        return None
 
 
 def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)) -> User:
@@ -1164,18 +1186,40 @@ def delete_category(category_id: int, admin: User = Depends(require_admin), db: 
 
 # ===================== COUPONS =====================
 @app.get("/coupons/validate")
-def validate_coupon(code: str, db: Session = Depends(get_db)):
+def validate_coupon(code: str, user: Optional[User] = Depends(get_current_user_optional), db: Session = Depends(get_db)):
     c = db.query(Coupon).filter(Coupon.code == code.strip().upper(), Coupon.is_active == True).first()
     if not c:
         raise HTTPException(status_code=404, detail="Mã giảm giá không hợp lệ")
     if c.expires_at and c.expires_at < now_vn():
         raise HTTPException(status_code=400, detail="Mã đã hết hạn")
+    if c.user_id is not None and (not user or user.id != c.user_id):
+        raise HTTPException(status_code=403, detail="Mã này không áp dụng cho tài khoản của bạn")
     return {"code": c.code, "label": c.label, "discount_type": c.discount_type, "discount_value": c.discount_value}
+
+@app.get("/coupons/mine")
+def get_my_coupons(user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    now = now_vn()
+    coupons = db.query(Coupon).filter(
+        Coupon.is_active == True,
+        (Coupon.expires_at == None) | (Coupon.expires_at >= now),
+        (Coupon.user_id == None) | (Coupon.user_id == user.id)
+    ).order_by(Coupon.id.desc()).all()
+    return [{
+        "code": c.code,
+        "label": c.label,
+        "discount_type": c.discount_type,
+        "discount_value": c.discount_value,
+        "personal": c.user_id is not None
+    } for c in coupons]
 
 @app.post("/admin/coupons")
 def create_coupon(data: CouponCreateSchema, admin: User = Depends(require_admin), db: Session = Depends(get_db)):
     data_dict = data.dict()
     data_dict['code'] = data_dict['code'].strip().upper()
+    if data_dict.get("user_id"):
+        target_u = db.query(User).filter(User.id == data_dict["user_id"]).first()
+        if not target_u:
+            raise HTTPException(status_code=404, detail="Không tìm thấy người dùng")
     c = Coupon(**data_dict)
     db.add(c)
     db.commit()
@@ -1184,7 +1228,26 @@ def create_coupon(data: CouponCreateSchema, admin: User = Depends(require_admin)
 
 @app.get("/admin/coupons")
 def list_coupons(admin: User = Depends(require_admin), db: Session = Depends(get_db)):
-    return db.query(Coupon).order_by(Coupon.id.desc()).all()
+    coupons = db.query(Coupon).order_by(Coupon.id.desc()).all()
+    result = []
+    for c in coupons:
+        u_email = None
+        if c.user_id:
+            u = db.query(User).filter(User.id == c.user_id).first()
+            u_email = u.email if u else None
+        result.append({
+            "id": c.id,
+            "code": c.code,
+            "label": c.label,
+            "discount_type": c.discount_type,
+            "discount_value": c.discount_value,
+            "is_active": c.is_active,
+            "expires_at": c.expires_at.isoformat() if c.expires_at else None,
+            "created_at": c.created_at.isoformat() if c.created_at else None,
+            "user_id": c.user_id,
+            "user_email": u_email
+        })
+    return result
 
 @app.delete("/admin/coupons/{coupon_id}")
 def delete_coupon(coupon_id: int, admin: User = Depends(require_admin), db: Session = Depends(get_db)):
@@ -1493,7 +1556,7 @@ def create_order(data: OrderCreateSchema, user: User = Depends(get_current_user)
         valid_coupon = None
         if data.voucher_code:
             c = db.query(Coupon).filter(Coupon.code == data.voucher_code.strip().upper(), Coupon.is_active == True).first()
-            if c and (not c.expires_at or c.expires_at >= now):
+            if c and (not c.expires_at or c.expires_at >= now) and (c.user_id is None or c.user_id == user.id):
                 valid_coupon = c
 
         for it in data.items:

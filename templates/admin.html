@@ -677,6 +677,10 @@
             <input id="cpValue" type="number" placeholder="Giá trị (% hoặc VNĐ)" style="padding:8px 12px;border:1px solid var(--border);border-radius:8px;background:var(--card-bg);color:var(--text);width:150px;">
             <label style="font-size:12px;color:var(--text-muted)">Hết hạn:</label>
             <input id="cpExpiresAt" type="datetime-local" style="padding:8px 12px;border:1px solid var(--border);border-radius:8px;background:var(--card-bg);color:var(--text);">
+            <label style="font-size:12px;color:var(--text-muted)">Dành riêng cho:</label>
+            <select id="cpUserId" style="padding:8px 12px;border:1px solid var(--border);border-radius:8px;background:var(--card-bg);color:var(--text);">
+              <option value="">🌐 Công khai (mọi khách hàng)</option>
+            </select>
             <button onclick="createCouponSubmit()" class="btn" style="background:#10b981;color:#fff;padding:8px 16px;border-radius:8px;font-weight:600;border:none;cursor:pointer;">➕ Tạo Coupon</button>
           </div>
         </div>
@@ -691,11 +695,12 @@
                 <th style="text-align:left;padding:10px;color:var(--text-muted);border-bottom:2px solid var(--border);">Mô tả</th>
                 <th style="text-align:center;padding:10px;color:var(--text-muted);border-bottom:2px solid var(--border);">Mức giảm</th>
                 <th style="text-align:center;padding:10px;color:var(--text-muted);border-bottom:2px solid var(--border);">Hết hạn</th>
+                <th style="text-align:center;padding:10px;color:var(--text-muted);border-bottom:2px solid var(--border);">Áp dụng cho</th>
                 <th style="text-align:center;padding:10px;color:var(--text-muted);border-bottom:2px solid var(--border);">Thao tác</th>
               </tr>
             </thead>
             <tbody id="couponTableBody">
-              <tr><td colspan="6" style="text-align:center;padding:30px;color:var(--text-muted);">Nhấn làm mới để tải...</td></tr>
+              <tr><td colspan="7" style="text-align:center;padding:30px;color:var(--text-muted);">Nhấn làm mới để tải...</td></tr>
             </tbody>
           </table>
         </div>
@@ -738,7 +743,7 @@
               </tr>
             </thead>
             <tbody id="flashSaleTableBody">
-              <tr><td colspan="6" style="text-align:center;padding:30px;color:var(--text-muted);">Nhấn làm mới để tải...</td></tr>
+              <tr><td colspan="7" style="text-align:center;padding:30px;color:var(--text-muted);">Nhấn làm mới để tải...</td></tr>
             </tbody>
           </table>
         </div>
@@ -815,35 +820,54 @@
 <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js">
     
     // ── COUPON MANAGEMENT ──
+    async function loadCouponUserOptions() {
+        const sel = document.getElementById('cpUserId');
+        if (!sel) return;
+        const tk = localStorage.getItem('access_token');
+        try {
+            const res = await fetch('/users', { headers: { 'Authorization': 'Bearer ' + tk } });
+            if (res.ok) {
+                const users = await res.json();
+                const curVal = sel.value;
+                sel.innerHTML = '<option value="">🌐 Công khai (mọi khách hàng)</option>' +
+                    users.map(u => `<option value="${u.id}">👤 ${u.email}</option>`).join('');
+                sel.value = curVal;
+            }
+        } catch(e) {}
+    }
+
     async function loadCoupons() {
+        loadCouponUserOptions();
         const tbody = document.getElementById('couponTableBody');
         if (!tbody) return;
-        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:30px;color:var(--text-muted);">⏳ Đang tải...</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:30px;color:var(--text-muted);">⏳ Đang tải...</td></tr>';
         const tk = localStorage.getItem('access_token');
         try {
             const res = await fetch('/admin/coupons', { headers: { 'Authorization': 'Bearer ' + tk } });
             if (!res.ok) throw new Error('Lỗi ' + res.status);
             const coupons = await res.json();
             if (!coupons.length) {
-                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:40px;color:var(--text-muted);">Chưa có mã giảm giá nào</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:40px;color:var(--text-muted);">Chưa có mã giảm giá nào</td></tr>';
                 return;
             }
             tbody.innerHTML = coupons.map(c => {
                 const valStr = c.discount_type === 'percent' ? `${c.discount_value}%` : `${cleanPrice(c.discount_value)}đ`;
                 const expStr = c.expires_at ? new Date(c.expires_at).toLocaleString('vi-VN') : 'Không giới hạn';
+                const userStr = c.user_email ? `👤 ${c.user_email}` : '🌐 Công khai';
                 return `<tr style="border-bottom:1px solid var(--border);">
                     <td style="padding:10px;">${c.id}</td>
                     <td style="padding:10px;font-weight:700;color:var(--ha-blue,#0071e3);">${c.code}</td>
                     <td style="padding:10px;">${c.label || ''}</td>
                     <td style="padding:10px;text-align:center;font-weight:700;color:#10b981;">${valStr}</td>
                     <td style="padding:10px;text-align:center;font-size:12px;">${expStr}</td>
+                    <td style="padding:10px;text-align:center;font-size:12px;font-weight:600;">${userStr}</td>
                     <td style="padding:10px;text-align:center;">
                         <button onclick="deleteCouponSubmit(${c.id})" style="background:#ef4444;color:#fff;border:none;padding:4px 10px;border-radius:6px;cursor:pointer;font-size:12px;">🗑️ Xoá</button>
                     </td>
                 </tr>`;
             }).join('');
         } catch(e) {
-            tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:30px;color:#ef4444;">❌ ${e.message}</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:30px;color:#ef4444;">❌ ${e.message}</td></tr>`;
         }
     }
 
@@ -854,6 +878,8 @@
         const discountType = document.getElementById('cpType').value;
         const discountValue = parseInt(document.getElementById('cpValue').value);
         const expiresAt = document.getElementById('cpExpiresAt').value;
+        const cpUserIdVal = (document.getElementById('cpUserId') || {}).value;
+        const userId = cpUserIdVal ? parseInt(cpUserIdVal) : null;
 
         if (!code || !discountValue) {
             alert('Vui lòng nhập Mã và Mức giảm!');
@@ -872,6 +898,7 @@
                     label: label,
                     discount_type: discountType,
                     discount_value: discountValue,
+                    user_id: userId,
                     expires_at: expiresAt ? new Date(expiresAt).toISOString() : null
                 })
             });
@@ -909,7 +936,7 @@
     async function loadFlashSales() {
         const tbody = document.getElementById('flashSaleTableBody');
         if (!tbody) return;
-        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:30px;color:var(--text-muted);">⏳ Đang tải...</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:30px;color:var(--text-muted);">⏳ Đang tải...</td></tr>';
         const tk = localStorage.getItem('access_token');
         
         const sel = document.getElementById('fsProductId');
@@ -935,7 +962,7 @@
             prods.forEach(p => { prodMap[p.id] = p; });
 
             if (!sales.length) {
-                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:40px;color:var(--text-muted);">Chưa có chương trình Flash Sale nào</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:40px;color:var(--text-muted);">Chưa có chương trình Flash Sale nào</td></tr>';
                 return;
             }
 
@@ -955,7 +982,7 @@
                 </tr>`;
             }).join('');
         } catch(e) {
-            tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:30px;color:#ef4444;">❌ ${e.message}</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:30px;color:#ef4444;">❌ ${e.message}</td></tr>`;
         }
     }
 
