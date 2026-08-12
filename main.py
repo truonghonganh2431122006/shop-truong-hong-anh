@@ -636,10 +636,9 @@ def get_current_user_optional(authorization: Optional[str] = Header(default=None
     if not authorization:
         return None
     try:
-        parts = authorization.split()
-        if len(parts) != 2 or parts[0].lower() != "bearer":
-            return None
-        token = parts[1]
+        token = authorization
+        if authorization.lower().startswith("bearer "):
+            token = authorization[7:].strip()
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         email = payload.get("sub")
         if not email:
@@ -1285,7 +1284,13 @@ def get_active_flash_sales(db: Session = Depends(get_db)):
 
 @app.post("/admin/flash-sales")
 def create_flash_sale(data: FlashSaleCreateSchema, admin: User = Depends(require_admin), db: Session = Depends(get_db)):
-    fs = FlashSale(**data.dict())
+    data_dict = data.dict()
+    from datetime import timezone, timedelta
+    if data_dict.get('start_time') and data_dict['start_time'].tzinfo is not None:
+        data_dict['start_time'] = data_dict['start_time'].astimezone(timezone(timedelta(hours=7))).replace(tzinfo=None)
+    if data_dict.get('end_time') and data_dict['end_time'].tzinfo is not None:
+        data_dict['end_time'] = data_dict['end_time'].astimezone(timezone(timedelta(hours=7))).replace(tzinfo=None)
+    fs = FlashSale(**data_dict)
     db.add(fs)
     db.commit()
     db.refresh(fs)

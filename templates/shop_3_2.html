@@ -49417,14 +49417,24 @@ function updateCompareBar() {
 
 // 3.8 Detailed Compare Modal with Specs Table
 function openCompareModal() {
+    if (typeof closeModal === 'function') {
+        try { closeModal(); } catch(e) {}
+    }
+    const pM = document.getElementById('productModal');
+    if (pM) {
+        pM.classList.remove('show');
+        pM.style.display = 'none';
+    }
+
     let modal = document.getElementById('ha-compare-modal');
     if (!modal) {
         modal = document.createElement('div');
         modal.id = 'ha-compare-modal';
         modal.className = 'modal-overlay show';
-        modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:10000;display:flex;align-items:center;justify-content:center;padding:20px;';
+        modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:100000;display:flex;align-items:center;justify-content:center;padding:20px;';
         document.body.appendChild(modal);
     }
+    modal.style.zIndex = '100000';
     modal.classList.add('show');
     modal.style.display = 'flex';
 
