@@ -1269,9 +1269,18 @@ def get_active_flash_sales(db: Session = Depends(get_db)):
         FlashSale.end_time >= now,
     ).all()
     return [{
+        "id": s.id,
         "product_id": s.product_id,
         "sale_price": s.sale_price,
-        "end_time": s.end_time.isoformat(),
+        "start_time": s.start_time.isoformat() if s.start_time else None,
+        "end_time": s.end_time.isoformat() if s.end_time else None,
+        "product": {
+            "id": s.product.id,
+            "name": s.product.name,
+            "price": s.product.price,
+            "image_url": s.product.image_url,
+            "description": s.product.description
+        } if s.product else None
     } for s in sales]
 
 @app.post("/admin/flash-sales")
@@ -1284,7 +1293,16 @@ def create_flash_sale(data: FlashSaleCreateSchema, admin: User = Depends(require
 
 @app.get("/admin/flash-sales")
 def list_flash_sales(admin: User = Depends(require_admin), db: Session = Depends(get_db)):
-    return db.query(FlashSale).order_by(FlashSale.id.desc()).all()
+    sales = db.query(FlashSale).order_by(FlashSale.id.desc()).all()
+    return [{
+        "id": s.id,
+        "product_id": s.product_id,
+        "sale_price": s.sale_price,
+        "start_time": s.start_time.isoformat() if s.start_time else None,
+        "end_time": s.end_time.isoformat() if s.end_time else None,
+        "is_active": s.is_active,
+        "product_name": s.product.name if s.product else f"SP #{s.product_id}"
+    } for s in sales]
 
 @app.delete("/admin/flash-sales/{sale_id}")
 def delete_flash_sale(sale_id: int, admin: User = Depends(require_admin), db: Session = Depends(get_db)):
