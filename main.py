@@ -377,6 +377,8 @@ class FlashSale(Base):
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime, default=now_vn)
 
+    product = relationship("Product")
+
 
 # Tìm đến phần Schema (BaseModel) và sửa lại cho chuẩn:
 class OrderItemCreate(BaseModel):
@@ -1355,11 +1357,13 @@ def list_flash_sales(admin: User = Depends(require_admin), db: Session = Depends
     return [{
         "id": s.id,
         "product_id": s.product_id,
+        "product_name": s.product.name if s.product else f"SP #{s.product_id}",
+        "product_img": s.product.image_url if (s.product and s.product.image_url) else "",
+        "original_price": s.product.price if s.product else 0,
         "sale_price": s.sale_price,
         "start_time": s.start_time.isoformat() if s.start_time else None,
         "end_time": s.end_time.isoformat() if s.end_time else None,
-        "is_active": s.is_active,
-        "product_name": s.product.name if s.product else f"SP #{s.product_id}"
+        "is_active": s.is_active
     } for s in sales]
 
 @app.delete("/admin/flash-sales/{sale_id}")

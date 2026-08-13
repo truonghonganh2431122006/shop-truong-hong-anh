@@ -22976,38 +22976,49 @@
 
             async function loadCartVouchers() {
     const sel = document.getElementById('voucherInput');
-    if (!sel) return;
+    const selQo = document.getElementById('haQoVoucher');
     const tk = localStorage.getItem('access_token');
     
     if (!tk) {
-        sel.innerHTML = '<option value="">🔒 Đăng nhập để xem mã giảm giá của bạn</option>';
+        if (sel) sel.innerHTML = '<option value="">🔒 Đăng nhập để xem mã giảm giá của bạn</option>';
+        if (selQo) selQo.innerHTML = '<option value="">🔒 Đăng nhập để xem mã giảm giá của bạn</option>';
         return;
     }
 
-    sel.innerHTML = '<option value="">⏳ Đang tải mã giảm giá...</option>';
+    if (sel) sel.innerHTML = '<option value="">⏳ Đang tải mã giảm giá...</option>';
+    if (selQo) selQo.innerHTML = '<option value="">⏳ Đang tải mã giảm giá...</option>';
+    
     try {
         const res = await fetch('/coupons/mine', { headers: { 'Authorization': 'Bearer ' + tk } });
         if (res.ok) {
             const coupons = await res.json();
             if (coupons && coupons.length > 0) {
-                let optionsHtml = '<option value="">-- Chọn mã giảm giá --</option>';
-                optionsHtml += coupons.map(c => {
+                let optionsCart = '<option value="">-- Chọn mã giảm giá --</option>';
+                let optionsQo = '<option value="">-- Chọn mã giảm giá (nếu có) --</option>';
+                
+                coupons.forEach(c => {
                     const valStr = c.discount_type === 'percent' ? `${c.discount_value}%` : `${cleanPrice(c.discount_value)}đ`;
                     const prefix = c.personal ? '🎁 [Dành riêng cho bạn] ' : '🌐 ';
-                    return `<option value="${c.code}">${prefix}${c.code} – ${c.label} (Giảm ${valStr})</option>`;
-                }).join('');
-                sel.innerHTML = optionsHtml;
+                    optionsCart += `<option value="${c.code}">${prefix}${c.code} – ${c.label} (Giảm ${valStr})</option>`;
+                    optionsQo += `<option value="${c.code}" data-type="${c.discount_type}" data-value="${c.discount_value}">${prefix}${c.code} – ${c.label} (Giảm ${valStr})</option>`;
+                });
+                
+                if (sel) sel.innerHTML = optionsCart;
+                if (selQo) selQo.innerHTML = optionsQo;
             } else {
-                sel.innerHTML = '<option value="">-- Không có mã giảm giá khả dụng --</option>';
+                if (sel) sel.innerHTML = '<option value="">-- Không có mã giảm giá khả dụng --</option>';
+                if (selQo) selQo.innerHTML = '<option value="">-- Không có mã giảm giá khả dụng --</option>';
             }
-            if (appliedVoucher) {
+            if (appliedVoucher && sel) {
                 sel.value = appliedVoucher.code;
             }
         } else {
-            sel.innerHTML = '<option value="">-- Không thể tải mã giảm giá --</option>';
+            if (sel) sel.innerHTML = '<option value="">-- Không thể tải mã giảm giá --</option>';
+            if (selQo) selQo.innerHTML = '<option value="">-- Không thể tải mã giảm giá --</option>';
         }
     } catch(e) {
-        sel.innerHTML = '<option value="">-- Lỗi tải mã giảm giá --</option>';
+        if (sel) sel.innerHTML = '<option value="">-- Lỗi tải mã giảm giá --</option>';
+        if (selQo) selQo.innerHTML = '<option value="">-- Lỗi tải mã giảm giá --</option>';
     }
 }
 
@@ -23244,7 +23255,7 @@ async function applyVoucher() {
                         validItems.push({
                             product_id: match.id,
                             quantity: parseInt(item.qty || item.quantity) || 1,
-                            unit_price: Math.round(match.price * discountRatio)
+                            unit_price: Math.round((parseFloat(item.price) || match.price) * discountRatio)
                         });
                     } else {
                         notFound.push(item.name);
@@ -25493,7 +25504,7 @@ async function applyVoucher() {
         var nameKey = String(_name || '').trim().toLowerCase();
         var match   = productMap[nameKey];
         var productId = match ? match.id : _id;
-        var unitPrice = finalPrice;
+        var unitPrice = Math.round(_price * (finalPrice / (_price || 1)));
 
         var orderData = {
           items: [{ product_id: productId, quantity: 1, unit_price: unitPrice }],
