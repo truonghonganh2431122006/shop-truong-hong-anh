@@ -22971,6 +22971,41 @@
             function changeQty(idx, delta) { if (!cart[idx]) return; cart[idx].qty += delta; if (cart[idx].qty < 1) cart[idx].qty = 1; updateCartCount(); renderCart(); }
             function clearCart() { cart = []; updateCartCount(); renderCart(); }
 
+            // ===== GLOBAL FLASH SALE & PRICE SYNC =====
+            window.flashSalesMap = window.flashSalesMap || {};
+
+            function getEffectivePrice(product) {
+                if (!product) return 0;
+                const pid = product.id || product.product_id;
+                const rawPrice = parseFloat(product.price || product.unit_price) || 0;
+                if (!pid) return rawPrice;
+                
+                const fs = window.flashSalesMap && window.flashSalesMap[pid];
+                if (fs) {
+                    const now = new Date();
+                    const start = new Date(fs.start_time);
+                    const end = new Date(fs.end_time);
+                    if (now >= start && now <= end) {
+                        return parseFloat(fs.sale_price) || 0;
+                    }
+                }
+                return rawPrice;
+            }
+            window.getEffectivePrice = getEffectivePrice;
+
+            async function updateFlashSalesMap() {
+                try {
+                    const res = await fetch('/flash-sales/active');
+                    if (res.ok) {
+                        const fsList = await res.json();
+                        window.flashSalesMap = {};
+                        (fsList || []).forEach(s => { window.flashSalesMap[s.product_id] = s; });
+                    }
+                } catch(e) {}
+            }
+            window.updateFlashSalesMap = updateFlashSalesMap;
+            setInterval(updateFlashSalesMap, 60000); // Poll every 60 seconds
+
             // ===== VOUCHER HANDLERS (REAL BACKEND API) =====
             var appliedVoucher = null;
 
@@ -24208,18 +24243,9 @@ async function applyVoucher() {
                 containerPre.innerHTML = skelHtml;
             }
             try {
-                const [response, fsResponse] = await Promise.all([
-                    fetch('https://shop-truong-hong-anh.onrender.com/products'),
-                    fetch('/flash-sales/active').catch(() => null)
-                ]);
+                const response = await fetch('/products').catch(() => fetch('https://shop-truong-hong-anh.onrender.com/products'));
                 const products = await response.json();
-                let flashSalesMap = {};
-                if (fsResponse && fsResponse.ok) {
-                    try {
-                        const fsList = await fsResponse.json();
-                        (fsList || []).forEach(s => { flashSalesMap[s.product_id] = s; });
-                    } catch(e) {}
-                }
+                await updateFlashSalesMap();
 
                 const container = document.getElementById('product-list-container');
                 
@@ -24232,9 +24258,11 @@ async function applyVoucher() {
                     const isHot  = p.price >= 10000000;
                     const isSale = p.price < 3000000;
 
-                    const fs = flashSalesMap[p.id];
-                    const fsBadge = fs ? '<span class="ha-badge" style="background:var(--ha-red)">⚡ FLASH SALE</span>' : '';
-                    const effectivePrice = fs ? fs.sale_price : p.price;
+                    const effectivePrice = getEffectivePrice(p);
+                    const fs = window.flashSalesMap && window.flashSalesMap[p.id];
+                    const now = new Date();
+                    const isFsActive = fs && (now >= new Date(fs.start_time)) && (now <= new Date(fs.end_time));
+                    const fsBadge = isFsActive ? '<span class="ha-badge" style="background:var(--ha-red,#d0021c);top:38px;left:8px;z-index:4;">⚡ FLASH SALE</span>' : '';
 
                     // Tạo thẻ div sản phẩm
                     const itemDiv = document.createElement('div');
@@ -24244,6 +24272,9 @@ async function applyVoucher() {
                     itemDiv.setAttribute('data-pimg',   imgUrl);
                     itemDiv.setAttribute('data-pdesc',  p.description || '');
                     itemDiv.setAttribute('data-pid',    p.id);
+                    itemDiv.setAttribute('data-fs-active', isFsActive ? '1' : '0');
+                    itemDiv.setAttribute('data-fs-price', fs ? fs.sale_price : '');
+                    itemDiv.setAttribute('data-fs-end', fs ? fs.end_time : '');
                     // data-pcate giúp lọc danh mục — suy ra từ tên sản phẩm
                     const nameLower = p.name.toLowerCase();
                     let pcate = '';
@@ -24393,10 +24424,10 @@ async function applyVoucher() {
                         ${related.map(r => {
                             const rImg = r.image_url || 'https://placehold.co/100x100?text=SP';
                             const rSafeN = r.name.replace(/'/g, "\'").replace(/"/g, '&quot;');
-                            return `<div onclick="showProductModal('${rSafeN}', ${r.price}, '${rImg}', '', ${r.id})" style="width:110px;flex-shrink:0;cursor:pointer;background:var(--ha-bg,#f9f9f9);padding:6px;border-radius:8px;text-align:center;">
+                            const rPrice = getEffectivePrice(r); return `<div onclick="showProductModal('${rSafeN}', ${rPrice}, '${rImg}', '', ${r.id})" style="width:110px;flex-shrink:0;cursor:pointer;background:var(--ha-bg,#f9f9f9);padding:6px;border-radius:8px;text-align:center;">
                                 <img src="${rImg}" style="width:80px;height:80px;object-fit:contain;">
                                 <div style="font-size:11px;height:28px;overflow:hidden;margin-top:4px;">${r.name}</div>
-                                <div style="font-size:11px;font-weight:700;color:var(--ha-red,#e60023);">${cleanPrice(r.price)}đ</div>
+                                <div style="font-size:11px;font-weight:700;color:var(--ha-red,#e60023);">${cleanPrice(rPrice)}đ</div>
                             </div>`;
                         }).join('')}
                     </div>
@@ -26135,7 +26166,7 @@ async function applyVoucher() {
       card.addEventListener('click', function(e){
         if(e.target.closest('.sa-prod-card-btn')) return;
         if(typeof showProductModal === 'function')
-          showProductModal(p.name, p.price, p.img, p.description||'', p.id);
+          showProductModal(p.name, getEffectivePrice(p), p.img, p.description||'', p.id);
       });
 
       list.appendChild(card);
@@ -26289,7 +26320,7 @@ function renderRecentlyViewed() {
         sec.style.display = 'block';
         list.innerHTML = viewed.map(v => {
             const safeN = v.name.replace(/'/g, "\'").replace(/"/g, '&quot;');
-            return `<div class="item" style="width:180px;cursor:pointer;" onclick="showProductModal('${safeN}', ${v.price}, '${v.img}', '', ${v.id})">
+            const vPrice = getEffectivePrice(v); return `<div class="item" style="width:180px;cursor:pointer;" onclick="showProductModal('${safeN}', ${vPrice}, '${v.img}', '', ${v.id})">
                 <div class="item-img"><img src="${v.img}" alt="${v.name}" style="width:100%;height:140px;object-fit:contain;"></div>
                 <h3 style="font-size:13px;margin:8px 0;height:36px;overflow:hidden;">${v.name}</h3>
                 <strong class="price" style="font-size:14px;color:var(--ha-red);">${cleanPrice(v.price)} ₫</strong>
