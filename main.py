@@ -16,7 +16,7 @@ from fastapi.staticfiles import StaticFiles
 
 from pydantic import BaseModel, EmailStr, Field
 from sqlalchemy import (
-    create_engine, Column, Integer, String, DateTime, Boolean, ForeignKey, Text, Float
+    inspect, text, create_engine, Column, Integer, String, DateTime, Boolean, ForeignKey, Text, Float
 )
 from sqlalchemy.orm import sessionmaker, declarative_base, Session, relationship
 
@@ -28,7 +28,10 @@ from zoneinfo import ZoneInfo
 import random
 import requests as http_requests
 
-VN_TZ = ZoneInfo("Asia/Ho_Chi_Minh")
+try:
+    VN_TZ = ZoneInfo("Asia/Ho_Chi_Minh")
+except Exception:
+    VN_TZ = timezone(timedelta(hours=7))
 
 def now_vn():
     return datetime.now(VN_TZ).replace(tzinfo=None)
@@ -291,13 +294,13 @@ def ensure_password_ok(pw: str):
 
 
 def hash_password(pw: str) -> str:
-    ensure_password_ok(pw)
-    return pwd_context.hash(pw)
+    pw_safe = pw.encode("utf-8")[:72].decode("utf-8", errors="ignore")
+    return pwd_context.hash(pw_safe)
 
 
 def verify_password(pw: str, hashed: str) -> bool:
-    ensure_password_ok(pw)
-    return pwd_context.verify(pw, hashed)
+    pw_safe = pw.encode("utf-8")[:72].decode("utf-8", errors="ignore")
+    return pwd_context.verify(pw_safe, hashed)
 
 
 # ===================== JWT =====================
@@ -570,8 +573,52 @@ class ReviewCreateSchema(BaseModel):
 
 
 
-# ===================== DB INIT =====================
+# ===================== DB INIT & MIGRATIONS =====================
 Base.metadata.create_all(bind=engine)
+
+def ensure_column(engine, table_name: str, column_name: str, column_def_sql: str):
+    try:
+        inspector = inspect(engine)
+        tables = inspector.get_table_names()
+        if table_name not in tables:
+            return
+        columns = [c['name'] for c in inspector.get_columns(table_name)]
+        if column_name not in columns:
+            print(f"[migration] Column '{column_name}' missing in table '{table_name}'. Adding...")
+            with engine.begin() as conn:
+                conn.execute(text(f"ALTER TABLE {table_name} ADD COLUMN {column_name} {column_def_sql}"))
+            print(f"[migration] Successfully added column '{column_name}' to '{table_name}'.")
+    except Exception as e:
+        print(f"[migration warning] Error checking/adding column {table_name}.{column_name}: {e}")
+
+def run_auto_migrations(engine):
+    # 1. Coupons table
+    ensure_column(engine, "coupons", "user_id", "INTEGER")
+    ensure_column(engine, "coupons", "label", "VARCHAR DEFAULT ''")
+    ensure_column(engine, "coupons", "discount_type", "VARCHAR DEFAULT 'percent'")
+    ensure_column(engine, "coupons", "discount_value", "INTEGER DEFAULT 0")
+    ensure_column(engine, "coupons", "is_active", "BOOLEAN DEFAULT TRUE")
+    ensure_column(engine, "coupons", "expires_at", "TIMESTAMP")
+    ensure_column(engine, "coupons", "created_at", "TIMESTAMP")
+
+    # 2. FlashSales table
+    ensure_column(engine, "flash_sales", "product_id", "INTEGER")
+    ensure_column(engine, "flash_sales", "sale_price", "INTEGER DEFAULT 0")
+    ensure_column(engine, "flash_sales", "start_time", "TIMESTAMP")
+    ensure_column(engine, "flash_sales", "end_time", "TIMESTAMP")
+    ensure_column(engine, "flash_sales", "is_active", "BOOLEAN DEFAULT TRUE")
+    ensure_column(engine, "flash_sales", "created_at", "TIMESTAMP")
+
+    # 3. Users table
+    ensure_column(engine, "users", "status", "VARCHAR DEFAULT 'ACTIVE'")
+    ensure_column(engine, "users", "role", "VARCHAR DEFAULT 'USER'")
+
+    # 4. Products table
+    ensure_column(engine, "products", "image_url", "VARCHAR DEFAULT ''")
+    ensure_column(engine, "products", "is_active", "BOOLEAN DEFAULT TRUE")
+    ensure_column(engine, "products", "category_id", "INTEGER")
+
+run_auto_migrations(engine)
 
 
 def seed_admin():
