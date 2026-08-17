@@ -247,6 +247,9 @@ async def shop_p():
 
 # Tìm và thay thế toàn bộ đoạn liên quan đến order-history bằng đoạn này:
 @app.get("/order-history.html", response_class=HTMLResponse)
+@app.get("/order-history", response_class=HTMLResponse)
+@app.get("/my-orders", response_class=HTMLResponse)
+@app.get("/don-hang", response_class=HTMLResponse)
 async def get_order_history_page():
     # Sử dụng Path để tìm đường dẫn chính xác tuyệt đối
     base_path = os.path.dirname(os.path.abspath(__file__))
