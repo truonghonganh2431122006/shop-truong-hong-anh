@@ -1188,6 +1188,11 @@ def login(data: LoginRequest, db: Session = Depends(get_db)):
     return {
         "success": True,
         "access_token": token,
+        "user": {
+            "id": user.id,
+            "email": user.email,
+            "role": user.role
+        },
         "redirect": redirect_url  # Đảm bảo có dòng này
     }
 
@@ -2101,6 +2106,13 @@ async def update_order_status(
 
 @app.get("/orders/me")
 def my_orders(user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    user_phone = getattr(user, 'phone', None) or getattr(user, 'phone_number', None)
+    if user_phone:
+        unlinked = db.query(Order).filter(Order.user_id == None, Order.phone_number == user_phone).all()
+        for un_o in unlinked:
+            un_o.user_id = user.id
+        if unlinked:
+            db.commit()
     orders = db.query(Order).filter(Order.user_id == user.id).order_by(Order.id.desc()).all()
     return [format_order_dict(o, db) for o in orders]
 
@@ -2314,8 +2326,13 @@ async def create_new_order(data: dict, user: Optional[User] = Depends(get_curren
         if not u_id and user:
             u_id = user.id
         if not u_id:
-            first_user = db.query(User).first()
-            u_id = first_user.id if first_user else 1
+            cust_phone = (data.get('customer_phone') or data.get('phone_number') or '').strip()
+            if cust_phone and hasattr(User, 'phone'):
+                matched_user = db.query(User).filter(User.phone == cust_phone).first()
+                if matched_user:
+                    u_id = matched_user.id
+            if not u_id:
+                u_id = None
 
         cust_name = data.get('customer_name') or ''
         cust_phone = data.get('customer_phone') or data.get('phone_number') or ''

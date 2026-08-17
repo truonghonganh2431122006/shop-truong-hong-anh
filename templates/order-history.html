@@ -411,262 +411,152 @@
     </div>
 
     <script>
-        /* ══════════════════════════════════════════════════════
-           HELPER: Đọc an toàn từ localStorage, luôn trả về Array
-           ══════════════════════════════════════════════════════ */
-        function safeGetArray(key) {
-            try {
-                const raw = localStorage.getItem(key);
-                if (!raw) return [];
-                const parsed = JSON.parse(raw);
-                return Array.isArray(parsed) ? parsed : [];
-            } catch (e) {
-                console.warn('[order-history] Lỗi đọc localStorage key "' + key + '":', e);
-                return [];
-            }
-        }
-
-        /* ══════════════════════════════════════════════════════
-           HELPER: Lấy ID an toàn từ object đơn hàng
-           ══════════════════════════════════════════════════════ */
-        function safeOrderId(o) {
-            return String(o.id || o.order_id || o.code || ('U' + Math.random().toString(36).slice(2, 8)));
-        }
-
-        /* ══════════════════════════════════════════════════════
-           HELPER: Lấy ảnh sản phẩm an toàn (fallback chain)
-           ══════════════════════════════════════════════════════ */
-        function safeProductImage(item) {
-            const fallback = 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 56 56%22%3E%3Crect fill=%22%23f0f1f3%22 width=%2256%22 height=%2256%22/%3E%3Ctext x=%2228%22 y=%2232%22 text-anchor=%22middle%22 font-size=%2220%22%3E📦%3C/text%3E%3C/svg%3E';
-            if (!item) return fallback;
-            // Thử tất cả các key phổ biến
-            const src = item.image || item.img || item.thumbnail || item.photo
-                || (item.product && (item.product.image || item.product.img))
-                || '';
-            return src || fallback;
-        }
-
-        /* ══════════════════════════════════════════════════════
-           MAIN: Hiển thị đơn hàng
-           ══════════════════════════════════════════════════════ */
         async function displayOrders() {
             const container = document.getElementById('orderList');
             if (!container) return;
 
             const token = localStorage.getItem('access_token');
-
-            /* ── Nếu chưa đăng nhập và không có đơn local ── */
             if (!token) {
-                // Vẫn kiểm tra localStorage cho guest orders
-                const allLocal = [
-                    ...safeGetArray('ha_quick_orders'),
-                    ...safeGetArray('user_orders'),
-                    ...safeGetArray('ha_orders'),
-                    ...safeGetArray('cart_orders')
-                ];
-                if (allLocal.length === 0) {
-                    container.innerHTML = `
-                        <div class="state-box">
-                            <span class="state-icon">🔒</span>
-                            <p>Vui lòng đăng nhập để xem đơn hàng của bạn</p>
-                            <a href="/login">Đăng nhập ngay</a>
-                        </div>`;
-                    return;
-                }
-            }
-
-            let apiOrders = [];
-            let localOrders = [];
-
-            /* ── 1. Lấy đơn hàng từ API nếu đã đăng nhập ── */
-            if (token) {
-                try {
-                    const res = await fetch('/orders/me', {
-                        headers: { 'Authorization': 'Bearer ' + token }
-                    });
-                    if (res.ok) {
-                        const data = await res.json();
-                        apiOrders = Array.isArray(data) ? data : [];
-                    }
-                } catch (e) {
-                    console.warn('[order-history] Lỗi fetch /orders/me:', e);
-                }
-            }
-
-            /* ── 2. Lấy đơn hàng từ TẤT CẢ các key localStorage ── */
-            try {
-                const keys = ['ha_quick_orders', 'user_orders', 'ha_orders', 'cart_orders'];
-                keys.forEach(function(key) {
-                    const arr = safeGetArray(key);
-                    arr.forEach(function(o) { localOrders.push(o); });
-                });
-            } catch (e) {
-                console.warn('[order-history] Lỗi đọc localStorage orders:', e);
-            }
-
-            /* ── 3. Gộp và loại bỏ đơn trùng lặp ── */
-            const orderMap = new Map();
-
-            // API orders ưu tiên cao hơn (có dữ liệu chính xác nhất)
-            (apiOrders || []).forEach(function(o) {
-                const key = safeOrderId(o);
-                o._displayId = key; // Lưu ID hiển thị
-                orderMap.set(key, o);
-            });
-
-            // Local orders thêm nếu chưa có từ API, hoặc bổ sung sản phẩm/ảnh nếu API bị thiếu
-            (localOrders || []).forEach(function(o) {
-                const key = safeOrderId(o);
-                if (!orderMap.has(key)) {
-                    o._displayId = key;
-                    orderMap.set(key, o);
-                } else {
-                    const existing = orderMap.get(key);
-                    if (existing && Array.isArray(existing.items) && Array.isArray(o.items)) {
-                        existing.items.forEach(function(apiItem, idx) {
-                            const locItem = o.items[idx] || o.items.find(function(li) { return String(li.product_id || li.id) === String(apiItem.product_id); });
-                            if (locItem) {
-                                if (!apiItem.name || apiItem.name.indexOf('Sản phẩm #') === 0) apiItem.name = locItem.name || locItem.title || apiItem.name;
-                                if (!apiItem.image && !apiItem.img) {
-                                    apiItem.image = locItem.image || locItem.img || locItem.image_url || locItem.photo || '';
-                                    apiItem.img = apiItem.image;
-                                }
-                            }
-                        });
-                    }
-                }
-            });
-
-            const orders = Array.from(orderMap.values());
-
-            /* ── 4. Kiểm tra nếu không có đơn hàng ── */
-            if (!orders || orders.length === 0) {
                 container.innerHTML = `
                     <div class="state-box">
-                        <span class="state-icon">📦</span>
-                        <p>Bạn chưa có đơn hàng nào</p>
-                        <a href="/shop">Mua sắm ngay!</a>
+                        <span class="state-icon">🔐</span>
+                        <p>Bạn chưa đăng nhập</p>
+                        <a href="/login">Đăng nhập ngay</a>
                     </div>`;
                 return;
             }
 
-            /* ── 5. Render từng đơn hàng ── */
-            let html = '';
-            const reviewOrderIds = []; // Collect IDs for review status check
+            container.innerHTML = `<div class="state-box"><span class="state-icon">⏳</span><p>Đang tải đơn hàng...</p></div>`;
 
-            orders.forEach(function(order) {
-                try {
-                    const orderId = order._displayId || safeOrderId(order);
-                    const status = order.status || 'Chờ xác nhận';
+            try {
+                const res = await fetch('/orders/me', {
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
 
+                if (res.status === 401) {
+                    container.innerHTML = `
+                        <div class="state-box">
+                            <span class="state-icon">⚠️</span>
+                            <p>Phiên đăng nhập hết hạn</p>
+                            <a href="/login">Đăng nhập lại</a>
+                        </div>`;
+                    return;
+                }
+
+                const orders = await res.json();
+
+                if (!orders || orders.length === 0) {
+                    container.innerHTML = `
+                        <div class="state-box">
+                            <span class="state-icon">📦</span>
+                            <p>Bạn chưa có đơn hàng nào</p>
+                            <a href="/shop">Mua sắm ngay!</a>
+                        </div>`;
+                    return;
+                }
+
+                let html = '';
+                orders.forEach(order => {
+                    // Màu sắc trạng thái
                     let statusClass = 'status-wait';
-                    if (status === 'Đã xác nhận') statusClass = 'status-confirmed';
-                    if (status === 'Đang giao') statusClass = 'status-ship';
-                    if (status === 'Đã giao' || status === 'Hoàn thành') statusClass = 'status-done';
-                    if (status === 'Đã hủy') statusClass = 'status-cancel';
+                    if (order.status === 'Đã xác nhận') statusClass = 'status-confirmed';
+                    if (order.status === 'Đang giao') statusClass = 'status-ship';
+                    if (order.status === 'Đã giao' || order.status === 'Hoàn thành') statusClass = 'status-done';
+                    if (order.status === 'Đã hủy') statusClass = 'status-cancel';
 
-                    const items = Array.isArray(order.items) ? order.items : [];
-                    const itemsHtml = items.map(function(item) {
+                    // Danh sách sản phẩm — ưu tiên unit_price (giá sau giảm), fallback về price
+                    const itemsHtml = (order.items || []).map(item => {
                         const displayItemPrice = item.unit_price || item.price || 0;
-                        const imgSrc = safeProductImage(item);
-                        const fallbackSvg = 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 56 56%22%3E%3Crect fill=%22%23f0f1f3%22 width=%2256%22 height=%2256%22/%3E%3Ctext x=%2228%22 y=%2232%22 text-anchor=%22middle%22 font-size=%2220%22%3E📦%3C/text%3E%3C/svg%3E';
-                        return '<li class="product-item">' +
-                            '<img class="product-img" src="' + imgSrc + '" alt="' + (item.name || '') + '" onerror="this.src=\'' + fallbackSvg + '\'" />' +
-                            '<div class="product-info">' +
-                                '<div class="product-name">' + (item.name || 'Sản phẩm') + '</div>' +
-                                '<div class="product-qty">Số lượng: ' + (item.qty || item.quantity || 1) + '</div>' +
-                            '</div>' +
-                            '<span class="product-price">' + displayItemPrice.toLocaleString() + 'đ</span>' +
-                        '</li>';
+                        return `
+                        <li class="product-item">
+                            <img class="product-img" src="${item.image || 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 56 56%22%3E%3Crect fill=%22%23f0f1f3%22 width=%2256%22 height=%2256%22/%3E%3Ctext x=%2228%22 y=%2232%22 text-anchor=%22middle%22 font-size=%2220%22%3E✅%3C/text%3E%3C/svg%3E'}" alt="${item.name}" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 56 56%22%3E%3Crect fill=%22%23f0f1f3%22 width=%2256%22 height=%2256%22/%3E%3Ctext x=%2228%22 y=%2232%22 text-anchor=%22middle%22 font-size=%2220%22%3E✅%3C/text%3E%3C/svg%3E'" />
+                            <div class="product-info">
+                                <div class="product-name">${item.name}</div>
+                                <div class="product-qty">Số lượng: ${item.qty || item.quantity || 1}</div>
+                            </div>
+                            <span class="product-price">${displayItemPrice.toLocaleString()}đ</span>
+                        </li>`;
                     }).join('');
 
-                    const addrHtml = (order.shipping_address || order.customer_name) ?
-                        '<div class="shipping-info">' +
-                            '<div class="ship-icon">📍 Thông tin giao hàng</div>' +
-                            '<div class="ship-detail">' +
-                                '<strong>' + (order.customer_name || '') + '</strong>' +
-                                ((order.customer_name && order.phone_number) ? ' · ' : '') +
-                                (order.phone_number || '') +
-                                (order.shipping_address ? '<br>' + order.shipping_address : '') +
-                            '</div>' +
-                        '</div>' : '';
+                    // Địa chỉ giao hàng
+                    const addrHtml = order.shipping_address ? `
+                        <div class="shipping-info">
+                            <div class="ship-icon">📍 Thông tin giao hàng</div>
+                            <div class="ship-detail">
+                                <strong>${order.customer_name || ''}</strong>${order.customer_name && order.phone_number ? ' · ' : ''}${order.phone_number || ''}
+                                ${order.shipping_address ? `<br>${order.shipping_address}` : ''}
+                            </div>
+                        </div>` : '';
 
-                    const canCancel = status === 'Chờ xác nhận';
-                    const cancelBtn = canCancel
-                        ? '<button class="btn-cancel" onclick="cancelOrder(\'' + orderId + '\')">✕ Hủy đơn</button>'
-                        : '<div></div>';
+                    // Chỉ cho hủy khi đang "Chờ xác nhận"
+                    const canCancel = order.status === 'Chờ xác nhận';
+                    const cancelBtn = canCancel ? `
+                        <button class="btn-cancel" onclick="cancelOrder(${order.id})">✕ Hủy đơn</button>` : '<div></div>';
 
-                    const discountAmt = order.discount_amount || order.discountAmount || 0;
-                    const discountHtml = discountAmt > 0
-                        ? '<span style="font-size:11px;color:#276749;font-weight:600;margin-left:6px;background:#f0fff4;padding:2px 8px;border-radius:10px;border:1px solid #9ae6b4">🏷️ Đã giảm ' + discountAmt.toLocaleString() + 'đ</span>'
-                        : '';
+                    // Review box (chỉ hiện khi Đã giao)
+                    const isDone = order.status === 'Đã giao' || order.status === 'Hoàn thành';
+                    const reviewHtml = isDone ? `<div class="review-box" id="review-box-${order.id}">
+                        <div class="review-title">⭐ Đánh giá đơn hàng này</div>
+                        <div class="stars-row" id="stars-${order.id}">
+                            ${[1,2,3,4,5].map(s => `<button class="star-btn" data-val="${s}" onclick="setStar(${order.id},${s})">★</button>`).join('')}
+                        </div>
+                        <textarea class="review-textarea" id="comment-${order.id}" placeholder="Nhận xét của bạn về đơn hàng này (tùy chọn)..." rows="3"></textarea>
+                        <button class="review-submit" id="submit-review-${order.id}" onclick="submitReview(${order.id})">Gửi đánh giá ⭐</button>
+                    </div>` : '';
 
-                    const totalAmount = order.final_total || order.total || 0;
+                    html += `
+                        <div class="order-card">
+                            <div class="order-header">
+                                <div>
+                                    <div class="order-id">Đơn #${order.id}</div>
+                                    <div class="order-date">${order.date || 'N/A'}</div>
+                                </div>
+                                <span class="status-badge ${statusClass}">${order.status || 'Chờ xác nhận'}</span>
+                            </div>
+                            <ul class="product-list">${itemsHtml}</ul>
+                            ${addrHtml}
+                            <div class="order-footer">
+                                <div>${cancelBtn}</div>
+                                <div style="text-align:right;">
+                                    <div class="total-label">Tổng thanh toán${(order.discount_amount||order.discountAmount) ? '<span style="font-size:11px;color:#276749;font-weight:600;margin-left:6px;background:#f0fff4;padding:2px 8px;border-radius:10px;border:1px solid #9ae6b4">🏷️ Đã giảm ' + (order.discount_amount||order.discountAmount||0).toLocaleString() + 'đ</span>' : ''}</div>
+                                    <div class="total-amount">${(order.final_total || order.total || 0).toLocaleString()}đ</div>
+                                </div>
+                            </div>
+                            ${reviewHtml}
+                        </div>
+                    `;
+                });
 
-                    const isDone = status === 'Đã giao' || status === 'Hoàn thành';
-                    let reviewHtml = '';
-                    if (isDone) {
-                        // Chỉ load review cho đơn từ API (có ID số)
-                        if (typeof order.id === 'number' || (typeof orderId === 'string' && /^\d+$/.test(orderId))) {
-                            reviewOrderIds.push(orderId);
-                        }
-                        reviewHtml = '<div class="review-box" id="review-box-' + orderId + '">' +
-                            '<div class="review-title">⭐ Đánh giá đơn hàng này</div>' +
-                            '<div class="stars-row" id="stars-' + orderId + '">' +
-                                [1,2,3,4,5].map(function(s) {
-                                    return '<button class="star-btn" data-val="' + s + '" onclick="setStar(\'' + orderId + '\',' + s + ')">★</button>';
-                                }).join('') +
-                            '</div>' +
-                            '<textarea class="review-textarea" id="comment-' + orderId + '" placeholder="Nhận xét của bạn về đơn hàng này (tùy chọn)..." rows="3"></textarea>' +
-                            '<button class="review-submit" id="submit-review-' + orderId + '" onclick="submitReview(\'' + orderId + '\')">Gửi đánh giá ⭐</button>' +
-                        '</div>';
-                    }
+                // Load trạng thái review cho đơn đã giao
+                orders.filter(o => o.status === 'Đã giao' || o.status === 'Hoàn thành')
+                      .forEach(o => loadReviewStatus(o.id));
 
-                    html += '<div class="order-card">' +
-                        '<div class="order-header">' +
-                            '<div>' +
-                                '<div class="order-id">Đơn #' + orderId + '</div>' +
-                                '<div class="order-date">' + (order.date || order.created_at || 'N/A') + '</div>' +
-                            '</div>' +
-                            '<span class="status-badge ' + statusClass + '">' + status + '</span>' +
-                        '</div>' +
-                        '<ul class="product-list">' + itemsHtml + '</ul>' +
-                        addrHtml +
-                        '<div class="order-footer">' +
-                            '<div>' + cancelBtn + '</div>' +
-                            '<div style="text-align:right;">' +
-                                '<div class="total-label">Tổng thanh toán' + discountHtml + '</div>' +
-                                '<div class="total-amount">' + totalAmount.toLocaleString() + 'đ</div>' +
-                            '</div>' +
-                        '</div>' +
-                        reviewHtml +
-                    '</div>';
-                } catch (orderErr) {
-                    console.error('[order-history] Lỗi render đơn hàng:', orderErr, order);
-                }
-            });
+                container.innerHTML = html;
 
-            container.innerHTML = html;
-
-            // Load review status cho các đơn đã hoàn thành
-            reviewOrderIds.forEach(function(oid) {
-                loadReviewStatus(oid);
-            });
+            } catch (err) {
+                console.error('Lỗi tải đơn hàng:', err);
+                container.innerHTML = `
+                    <div class="state-box">
+                        <span class="state-icon">❌</span>
+                        <p>Không thể tải đơn hàng. Vui lòng thử lại.</p>
+                        <button onclick="displayOrders()">Thử lại</button>
+                    </div>`;
+            }
         }
 
         async function cancelOrder(orderId) {
-            if (!confirm('Bạn chắc chắn muốn hủy đơn #' + orderId + '?')) return;
+            if (!confirm(`Bạn chắc chắn muốn hủy đơn #${orderId}?`)) return;
             const token = localStorage.getItem('access_token');
             try {
-                const res = await fetch('/admin/orders/' + orderId + '/status?new_status=' + encodeURIComponent('Đã hủy'), {
+                const res = await fetch(`/admin/api/orders/${orderId}/status?new_status=${encodeURIComponent('Đã hủy')}`, {
                     method: 'PUT',
                     headers: { 'Authorization': 'Bearer ' + token }
                 });
                 if (res.ok) {
-                    alert('✅ Đã hủy đơn #' + orderId);
+                    alert(`✅ Đã hủy đơn #${orderId}`);
                     displayOrders();
                 } else {
-                    const err = await res.json().catch(function() { return {}; });
+                    const err = await res.json().catch(() => ({}));
                     alert('Không thể hủy đơn: ' + (err.detail || 'Vui lòng thử lại!'));
                 }
             } catch (err) {
@@ -676,12 +566,12 @@
 
 
         // ─── REVIEW FUNCTIONS ───
-        var reviewStars = {};
+        var reviewStars = {};  // { orderId: starValue }
 
         function setStar(orderId, val) {
             reviewStars[orderId] = val;
             var btns = document.querySelectorAll('#stars-' + orderId + ' .star-btn');
-            btns.forEach(function(b) {
+            btns.forEach(b => {
                 if (parseInt(b.dataset.val) <= val) b.classList.add('active');
                 else b.classList.remove('active');
             });
@@ -690,7 +580,6 @@
         async function loadReviewStatus(orderId) {
             try {
                 const res = await fetch('/orders/' + orderId + '/review');
-                if (!res.ok) return;
                 const data = await res.json();
                 if (data.reviewed) {
                     renderReviewDone(orderId, data.rating, data.comment, data.created_at);
@@ -703,11 +592,12 @@
             if (!box) return;
             const stars = '★'.repeat(rating) + '☆'.repeat(5 - rating);
             box.classList.add('done');
-            box.innerHTML =
-                '<div class="review-title">✅ Đã đánh giá</div>' +
-                '<div class="review-done-stars" style="color:#f59e0b">' + stars + '</div>' +
-                (comment ? '<div class="review-done-comment">"' + comment + '"</div>' : '') +
-                '<div class="review-done-date">Gửi lúc ' + date + '</div>';
+            box.innerHTML = `
+                <div class="review-title">✅ Đã đánh giá</div>
+                <div class="review-done-stars" style="color:#f59e0b">${stars}</div>
+                ${comment ? `<div class="review-done-comment">"${comment}"</div>` : ''}
+                <div class="review-done-date">Gửi lúc ${date}</div>
+            `;
         }
 
         async function submitReview(orderId) {
@@ -727,7 +617,7 @@
                         'Content-Type': 'application/json',
                         'Authorization': 'Bearer ' + token
                     },
-                    body: JSON.stringify({ rating: rating, comment: comment })
+                    body: JSON.stringify({ rating, comment })
                 });
                 const data = await res.json();
                 if (res.ok) {
@@ -744,13 +634,9 @@
                 btn.textContent = 'Gửi đánh giá ⭐';
             }
         }
-
-        /* ══════════════════════════════════════════════════════
-           INIT: Tải dữ liệu khi mở trang
-           ══════════════════════════════════════════════════════ */
-        document.addEventListener('DOMContentLoaded', function() {
+        // Tự động tải khi mở trang + cứ 10 giây tự cập nhật trạng thái
+        document.addEventListener('DOMContentLoaded', () => {
             displayOrders();
-            // Tự cập nhật đơn hàng mỗi 30 giây
             setInterval(displayOrders, 30000);
         });
     </script>

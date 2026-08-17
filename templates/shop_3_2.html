@@ -27355,7 +27355,10 @@
                 var btn = document.getElementById('haQoConfirmBtn');
                 if (btn) { btn.disabled = true; btn.textContent = '⏳ Đang xử lý...'; }
 
-                var token = (typeof localStorage !== 'undefined') ? localStorage.getItem('access_token') : null;
+                var token = (typeof localStorage !== 'undefined') ? (localStorage.getItem('access_token') || localStorage.getItem('token')) : null;
+                if (!token && typeof currentUser !== 'undefined' && currentUser && currentUser.token) {
+                    token = currentUser.token;
+                }
 
                 if (token) {
                     /* ─── Có token → gửi lên server API (giống Cart logic) ─── */

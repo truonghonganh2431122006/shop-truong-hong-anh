@@ -788,11 +788,14 @@ loginForm.addEventListener('submit', async (e) => {
         const data = await res.json();
 
         if (res.ok && data.success === true) {
-      // LƯU TOKEN - Tấm vé để vào trang Shop/Admin
+          // LƯU TOKEN - Tấm vé để vào trang Shop/Admin
           localStorage.setItem("access_token", data.access_token);
+          localStorage.setItem("token", data.access_token);
           localStorage.setItem("user_email", email);
-          
-          // CHÈN DÒNG NÀY VÀO ĐÂY: Lấy phần chữ trước chữ @ của email làm tên hiển thị
+          if (data.user) {
+              localStorage.setItem("currentUser", JSON.stringify(data.user));
+              if (data.user.id) localStorage.setItem("user_id", data.user.id);
+          }
           localStorage.setItem("username", email.split('@')[0]); 
 
           showToast('✅ Đăng nhập thành công! Đang chuyển hướng...');
