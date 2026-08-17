@@ -1942,9 +1942,9 @@ def get_orders_list(db: Session = Depends(get_db), current_user: User = Depends(
     orders = db.query(Order).filter(Order.user_id == current_user.id).order_by(Order.id.desc()).all()
     return orders
 
-# 3. API: TẠO ĐƠN HÀNG (Đã tối ưu check kho)
+# 3. API: TẠO ĐƠN HÀNG (Đã tối ưu check kho & hỗ trợ guest)
 @app.post("/orders")
-def create_order(data: OrderCreateSchema, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+def create_order(data: OrderCreateSchema, user: Optional[User] = Depends(get_current_user_optional), db: Session = Depends(get_db)):
     if not data.items:
         raise HTTPException(status_code=400, detail="Giỏ hàng trống")
 

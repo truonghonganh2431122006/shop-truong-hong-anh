@@ -23693,52 +23693,49 @@
             var appliedVoucher = null;
 
             async function loadCartVouchers() {
-    const sel = document.getElementById('voucherInput');
-    const selQo = document.getElementById('haQoVoucher');
-    const tk = localStorage.getItem('access_token');
-    
-    if (!tk) {
-        if (sel) sel.innerHTML = '<option value="">🔒 Đăng nhập để xem mã giảm giá của bạn</option>';
-        if (selQo) selQo.innerHTML = '<option value="">🔒 Đăng nhập để xem mã giảm giá của bạn</option>';
-        return;
-    }
+                const sel = document.getElementById('voucherInput');
+                const selQo = document.getElementById('haQoVoucher');
+                const tk = localStorage.getItem('access_token');
+                
+                if (sel) sel.innerHTML = '<option value="">⏳ Đang tải mã giảm giá...</option>';
+                if (selQo) selQo.innerHTML = '<option value="">⏳ Đang tải mã giảm giá...</option>';
+                
+                try {
+                    const headers = {};
+                    if (tk) headers['Authorization'] = 'Bearer ' + tk;
 
-    if (sel) sel.innerHTML = '<option value="">⏳ Đang tải mã giảm giá...</option>';
-    if (selQo) selQo.innerHTML = '<option value="">⏳ Đang tải mã giảm giá...</option>';
-    
-    try {
-        const res = await fetch('/coupons/mine', { headers: { 'Authorization': 'Bearer ' + tk } });
-        if (res.ok) {
-            const coupons = await res.json();
-            if (coupons && coupons.length > 0) {
-                let optionsCart = '<option value="">-- Chọn mã giảm giá --</option>';
-                let optionsQo = '<option value="">-- Chọn mã giảm giá (nếu có) --</option>';
-                
-                coupons.forEach(c => {
-                    const valStr = c.discount_type === 'percent' ? `${c.discount_value}%` : `${(c.discount_value || 0).toLocaleString()}đ`;
-                    const prefix = c.personal ? '🎁 [Dành riêng cho bạn] ' : '🌐 ';
-                    optionsCart += `<option value="${c.code}">${prefix}${c.code} – ${c.label} (Giảm ${valStr})</option>`;
-                    optionsQo += `<option value="${c.code}" data-type="${c.discount_type}" data-value="${c.discount_value}">${prefix}${c.code} – ${c.label} (Giảm ${valStr})</option>`;
-                });
-                
-                if (sel) sel.innerHTML = optionsCart;
-                if (selQo) selQo.innerHTML = optionsQo;
-            } else {
-                if (sel) sel.innerHTML = '<option value="">-- Không có mã giảm giá khả dụng --</option>';
-                if (selQo) selQo.innerHTML = '<option value="">-- Không có mã giảm giá khả dụng --</option>';
+                    const res = await fetch('/coupons/mine', { headers: headers });
+                    if (res.ok) {
+                        const coupons = await res.json();
+                        if (coupons && coupons.length > 0) {
+                            let optionsCart = '<option value="">-- Chọn mã giảm giá --</option>';
+                            let optionsQo = '<option value="">-- Chọn mã giảm giá (nếu có) --</option>';
+                            
+                            coupons.forEach(c => {
+                                const valStr = c.discount_type === 'percent' ? `${c.discount_value}%` : `${(c.discount_value || 0).toLocaleString()}đ`;
+                                const prefix = c.personal ? '🎁 [Dành riêng cho bạn] ' : '🌐 ';
+                                optionsCart += `<option value="${c.code}">${prefix}${c.code} – ${c.label} (Giảm ${valStr})</option>`;
+                                optionsQo += `<option value="${c.code}" data-type="${c.discount_type}" data-value="${c.discount_value}">${prefix}${c.code} – ${c.label} (Giảm ${valStr})</option>`;
+                            });
+                            
+                            if (sel) sel.innerHTML = optionsCart;
+                            if (selQo) selQo.innerHTML = optionsQo;
+                        } else {
+                            if (sel) sel.innerHTML = '<option value="">-- Không có mã giảm giá khả dụng --</option>';
+                            if (selQo) selQo.innerHTML = '<option value="">-- Không có mã giảm giá khả dụng --</option>';
+                        }
+                        if (appliedVoucher && sel) {
+                            sel.value = appliedVoucher.code;
+                        }
+                    } else {
+                        if (sel) sel.innerHTML = '<option value="">-- Không thể tải mã giảm giá --</option>';
+                        if (selQo) selQo.innerHTML = '<option value="">-- Không thể tải mã giảm giá --</option>';
+                    }
+                } catch(e) {
+                    if (sel) sel.innerHTML = '<option value="">-- Lỗi tải mã giảm giá --</option>';
+                    if (selQo) selQo.innerHTML = '<option value="">-- Lỗi tải mã giảm giá --</option>';
+                }
             }
-            if (appliedVoucher && sel) {
-                sel.value = appliedVoucher.code;
-            }
-        } else {
-            if (sel) sel.innerHTML = '<option value="">-- Không thể tải mã giảm giá --</option>';
-            if (selQo) selQo.innerHTML = '<option value="">-- Không thể tải mã giảm giá --</option>';
-        }
-    } catch(e) {
-        if (sel) sel.innerHTML = '<option value="">-- Lỗi tải mã giảm giá --</option>';
-        if (selQo) selQo.innerHTML = '<option value="">-- Lỗi tải mã giảm giá --</option>';
-    }
-}
 
 async function applyVoucher() {
     var sel = document.getElementById('voucherInput');
