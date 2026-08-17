@@ -753,66 +753,61 @@
             height: auto;
         }
 
+        .monopoly-product-block {
+            max-width: 1200px !important;
+            margin: 20px auto !important;
+            overflow: hidden !important;
+            border-radius: 16px !important;
+        }
         .lehoi {
-            padding: 0 0 0 118px;
+            padding: 0 !important;
+            margin: 0 0 10px 0 !important;
+            font-size: 20px !important;
+            font-weight: 800 !important;
         }
-
-        .lehoi1 {
-            display: flex;
-            padding-left: 118px;
+        .lehoi1, .lehoi2 {
+            padding: 0 !important;
             width: 100% !important;
-            /* Rộng hết chiều ngang khung chứa */
-            height: 100% !important;
-            /* Cao hết chiều dọc khung chứa */
-            display: block !important;
-            object-fit: fill !important;
-            /* Lệnh này ép ảnh phải dãn ra cho bằng khít khay chứa */
-            border: none !important;
-            /* Xóa bỏ mọi đường viền nếu có */
-            /* Xóa bỏ mọi khoảng đệm quanh ảnh */
-            margin: 0 !important;
-        }
-
-        /* Tìm bằng Ctrl + F: .lehoi1 */
-        .lehoi2 {
-            padding-left: 100px;
-            width: 600% !important;
-            /* Ép chiều rộng ảnh dài hết 100% khung chứa */
+            max-width: 1200px !important;
             height: auto !important;
-            /* Giữ tỉ lệ chiều cao tự động để ảnh không bị méo */
+            max-height: 220px !important;
+            object-fit: cover !important;
+            border-radius: 12px !important;
             display: block !important;
-            /* Loại bỏ khoảng trống thừa dưới chân ảnh */
             margin: 0 auto !important;
-            /* Căn giữa ảnh */
-            max-width: none !important;
-            /* Bỏ giới hạn chiều rộng nếu có */
         }
 
-        /* Áp dụng cho cả khối AI và khối Gian hàng */
+        /* Khối Banner Quảng cáo gọn gàng */
         .banner-brand-week,
         .banner-offers {
-            width: 100vw !important;
+            width: 100% !important;
+            max-width: 1200px !important;
             position: relative !important;
-
-            /* CÔNG THỨC CĂN GIỮA CHUẨN */
-            left: 40.7% !important;
-            transform: translateX(-50%) !important;
-            /* Dùng transform thay cho margin-left để chuẩn xác hơn */
-
-            margin-top: 40px !important;
-            margin-bottom: 20px !important;
+            left: 0 !important;
+            transform: none !important;
+            margin: 20px auto !important;
             padding: 0 !important;
             overflow: hidden !important;
+            border-radius: 16px !important;
         }
 
-        /* Đảm bảo ảnh bên trong lấp đầy khung */
+        .box-banner-title {
+            font-size: 18px !important;
+            font-weight: 800 !important;
+            margin-bottom: 10px !important;
+            color: #111 !important;
+        }
+
         .ai-banner-img,
         .uudai-banner-img {
             width: 100% !important;
+            max-width: 1200px !important;
             height: auto !important;
+            max-height: 220px !important;
+            object-fit: cover !important;
+            border-radius: 12px !important;
             display: block !important;
-            max-width: none !important;
-            border: none !important;
+            margin: 0 auto !important;
         }
 
         /* Khung chứa ảnh website cùng tập đoàn */
@@ -21320,7 +21315,7 @@
             <a href="/" class="header__logo" aria-label="logo" style="text-decoration:none;">
                 <div class="tgdd-logo-box">
                     <div class="tgdd-logo-circle">●</div>
-                    thegioididong<span style="color:#000;font-weight:400;font-size:15px;margin-left:-2px;">.com</span>
+                    ShopTruongHongAnh<span style="color:#000;font-weight:400;font-size:15px;margin-left:2px;">.com</span>
                 </div>
             </a>
             <form action="/tim-kiem" onsubmit="return false;" class="header__search">
@@ -22338,13 +22333,60 @@
             setInterval(updateCd, 1000);
         })();
 
-        function tgddFilterTab(tabKeyword, btnEl) {
+        window.tgddFilterTab = function(tabKeyword, btnEl) {
             document.querySelectorAll('.tgdd-tab-btn').forEach(b => b.classList.remove('active'));
             if (btnEl) btnEl.classList.add('active');
-            if (typeof window.filterProductsByTab === 'function') {
-                window.filterProductsByTab(tabKeyword.toLowerCase());
+
+            const kw = (tabKeyword || '').toLowerCase().trim();
+            const container = document.getElementById('product-list-container');
+            if (!container) return;
+
+            const items = Array.from(container.querySelectorAll('.item'));
+            if (items.length === 0) return;
+
+            let matchedCount = 0;
+
+            items.forEach(item => {
+                const name = (item.getAttribute('data-pname') || (item.querySelector('h3') ? item.querySelector('h3').textContent : '') || '').toLowerCase();
+                const cate = (item.getAttribute('data-pcate') || '').toLowerCase();
+                const desc = (item.getAttribute('data-pdesc') || '').toLowerCase();
+                const fullText = (name + ' ' + cate + ' ' + desc).trim();
+
+                let show = false;
+
+                if (kw === 'flashsale' || kw === 'flash' || kw === '50' || kw === 'online') {
+                    show = true;
+                } else if (kw === 'apple') {
+                    show = /apple|iphone|ipad|macbook|airpod|watch/i.test(fullText);
+                } else if (kw === 'điện thoại') {
+                    show = /iphone|samsung|oppo|xiaomi|vivo|realme|điện thoại|phone|galaxy/i.test(fullText);
+                } else if (kw === 'laptop') {
+                    show = /laptop|macbook|dell|hp|asus|lenovo|acer|notebook|thinkpad/i.test(fullText);
+                } else if (kw === 'phụ kiện') {
+                    show = /tai nghe|airpod|headphone|earphone|loa|sạc|cáp|ốp|phụ kiện|củ sạc/i.test(fullText);
+                } else if (kw === 'đồng hồ') {
+                    show = /watch|đồng hồ|smartwatch|garmin|apple watch|galaxy watch/i.test(fullText);
+                } else if (kw === 'pc') {
+                    show = /pc|máy in|màn hình|máy tính để bàn|chuột|bàn phím|printer/i.test(fullText);
+                } else {
+                    show = fullText.indexOf(kw) > -1;
+                }
+
+                if (show) {
+                    item.style.setProperty('display', 'flex', 'important');
+                    matchedCount++;
+                } else {
+                    item.style.setProperty('display', 'none', 'important');
+                }
+            });
+
+            let noRes = document.getElementById('ha-no-results');
+            if (noRes) {
+                noRes.style.setProperty('display', matchedCount === 0 ? 'block' : 'none', 'important');
             }
-        }
+
+            container.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        };
     </script>
     <!-- ════ NÚT LỌC SẢN PHẨM — nằm ngay trên danh sách ════ -->
     <div id="ha-filter-wrapper">
