@@ -27688,24 +27688,19 @@
     </script>
     <!-- ============ END QUICK ORDER ============ -->
 
-    <!-- ════════════════════════════════════════════════════════════
-     SHOPPING AI — AI THỨ HAI (So sánh với AI #1)
-     Đặc điểm: Tự "lục kho" & hiển thị Product Card ngay trong chat
-     Model: llama3-8b-8192 | Màu: Cam-Vàng Gold
-════════════════════════════════════════════════════════════ -->
+    <!-- ============ HỒNG ANH AI CHATBOT (UNIFIED ALL-IN-ONE) ============ -->
     <style>
-        /* ─── Shopping AI FAB ─── */
-        #sa-fab {
+        #ha-fab {
             position: fixed;
             bottom: 28px;
-            right: 96px;
-            width: 58px;
-            height: 58px;
-            background: linear-gradient(145deg, #ffa726, #e65c00);
+            right: 28px;
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
             border-radius: 50%;
-            border: none;
+            border: 2px solid #ffed00;
             cursor: pointer;
-            box-shadow: 0 4px 20px rgba(230, 92, 0, 0.42);
+            box-shadow: 0 6px 24px rgba(15, 52, 96, 0.45);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -27713,21 +27708,21 @@
             transition: transform 0.25s cubic-bezier(.34, 1.56, .64, 1), box-shadow 0.2s;
         }
 
-        #sa-fab:hover {
+        #ha-fab:hover {
             transform: scale(1.12);
-            box-shadow: 0 6px 28px rgba(230, 92, 0, 0.60);
+            box-shadow: 0 8px 32px rgba(15, 52, 96, 0.60);
         }
 
-        #sa-fab svg {
-            width: 26px;
-            height: 26px;
+        #ha-fab svg {
+            width: 28px;
+            height: 28px;
         }
 
-        #sa-fab-badge {
+        #ha-fab-badge {
             position: absolute;
             top: -2px;
             right: -2px;
-            background: #e53e3e;
+            background: #ef4444;
             color: #fff;
             font-size: 10px;
             font-weight: 700;
@@ -27740,65 +27735,41 @@
             border: 2px solid #fff;
         }
 
-        /* Tooltip nhãn 2 AI */
-        #sa-fab::after {
-            content: 'Shopping AI';
-            position: absolute;
-            bottom: 66px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(230, 92, 0, 0.92);
-            color: #fff;
-            font-size: 10px;
-            font-weight: 700;
-            padding: 3px 9px;
-            border-radius: 12px;
-            white-space: nowrap;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.18s;
-            font-family: -apple-system, sans-serif;
-        }
-
-        #sa-fab:hover::after {
-            opacity: 1;
-        }
-
         #ha-fab::after {
             content: 'Hồng Anh AI';
             position: absolute;
-            bottom: 66px;
+            bottom: 68px;
             left: 50%;
             transform: translateX(-50%);
-            background: rgba(26, 26, 46, 0.92);
+            background: rgba(26, 26, 46, 0.95);
             color: #ffed00;
-            font-size: 10px;
+            font-size: 10.5px;
             font-weight: 700;
-            padding: 3px 9px;
+            padding: 4px 10px;
             border-radius: 12px;
             white-space: nowrap;
             opacity: 0;
             pointer-events: none;
             transition: opacity 0.18s;
             font-family: -apple-system, sans-serif;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
         }
 
         #ha-fab:hover::after {
             opacity: 1;
         }
 
-        /* ─── Shopping AI Window ─── */
-        #sa-win {
+        #ha-win {
             position: fixed;
             bottom: 100px;
-            right: 164px;
+            right: 28px;
             width: 380px;
-            max-width: calc(100vw - 40px);
-            height: 560px;
+            max-width: calc(100vw - 32px);
+            height: 550px;
             max-height: calc(100vh - 120px);
-            background: #fff;
-            border-radius: 20px;
-            box-shadow: 0 12px 48px rgba(230, 92, 0, 0.18), 0 4px 16px rgba(0, 0, 0, 0.10);
+            background: #ffffff;
+            border-radius: 22px;
+            box-shadow: 0 16px 48px rgba(15, 23, 42, 0.22);
             display: flex;
             flex-direction: column;
             overflow: hidden;
@@ -27808,88 +27779,65 @@
             pointer-events: none;
             transition: transform 0.28s cubic-bezier(.34, 1.56, .64, 1), opacity 0.22s;
             transform-origin: bottom right;
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
         }
 
-        #sa-win.open {
+        #ha-win.open {
             transform: scale(1) translateY(0);
             opacity: 1;
             pointer-events: all;
         }
 
-        /* ─── Header cam-đỏ gradient ─── */
-        #sa-hdr {
-            background: linear-gradient(135deg, #e65c00 0%, #ff8c00 60%, #ffa726 100%);
+        #ha-hdr {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 60%, #0f3460 100%);
             padding: 14px 18px;
             display: flex;
             align-items: center;
             gap: 12px;
             flex-shrink: 0;
-            position: relative;
         }
 
-        #sa-hdr::after {
-            content: 'AI #2';
-            position: absolute;
-            top: 8px;
-            right: 52px;
-            background: rgba(255, 255, 255, 0.22);
-            color: #fff;
-            font-size: 9px;
-            font-weight: 800;
-            padding: 2px 7px;
-            border-radius: 10px;
-            letter-spacing: 0.5px;
-            font-family: -apple-system, sans-serif;
-        }
-
-        #sa-av {
-            width: 40px;
-            height: 40px;
-            background: rgba(255, 255, 255, 0.22);
+        #ha-av {
+            width: 42px;
+            height: 42px;
+            background: #ffed00;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             flex-shrink: 0;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
         }
 
-        #sa-av svg {
+        #ha-av svg {
             width: 22px;
             height: 22px;
         }
 
-        #sa-hdr-info {
+        #ha-hdr-info {
             flex: 1;
             min-width: 0;
         }
 
-        #sa-hdr-name {
-            color: #fff;
-            font-size: 14px;
-            font-weight: 800;
-            font-family: -apple-system, sans-serif;
-            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+        #ha-hdr-name {
+            color: #ffffff;
+            font-size: 14.5px;
+            font-weight: 700;
+            letter-spacing: 0.2px;
         }
 
-        #sa-hdr-sub {
-            color: rgba(255, 255, 255, 0.80);
-            font-size: 10px;
-            margin-top: 1px;
-            font-family: -apple-system, sans-serif;
-        }
-
-        #sa-hdr-status {
-            color: #fff8c0;
+        #ha-hdr-status {
+            color: #4ade80;
             font-size: 11px;
             margin-top: 2px;
-            font-family: -apple-system, sans-serif;
+            font-weight: 500;
         }
 
-        #sa-x {
-            background: rgba(255, 255, 255, 0.18);
+        #ha-x {
+            background: rgba(255, 255, 255, 0.15);
             border: none;
-            color: #fff;
+            color: #ffffff;
             width: 30px;
             height: 30px;
             border-radius: 50%;
@@ -27902,188 +27850,164 @@
             flex-shrink: 0;
         }
 
-        #sa-x:hover {
-            background: rgba(255, 255, 255, 0.35);
+        #ha-x:hover {
+            background: rgba(255, 255, 255, 0.25);
         }
 
-        /* ─── Messages area ─── */
-        #sa-msgs {
+        #ha-msgs {
             flex: 1;
             overflow-y: auto;
-            padding: 14px 12px;
+            padding: 16px 14px;
             display: flex;
             flex-direction: column;
             gap: 10px;
-            background: #fffbf4;
+            background: #f8fafc;
             scroll-behavior: smooth;
         }
 
-        #sa-msgs::-webkit-scrollbar {
+        #ha-msgs::-webkit-scrollbar {
             width: 4px;
         }
 
-        #sa-msgs::-webkit-scrollbar-thumb {
-            background: #ffcc80;
+        #ha-msgs::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
             border-radius: 4px;
         }
 
-        /* ─── Bubbles (prefix sa-) — hoàn toàn tách biệt .ha-b ─── */
-        .sa-b {
-            max-width: 84%;
-            padding: 10px 14px;
+        .ha-b {
+            max-width: 85%;
+            padding: 11px 15px;
             border-radius: 18px;
             font-size: 13.5px;
             line-height: 1.55;
             word-break: break-word;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            animation: sa-pop 0.22s cubic-bezier(.34, 1.56, .64, 1);
+            animation: ha-pop 0.22s cubic-bezier(.34, 1.56, .64, 1);
         }
 
-        @keyframes sa-pop {
+        @keyframes ha-pop {
             from {
                 transform: scale(0.88);
-                opacity: 0
+                opacity: 0;
             }
-
             to {
                 transform: scale(1);
-                opacity: 1
+                opacity: 1;
             }
         }
 
-        .sa-b.bot {
-            background: #fff;
-            color: #1a1a2e;
+        .ha-b.bot {
+            background: #ffffff;
+            color: #0f172a;
             align-self: flex-start;
-            border-bottom-left-radius: 5px;
-            box-shadow: 0 1px 6px rgba(230, 92, 0, 0.12);
-            border-left: 3px solid #ff8c00;
+            border-bottom-left-radius: 6px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+            border-left: 3.5px solid #2563eb;
         }
 
-        .sa-b.usr {
-            background: linear-gradient(135deg, #ff8c00, #e65c00);
-            color: #fff;
+        .ha-b.usr {
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            color: #ffffff;
             align-self: flex-end;
-            border-bottom-right-radius: 5px;
+            border-bottom-right-radius: 6px;
         }
 
-        .sa-b.err {
-            background: #fff3cd;
-            color: #856404;
+        .ha-b.err {
+            background: #fef2f2;
+            color: #991b1b;
             align-self: flex-start;
-            border-bottom-left-radius: 5px;
-            border-left: 3px solid #ffc107;
+            border-bottom-left-radius: 6px;
+            border-left: 3.5px solid #ef4444;
         }
 
-        .sa-dots {
+        .ha-dots {
             display: flex;
             gap: 5px;
             align-items: center;
             padding: 12px 16px;
-            background: #fff;
+            background: #ffffff;
             border-radius: 18px;
-            border-bottom-left-radius: 5px;
+            border-bottom-left-radius: 6px;
             align-self: flex-start;
-            box-shadow: 0 1px 6px rgba(230, 92, 0, 0.12);
-            border-left: 3px solid #ff8c00;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+            border-left: 3.5px solid #2563eb;
         }
 
-        .sa-dots span {
+        .ha-dots span {
             width: 7px;
             height: 7px;
-            background: #ffcc80;
+            background: #94a3b8;
             border-radius: 50%;
-            animation: sa-bounce 1.2s infinite;
+            animation: ha-bounce 1.2s infinite;
         }
 
-        .sa-dots span:nth-child(2) {
-            animation-delay: .2s;
+        .ha-dots span:nth-child(2) { animation-delay: .2s; }
+        .ha-dots span:nth-child(3) { animation-delay: .4s; }
+
+        @keyframes ha-bounce {
+            0%, 60%, 100% { transform: translateY(0); background: #94a3b8; }
+            30% { transform: translateY(-6px); background: #2563eb; }
         }
 
-        .sa-dots span:nth-child(3) {
-            animation-delay: .4s;
-        }
-
-        @keyframes sa-bounce {
-
-            0%,
-            60%,
-            100% {
-                transform: translateY(0);
-                background: #ffcc80
-            }
-
-            30% {
-                transform: translateY(-6px);
-                background: #e65c00
-            }
-        }
-
-        /* ─── Quick-reply chips ─── */
-        #sa-chips {
+        #ha-chips {
             display: flex;
             gap: 6px;
             flex-wrap: wrap;
-            padding: 0 12px 10px;
-            background: #fffbf4;
+            padding: 0 14px 10px;
+            background: #f8fafc;
             flex-shrink: 0;
         }
 
-        .sa-chip {
-            padding: 5px 12px;
-            background: #fff;
-            border: 1.5px solid #ffd0a0;
+        .ha-chip {
+            padding: 6px 12px;
+            background: #ffffff;
+            border: 1.5px solid #cbd5e1;
             border-radius: 20px;
             font-size: 12px;
             cursor: pointer;
-            color: #c45000;
+            color: #1e293b;
             font-weight: 600;
             transition: all .18s;
             white-space: nowrap;
-            font-family: -apple-system, sans-serif;
         }
 
-        .sa-chip:hover {
-            background: #e65c00;
-            border-color: #e65c00;
-            color: #fff;
+        .ha-chip:hover {
+            background: #2563eb;
+            border-color: #2563eb;
+            color: #ffffff;
         }
 
-        /* ─── Input area ─── */
-        #sa-inp-area {
+        #ha-inp-area {
             display: flex;
             align-items: center;
             gap: 8px;
             padding: 12px 14px;
-            background: #fff;
-            border-top: 1px solid #ffe0b2;
+            background: #ffffff;
+            border-top: 1px solid #e2e8f0;
             flex-shrink: 0;
         }
 
-        #sa-inp {
+        #ha-inp {
             flex: 1;
             padding: 10px 14px;
-            border: 1.5px solid #ffd0a0;
+            border: 1.5px solid #cbd5e1;
             border-radius: 24px;
             font-size: 13.5px;
             outline: none;
             resize: none;
-            font-family: -apple-system, sans-serif;
             transition: border-color .2s;
             max-height: 80px;
             line-height: 1.4;
-            background: #fffbf4;
+            color: #0f172a;
         }
 
-        #sa-inp:focus {
-            border-color: #e65c00;
-            background: #fff;
+        #ha-inp:focus {
+            border-color: #2563eb;
         }
 
-        #sa-send {
+        #ha-send {
             width: 40px;
             height: 40px;
-            background: linear-gradient(135deg, #ff8c00, #e65c00);
+            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
             border: none;
             border-radius: 50%;
             cursor: pointer;
@@ -28092,33 +28016,32 @@
             justify-content: center;
             flex-shrink: 0;
             transition: transform .2s, box-shadow .2s;
-            box-shadow: 0 2px 8px rgba(230, 92, 0, 0.35);
+            box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3);
         }
 
-        #sa-send:hover {
-            transform: scale(1.1);
-            box-shadow: 0 4px 14px rgba(230, 92, 0, 0.5);
+        #ha-send:hover {
+            transform: scale(1.08);
+            box-shadow: 0 4px 14px rgba(37, 99, 235, 0.45);
         }
 
-        #sa-send svg {
+        #ha-send svg {
             width: 18px;
             height: 18px;
         }
 
-        /* ─── PRODUCT CARD trong khung chat ─── */
+        /* ── PRODUCT CARDS TRONG KHUNG CHAT (TỪ SHOPPING AI) ── */
         .sa-prod-cards {
             align-self: stretch;
             width: 100%;
-            animation: sa-pop 0.28s cubic-bezier(.34, 1.56, .64, 1);
+            animation: ha-pop 0.28s cubic-bezier(.34, 1.56, .64, 1);
         }
 
         .sa-prod-cards-title {
-            font-size: 11.5px;
+            font-size: 12px;
             font-weight: 700;
-            color: #c45000;
+            color: #1e293b;
             margin-bottom: 8px;
             padding-left: 2px;
-            font-family: -apple-system, sans-serif;
             display: flex;
             align-items: center;
             gap: 5px;
@@ -28128,26 +28051,26 @@
             display: flex;
             gap: 8px;
             overflow-x: auto;
-            padding-bottom: 4px;
+            padding-bottom: 6px;
             scroll-snap-type: x mandatory;
         }
 
         .sa-prod-list::-webkit-scrollbar {
-            height: 3px;
+            height: 4px;
         }
 
         .sa-prod-list::-webkit-scrollbar-thumb {
-            background: #ffcc80;
-            border-radius: 3px;
+            background: #cbd5e1;
+            border-radius: 4px;
         }
 
         .sa-prod-card {
-            flex: 0 0 130px;
-            background: #fff;
+            flex: 0 0 135px;
+            background: #ffffff;
             border-radius: 12px;
-            border: 1.5px solid #ffe0b2;
+            border: 1.5px solid #e2e8f0;
             overflow: hidden;
-            box-shadow: 0 2px 8px rgba(230, 92, 0, 0.12);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
             transition: transform 0.22s cubic-bezier(.34, 1.2, .64, 1), box-shadow 0.22s;
             cursor: pointer;
             scroll-snap-align: start;
@@ -28155,14 +28078,14 @@
 
         .sa-prod-card:hover {
             transform: translateY(-4px) scale(1.02);
-            box-shadow: 0 8px 22px rgba(230, 92, 0, 0.28);
-            border-color: #ff8c00;
+            box-shadow: 0 8px 20px rgba(37, 99, 235, 0.2);
+            border-color: #2563eb;
         }
 
         .sa-prod-card-img {
             width: 100%;
             height: 88px;
-            background: #fff8f0;
+            background: #f8fafc;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -28175,11 +28098,6 @@
             object-fit: contain;
             padding: 6px;
             box-sizing: border-box;
-            transition: transform 0.3s;
-        }
-
-        .sa-prod-card:hover .sa-prod-card-img img {
-            transform: scale(1.06);
         }
 
         .sa-prod-card-body {
@@ -28187,33 +28105,29 @@
         }
 
         .sa-prod-card-name {
-            font-size: 10.5px;
+            font-size: 11px;
             font-weight: 700;
-            color: #0a0a0a;
+            color: #0f172a;
             display: -webkit-box;
             -webkit-line-clamp: 2;
             -webkit-box-orient: vertical;
             overflow: hidden;
             line-height: 1.35;
             margin-bottom: 4px;
-            font-family: -apple-system, sans-serif;
         }
 
         .sa-prod-card-price {
             font-size: 12.5px;
-            font-weight: 900;
-            color: #e8000d;
-            font-variant-numeric: tabular-nums;
-            font-family: -apple-system, sans-serif;
-            letter-spacing: -0.3px;
+            font-weight: 800;
+            color: #dc2626;
         }
 
         .sa-prod-card-btn {
             display: block;
             margin-top: 6px;
             padding: 5px 0;
-            background: linear-gradient(135deg, #ff8c00, #e65c00);
-            color: #fff;
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            color: #ffffff;
             border: none;
             border-radius: 20px;
             font-size: 10px;
@@ -28221,78 +28135,73 @@
             cursor: pointer;
             width: 100%;
             text-align: center;
-            font-family: -apple-system, sans-serif;
             letter-spacing: 0.2px;
             transition: opacity 0.18s, transform 0.18s;
-            box-shadow: 0 2px 6px rgba(230, 92, 0, 0.3);
+            box-shadow: 0 2px 6px rgba(217, 119, 6, 0.3);
         }
 
         .sa-prod-card-btn:hover {
-            opacity: 0.88;
+            opacity: 0.9;
             transform: translateY(-1px);
         }
     </style>
 
-    <!-- ── Shopping AI FAB Button ── -->
-    <button id="sa-fab" onclick="saToggle()" title="🛍️ Shopping AI — Gợi ý sản phẩm thông minh">
-        <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round"
-            stroke-linejoin="round">
-            <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z" />
-            <line x1="3" y1="6" x2="21" y2="6" />
-            <path d="M16 10a4 4 0 01-8 0" />
+    <!-- Nút Chat Floating FAB -->
+    <button id="ha-fab" onclick="haChatToggle()" title="🤖 Chat với Hồng Anh AI — Smart Shopping & CSKH">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#ffed00" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="18" height="14" rx="3" />
+            <circle cx="8.5" cy="10" r="1.2" fill="#ffed00" stroke="none" />
+            <circle cx="12" cy="10" r="1.2" fill="#ffed00" stroke="none" />
+            <circle cx="15.5" cy="10" r="1.2" fill="#ffed00" stroke="none" />
+            <path d="M8 17l2 4 2-4" />
         </svg>
-        <span id="sa-fab-badge"></span>
+        <span id="ha-fab-badge"></span>
     </button>
 
-    <!-- ── Shopping AI Chat Window ── -->
-    <div id="sa-win">
-        <div id="sa-hdr">
-            <div id="sa-av">
-                <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.3" stroke-linecap="round"
-                    stroke-linejoin="round">
-                    <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z" />
-                    <line x1="3" y1="6" x2="21" y2="6" />
-                    <path d="M16 10a4 4 0 01-8 0" />
+    <!-- Cửa sổ Chatbot AI -->
+    <div id="ha-win">
+        <div id="ha-hdr">
+            <div id="ha-av">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#1a1a2e" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="3" width="18" height="14" rx="3" />
+                    <circle cx="8.5" cy="10" r="1.2" fill="#1a1a2e" stroke="none" />
+                    <circle cx="12" cy="10" r="1.2" fill="#1a1a2e" stroke="none" />
+                    <circle cx="15.5" cy="10" r="1.2" fill="#1a1a2e" stroke="none" />
+                    <path d="M8 17l2 4 2-4" />
                 </svg>
             </div>
-            <div id="sa-hdr-info">
-                <div id="sa-hdr-name">🛍️ Shopping AI</div>
-                <div id="sa-hdr-sub">Gợi ý sản phẩm • Lục kho thông minh</div>
-                <div id="sa-hdr-status">● Sẵn sàng tư vấn</div>
+            <div id="ha-hdr-info">
+                <div id="ha-hdr-name">🤖 Hồng Anh AI</div>
+                <div id="ha-hdr-status">● Sẵn sàng tư vấn & hỗ trợ CSKH</div>
             </div>
-            <button id="sa-x" onclick="saToggle()">✕</button>
+            <button id="ha-x" onclick="haChatToggle()">✕</button>
         </div>
-        <div id="sa-msgs"></div>
-        <div id="sa-chips">
-            <button class="sa-chip" onclick="saQ('Tìm iPhone giá rẻ nhất')">📱 iPhone rẻ</button>
-            <button class="sa-chip" onclick="saQ('Laptop văn phòng dưới 15 triệu')">💻 Laptop VP</button>
-            <button class="sa-chip" onclick="saQ('Tai nghe không dây tốt nhất')">🎧 Tai nghe</button>
-            <button class="sa-chip" onclick="saQ('Đồng hồ thông minh')">⌚ Smartwatch</button>
+        <div id="ha-msgs"></div>
+        <div id="ha-chips">
+            <button class="ha-chip" onclick="haQ('Gợi ý điện thoại & laptop tốt nhất')">📱 Điện thoại & Laptop</button>
+            <button class="ha-chip" onclick="haQ('Chính sách bảo hành và đổi trả?')">🛡️ Bảo hành & Đổi trả</button>
+            <button class="ha-chip" onclick="haQ('Hỗ trợ đơn hàng & thanh toán')">📦 Đơn hàng & Thanh toán</button>
+            <button class="ha-chip" onclick="haQ('Gợi ý tai nghe & đồng hồ thông minh')">🎧 Phụ kiện & Smartwatch</button>
         </div>
-        <div id="sa-inp-area">
-            <textarea id="sa-inp" rows="1" placeholder="Bạn muốn mua gì? Hỏi tôi nhé..."></textarea>
-            <button id="sa-send" onclick="saSend()">
-                <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round"
-                    stroke-linejoin="round">
-                    <polygon points="22 2 15 22 11 13 2 9 22 2" fill="#fff" stroke="none" />
+        <div id="ha-inp-area">
+            <textarea id="ha-inp" rows="1" placeholder="Nhập nhu cầu sản phẩm hoặc câu hỏi CSKH..."></textarea>
+            <button id="ha-send" onclick="haSend()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <polygon points="22 2 15 22 11 13 2 9 22 2" fill="#ffffff" stroke="none" />
                 </svg>
             </button>
         </div>
     </div>
 
     <script>
-        /* ====================================================================
-           SHOPPING AI — AI #2 | Groq llama3-8b-8192 | Tự gợi ý sản phẩm
-           Prefix: sa- (tách hoàn toàn với ha- của AI #1)
-           Để trống API key — tự điền vào SA_KEY bên dưới
-        ==================================================================== */
         (function () {
-            var SA_KEY = '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'; // ← Điền Groq API key của bạn vào đây (dạng gsk_...)
-            var SA_URL = 'https://api.groq.com/openai/v1/chat/completions';
-            var SA_MODEL = 'llama-3.1-8b-instant';
+            // Groq API Key (Miễn phí, tốc độ cao)
+            var GROQ_KEY = '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';
+            var GROQ_URL = 'https://api.groq.com/openai/v1/chat/completions';
+            var MODEL = 'llama-3.1-8b-instant';
 
-            /* System prompt: ĐỘNG — inject danh sách sản phẩm thực tế từ window.allProducts */
-            function getSASystemPrompt() {
+            /* ── System Prompt GỘP TOÀN BỘ CHỨC NĂNG ── */
+            function getSYS() {
                 var prods = window.allProducts || [];
                 var catalogLines = '';
                 if (prods.length > 0) {
@@ -28301,33 +28210,32 @@
                         return '- ' + p.name + ' | Giá: ' + fmt + '₫';
                     });
                     catalogLines =
-                        '\n\nDANH SÁCH SẢN PHẨM HIỆN CÓ TRONG SHOP (CHỈ tư vấn các sản phẩm này, KHÔNG bịa thêm):' +
-                        '\n' + lines.join('\n') +
+                        '\n\nDANH SÁCH SẢN PHẨM HIỆN CÓ TRONG SHOP (CHỈ tư vấn các sản phẩm này, KHÔNG bịa thêm):\n' +
+                        lines.join('\n') +
                         '\n\nNẾU khách hỏi sản phẩm KHÔNG có trong danh sách trên → trả lời thật thà là shop chưa có mặt hàng đó.';
                 } else {
-                    catalogLines = '\n\n(Chưa load được danh sách sản phẩm — hãy thông báo cho khách chờ vài giây rồi thử lại.)';
+                    catalogLines = '\n\n(Chưa tải được danh sách sản phẩm. Hãy báo khách thử lại sau vài giây.)';
                 }
                 return [
-                    'Bạn là Shopping AI của shop Trương Hồng Anh — chuyên tư vấn sản phẩm công nghệ.',
-                    'Trả lời bằng tiếng Việt có dấu, thân thiện, ngắn gọn 2-3 câu.',
-                    'Chỉ tư vấn đúng sản phẩm có trong danh sách shop — KHÔNG được tự bịa ra sản phẩm không có.',
-                    'ĐẶC BIỆT QUAN TRỌNG: Nếu khách muốn mua hoặc hỏi về sản phẩm CÓ trong shop,',
-                    'hãy thêm dòng cuối cùng: SEARCH:từ_khóa (ví dụ: SEARCH:iphone, SEARCH:laptop,',
-                    'SEARCH:tai nghe, SEARCH:samsung). Chỉ 1-3 từ, không dấu câu thêm.',
+                    'Bạn là Hồng Anh AI — trợ lý AI toàn năng của shop Trương Hồng Anh (đảm nhận cả Chăm Sóc Khách Hàng CSKH lẫn Gợi Ý Mua Sắm Thông Minh).',
+                    'Nhiệm vụ của bạn:',
+                    '1. CSKH & Hỗ trợ: Giải thích chính sách bảo hành (12 tháng chính hãng), đổi trả (7 ngày), hỗ trợ đơn hàng, hướng dẫn thanh toán, xử lý khiếu nại.',
+                    '2. Tư vấn sản phẩm: Giúp khách chọn điện thoại, laptop, phụ kiện, đồng hồ... phù hợp với nhu cầu và ngân sách.',
+                    '3. ĐẶC BIỆT QUAN TRỌNG: Khi khách có nhu cầu xem hoặc mua sản phẩm CÓ trong shop,',
+                    'hãy thêm dòng cuối cùng: SEARCH:từ_khóa (ví dụ: SEARCH:iphone, SEARCH:laptop, SEARCH:tai nghe, SEARCH:samsung, SEARCH:đồng hồ). Chỉ 1-3 từ, không dấu câu thêm.',
+                    'Trả lời thân thiện 2-3 câu bằng tiếng Việt có dấu. Tuyệt đối KHÔNG bịa sản phẩm shop không có.',
                     catalogLines
                 ].join(' ');
             }
 
-            var SA_GREET = [
-                '🛍️ Xin chào! Tôi là <b>Shopping AI</b> — trợ lý mua sắm thông minh!<br>',
-                '<span style="color:#c45000;font-size:11px">',
-                'Hỏi tôi: <i>"iPhone nào giá tốt?"</i>, <i>"Laptop dưới 15 triệu?"</i>',
-                ' hay <i>"Tai nghe chống ồn?"</i>...',
-                '<br>Tôi sẽ <b>tự tìm & hiển thị sản phẩm</b> ngay trong khung chat! 🚀',
-                '</span>'
-            ].join('');
+            var GREET = '👋 Xin chào bạn! Mình là <b>Hồng Anh AI</b> — trợ lý toàn năng của shop Trương Hồng Anh.<br>' +
+                '<span style="color:#64748b;font-size:11.5px">' +
+                '✨ <b>Tôi có thể giúp bạn:</b><br>' +
+                '• 🛍️ <b>Gợi ý & hiển thị sản phẩm hot</b> ngay trong khung chat (có nút Mua Ngay)<br>' +
+                '• 🛡️ Giải đáp <b>Bảo hành (12T), Đổi trả (7N), Đơn hàng & Thanh toán</b>' +
+                '</span>';
 
-            var saOpen = false, saBusy = false, saHist = [], saStarted = false;
+            var isOpen = false, isBusy = false, hist = [], started = false;
 
             function el(id) { return document.getElementById(id); }
 
