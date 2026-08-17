@@ -1623,7 +1623,8 @@ def _encode_product_image_bg(product_id: int):
 
 @app.post("/search-by-image")
 async def search_by_image(file: UploadFile = File(...), top_k: int = 12, db: Session = Depends(get_db)):
-    """Nhận 1 ảnh, trả về danh sách sản phẩm có ảnh giống nhất (dùng CLIP + cosine similarity)."""
+    """Nhận 1 ảnh, dùng Gemini Vision API phân tích → tìm sản phẩm phù hợp trong shop.
+    Thay thế CLIP (quá nặng cho Render free tier) bằng Gemini (chỉ cần 1 HTTP call)."""
     if not file.content_type or not file.content_type.startswith("image/"):
         raise HTTPException(status_code=400, detail="Vui lòng tải lên 1 file ảnh (jpg, png...)")
 
@@ -1631,37 +1632,98 @@ async def search_by_image(file: UploadFile = File(...), top_k: int = 12, db: Ses
     if len(img_bytes) > 8 * 1024 * 1024:
         raise HTTPException(status_code=400, detail="Ảnh quá lớn (tối đa 8MB)")
 
+    # Kiểm tra Gemini API key
+    gemini_key = os.getenv("GEMINI_API_KEY", "")
+    if not gemini_key:
+        raise HTTPException(status_code=503, detail="Chưa cấu hình GEMINI_API_KEY. Vui lòng liên hệ admin.")
+
+    gemini_url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={gemini_key}"
+
+    # Lấy danh sách sản phẩm đang bán
+    products = db.query(Product).filter(Product.is_active == True).all()
+    if not products:
+        return {"results": [], "message": "Chưa có sản phẩm nào trong cửa hàng."}
+
+    # Gửi ảnh tới Gemini Vision API
+    img_b64 = base64.b64encode(img_bytes).decode("utf-8")
+    mime_type = file.content_type or "image/jpeg"
+
+    # Tạo danh sách sản phẩm để Gemini so sánh trực tiếp
+    product_lines = "\n".join([f"{p.id}|{p.name}" for p in products])
+
+    gemini_payload = {
+        "contents": [{
+            "parts": [
+                {"inlineData": {"mimeType": mime_type, "data": img_b64}},
+                {"text": (
+                    "Nhìn ảnh sản phẩm này. Dưới đây là danh sách sản phẩm của shop (mỗi dòng: ID|Tên):\n"
+                    f"{product_lines}\n\n"
+                    "Hãy chọn tối đa 6 sản phẩm GIỐNG NHẤT với sản phẩm trong ảnh.\n"
+                    "Trả lời ĐÚNG FORMAT, mỗi dòng một sản phẩm: ID,điểm_giống(0-100)\n"
+                    "Ví dụ:\n5,95\n12,80\n3,60\n"
+                    "CHỈ trả lời theo format trên, KHÔNG viết gì thêm.\n"
+                    "Nếu không nhận ra sản phẩm nào giống, trả lời: NONE"
+                )}
+            ]
+        }]
+    }
+
     try:
-        query_vec = await run_in_threadpool(_encode_image_bytes, img_bytes)
-    except RuntimeError as e:
-        # Model CLIP chưa được cài / lỗi tải model / timeout
-        raise HTTPException(status_code=503, detail=str(e))
+        import httpx as _httpx
+        async with _httpx.AsyncClient(timeout=20.0) as client:
+            resp = await client.post(gemini_url, json=gemini_payload)
+            if resp.status_code != 200:
+                raise HTTPException(status_code=502, detail=f"Gemini API lỗi (HTTP {resp.status_code}). Vui lòng thử lại.")
+            data = resp.json()
+
+        # Parse Gemini response
+        raw_text = ""
+        try:
+            raw_text = data["candidates"][0]["content"]["parts"][0]["text"].strip()
+        except (KeyError, IndexError):
+            raise HTTPException(status_code=500, detail="Không thể phân tích ảnh. Vui lòng thử lại.")
+
+        if not raw_text or raw_text.strip().upper() == "NONE":
+            return {"results": [], "message": "Không nhận diện được sản phẩm phù hợp trong ảnh."}
+
+        # Parse kết quả: mỗi dòng "ID,similarity"
+        prod_map = {p.id: p for p in products}
+        results = []
+        for line in raw_text.strip().split("\n"):
+            line = line.strip()
+            if not line or line.upper() == "NONE":
+                continue
+            parts = line.replace("|", ",").split(",")
+            if len(parts) >= 2:
+                try:
+                    pid = int(parts[0].strip())
+                    sim = min(100.0, max(0.0, float(parts[1].strip())))
+                    p = prod_map.get(pid)
+                    if p:
+                        results.append({
+                            "id": p.id,
+                            "name": p.name,
+                            "price": p.price,
+                            "image_url": p.image_url,
+                            "description": p.description,
+                            "similarity": round(sim, 1),
+                        })
+                except (ValueError, TypeError):
+                    continue
+
+        results.sort(key=lambda x: x["similarity"], reverse=True)
+        results = results[:top_k]
+
+        if not results:
+            return {"results": [], "message": "Không tìm thấy sản phẩm phù hợp với ảnh này trong shop."}
+
+        return {"results": results}
+
+    except HTTPException:
+        raise
     except Exception as e:
+        print(f"[search-by-image] Lỗi: {e}")
         raise HTTPException(status_code=500, detail=f"Lỗi phân tích ảnh: {str(e)}")
-
-    matches = await run_in_threadpool(_cosine_search, query_vec, top_k)
-    if not matches:
-        return {"results": [], "message": "Chưa có dữ liệu ảnh sản phẩm để so khớp. Vui lòng liên hệ admin để dựng lại chỉ mục ảnh."}
-
-    ids = [pid for pid, _score in matches]
-    scores = {pid: score for pid, score in matches}
-    prods = db.query(Product).filter(Product.id.in_(ids), Product.is_active == True).all()
-    prod_map = {p.id: p for p in prods}
-
-    results = []
-    for pid, score in matches:
-        p = prod_map.get(pid)
-        if not p:
-            continue
-        results.append({
-            "id": p.id,
-            "name": p.name,
-            "price": p.price,
-            "image_url": p.image_url,
-            "description": p.description,
-            "similarity": round(score * 100, 1),   # % giống nhau, dễ hiểu hơn cho người dùng
-        })
-    return {"results": results}
 
 
 @app.post("/admin/rebuild-image-index")
