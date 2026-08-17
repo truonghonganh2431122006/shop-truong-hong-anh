@@ -1952,16 +1952,98 @@ def delete_product(product_id: int, admin: User = Depends(require_admin), db: Se
 #  field voucher_code, khiến Python ghi đè lên class gốc. Do đó dòng `if data.voucher_code:`
 #  trong create_order() bị AttributeError -> mọi đơn hàng đều lỗi 500 "Lỗi hệ thống khi lưu đơn hàng".)
 
+def format_order_dict(o: Order, db: Session) -> dict:
+    try:
+        items_data = []
+        if hasattr(o, 'items') and o.items:
+            for i in o.items:
+                try:
+                    p = i.product if (hasattr(i, 'product') and i.product) else None
+                    if not p and hasattr(i, 'product_id') and i.product_id:
+                        p = db.query(Product).filter(Product.id == i.product_id).first()
+                    
+                    p_name = p.name if (p and hasattr(p, 'name') and p.name) else f"Sản phẩm #{getattr(i, 'product_id', 0)}"
+                    p_img = ""
+                    if p:
+                        p_img = getattr(p, 'image_url', '') or getattr(p, 'img', '') or getattr(p, 'image', '') or ""
+                    
+                    qty = getattr(i, 'quantity', 1) if hasattr(i, 'quantity') else 1
+                    price = getattr(i, 'unit_price', 0) if hasattr(i, 'unit_price') else 0
+                    
+                    items_data.append({
+                        "product_id": getattr(i, 'product_id', 0),
+                        "name": p_name,
+                        "qty": qty or 1,
+                        "quantity": qty or 1,
+                        "price": price or 0,
+                        "unit_price": price or 0,
+                        "image": p_img,
+                        "img": p_img,
+                        "image_url": p_img
+                    })
+                except Exception as e_item:
+                    print(f">>> [LỖI FORMAT ITEM]: {e_item}")
+
+        total = sum(i["quantity"] * i["unit_price"] for i in items_data)
+        
+        created_str = "N/A"
+        created_iso = None
+        if hasattr(o, 'created_at') and o.created_at:
+            try:
+                created_str = o.created_at.strftime("%H:%M %d/%m/%Y")
+                created_iso = o.created_at.isoformat()
+            except Exception:
+                pass
+
+        user_email = "Khách vãng lai"
+        if hasattr(o, 'user') and o.user and hasattr(o.user, 'email') and o.user.email:
+            user_email = o.user.email
+
+        return {
+            "id": getattr(o, 'id', 0),
+            "user_id": getattr(o, 'user_id', None),
+            "email": user_email,
+            "status": getattr(o, 'status', 'Chờ xác nhận') or "Chờ xác nhận",
+            "date": created_str,
+            "created_at": created_iso,
+            "total": total if total > 0 else (getattr(o, 'total', 0) or 0),
+            "shipping_address": getattr(o, 'shipping_address', '') or "",
+            "phone_number": getattr(o, 'phone_number', '') or "",
+            "customer_name": getattr(o, 'note', '') or "",
+            "items": items_data
+        }
+    except Exception as e_order:
+        print(f">>> [LỖI FORMAT ORDER]: {e_order}")
+        return {
+            "id": getattr(o, 'id', 0),
+            "status": "Chờ xác nhận",
+            "date": "N/A",
+            "total": 0,
+            "items": []
+        }
+
 # 2. API: USER XEM ĐƠN HÀNG CỦA CHÍNH MÌNH (Sửa lỗi 405 & Phân quyền)
 @app.get("/orders")
 def get_orders_list(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
-    # Cho phép Admin, Staff hoặc Email Admin cấu hình trong system lấy toàn bộ đơn hàng
-    if (current_user.role and current_user.role.upper() in (ROLE_ADMIN, ROLE_STAFF)) or current_user.email == ADMIN_EMAIL:
-        return db.query(Order).order_by(Order.id.desc()).all()
-    
-    # Người dùng thông thường chỉ lấy đơn hàng của chính họ
-    orders = db.query(Order).filter(Order.user_id == current_user.id).order_by(Order.id.desc()).all()
-    return orders
+    try:
+        if (current_user.role and current_user.role.upper() in (ROLE_ADMIN, ROLE_STAFF)) or current_user.email == ADMIN_EMAIL:
+            orders = db.query(Order).order_by(Order.id.desc()).all()
+        else:
+            user_phone = getattr(current_user, 'phone', None) if ('phone' in User.__table__.columns) else None
+            if user_phone:
+                try:
+                    unlinked = db.query(Order).filter(Order.user_id.is_(None), Order.phone_number == user_phone).all()
+                    for un_o in unlinked:
+                        un_o.user_id = current_user.id
+                    if unlinked:
+                        db.commit()
+                except Exception:
+                    db.rollback()
+            orders = db.query(Order).filter(Order.user_id == current_user.id).order_by(Order.id.desc()).all()
+        return [format_order_dict(o, db) for o in orders]
+    except Exception as e:
+        print(f">>> [LỖI GET /orders]: {e}")
+        return []
 
 # 3. API: TẠO ĐƠN HÀNG (Đã tối ưu check kho & hỗ trợ guest)
 @app.post("/orders")
@@ -2106,15 +2188,23 @@ async def update_order_status(
 
 @app.get("/orders/me")
 def my_orders(user: User = Depends(get_current_user), db: Session = Depends(get_db)):
-    user_phone = getattr(user, 'phone', None) or getattr(user, 'phone_number', None)
-    if user_phone:
-        unlinked = db.query(Order).filter(Order.user_id == None, Order.phone_number == user_phone).all()
-        for un_o in unlinked:
-            un_o.user_id = user.id
-        if unlinked:
-            db.commit()
-    orders = db.query(Order).filter(Order.user_id == user.id).order_by(Order.id.desc()).all()
-    return [format_order_dict(o, db) for o in orders]
+    try:
+        user_phone = getattr(user, 'phone', None) if ('phone' in User.__table__.columns) else None
+        if user_phone:
+            try:
+                unlinked = db.query(Order).filter(Order.user_id.is_(None), Order.phone_number == user_phone).all()
+                for un_o in unlinked:
+                    un_o.user_id = user.id
+                if unlinked:
+                    db.commit()
+            except Exception as e_unlink:
+                db.rollback()
+                print(f">>> [WARN UNLINKED ORDERS]: {e_unlink}")
+        orders = db.query(Order).filter(Order.user_id == user.id).order_by(Order.id.desc()).all()
+        return [format_order_dict(o, db) for o in orders]
+    except Exception as e:
+        print(f">>> [LỖI GET /orders/me]: {e}")
+        return []
 
 
 # ===================== ORDERS (STAFF/ADMIN) =====================
