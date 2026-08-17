@@ -36,6 +36,21 @@ except Exception:
 def now_vn():
     return datetime.now(VN_TZ).replace(tzinfo=None)
 
+def normalize_datetime(dt: Optional[datetime]) -> Optional[datetime]:
+    if dt is None:
+        return None
+    if dt.tzinfo is not None:
+        return dt.astimezone(VN_TZ).replace(tzinfo=None)
+    return dt
+
+def is_coupon_expired(expires_at: Optional[datetime], now: Optional[datetime] = None) -> bool:
+    if not expires_at:
+        return False
+    if now is None:
+        now = now_vn()
+    exp = normalize_datetime(expires_at)
+    return exp < now
+
 # Sử dụng 3 dấu xuyệt (/) sau sqlite: và đường dẫn dùng dấu xuyệt xuôi (/)
 
 # Thay thế cho dòng bị lỗi
@@ -1403,7 +1418,7 @@ def validate_coupon(code: str, user: Optional[User] = Depends(get_current_user_o
     c = db.query(Coupon).filter(Coupon.code == code.strip().upper(), Coupon.is_active == True).first()
     if not c:
         raise HTTPException(status_code=404, detail="Mã giảm giá không hợp lệ")
-    if c.expires_at and c.expires_at < now_vn():
+    if is_coupon_expired(c.expires_at):
         raise HTTPException(status_code=400, detail="Mã đã hết hạn")
     if c.user_id is not None and (not user or user.id != c.user_id):
         raise HTTPException(status_code=403, detail="Mã này không áp dụng cho tài khoản của bạn")
@@ -1417,12 +1432,8 @@ def get_my_coupons(user: Optional[User] = Depends(get_current_user_optional), db
     
     for c in all_coupons:
         # Kiểm tra ngày hết hạn (xử lý múi giờ linh hoạt)
-        if c.expires_at:
-            exp = c.expires_at
-            if exp.tzinfo is None and now.tzinfo is not None:
-                exp = exp.replace(tzinfo=now.tzinfo)
-            if exp < now:
-                continue
+        if is_coupon_expired(c.expires_at, now):
+            continue
         
         # Kiểm tra người sở hữu
         if c.user_id is not None:
@@ -1980,7 +1991,7 @@ def create_order(data: OrderCreateSchema, user: Optional[User] = Depends(get_cur
         valid_coupon = None
         if data.voucher_code:
             c = db.query(Coupon).filter(Coupon.code == data.voucher_code.strip().upper(), Coupon.is_active == True).first()
-            if c and (not c.expires_at or c.expires_at >= now) and (c.user_id is None or c.user_id == user.id):
+            if c and not is_coupon_expired(c.expires_at, now) and (c.user_id is None or (user and user.id == c.user_id)):
                 valid_coupon = c
 
         for it in data.items:

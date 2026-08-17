@@ -24213,7 +24213,7 @@
             async function loadCartVouchers() {
                 const sel = document.getElementById('voucherInput');
                 const selQo = document.getElementById('haQoVoucher');
-                const tk = localStorage.getItem('access_token');
+                const tk = localStorage.getItem('access_token') || (JSON.parse(localStorage.getItem('currentUser') || '{}').token) || '';
 
                 if (!tk) {
                     if (sel) sel.innerHTML = '<option value="">🔒 Đăng nhập để xem mã giảm giá của bạn</option>';
@@ -24247,6 +24247,9 @@
                         }
                         if (appliedVoucher && sel) {
                             sel.value = appliedVoucher.code;
+                        }
+                        if (typeof _voucherCode !== 'undefined' && _voucherCode && selQo) {
+                            selQo.value = _voucherCode;
                         }
                     } else {
                         if (sel) sel.innerHTML = '<option value="">-- Không thể tải mã giảm giá --</option>';
@@ -24361,7 +24364,7 @@
                 html += '<div style="margin:14px 0;padding:12px;background:#fffbea;border:1px solid #ffe066;border-radius:8px">';
                 html += '<div style="font-size:13px;font-weight:600;margin-bottom:8px">🎟 Chọn Voucher giảm giá</div>';
                 html += '<div style="display:flex;gap:8px">';
-                html += '<select id="voucherInput" style="flex:1;padding:8px 10px;border:1px solid #ddd;border-radius:6px;font-size:13px">';
+                html += '<select id="voucherInput" onchange="window._applyVoucher()" style="flex:1;padding:8px 10px;border:1px solid #ddd;border-radius:6px;font-size:13px">';
                 html += '<option value="">⏳ Đang tải mã giảm giá...</option>';
                 html += '</select>';
                 html += '<button onclick="window._applyVoucher()" style="padding:8px 14px;background:#ffed00;border:none;border-radius:6px;font-weight:bold;cursor:pointer;font-size:13px">Áp dụng</button>';
