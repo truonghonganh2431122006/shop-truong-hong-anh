@@ -23900,57 +23900,97 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, .7);
+            background: rgba(15, 23, 42, 0.65);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
             z-index: 999999;
             display: none;
             justify-content: center;
-            align-items: center
+            align-items: center;
+            padding: 16px;
+            box-sizing: border-box;
         }
 
         .cart-modal-overlay.active {
-            display: flex
+            display: flex;
         }
 
         .cart-modal {
-            background: #fff;
-            border-radius: 12px;
-            width: 90%;
-            max-width: 600px;
-            max-height: 85vh;
+            background: #ffffff;
+            border-radius: 20px;
+            width: 100%;
+            max-width: 620px;
+            max-height: 90vh;
             overflow-y: auto;
             padding: 24px;
-            position: relative
+            position: relative;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(0, 0, 0, 0.05);
+            scrollbar-width: thin;
+            scrollbar-color: #cbd5e1 #f1f5f9;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+
+        .cart-modal::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .cart-modal::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 10px;
+        }
+
+        .cart-modal::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 10px;
         }
 
         .cart-modal h2 {
             font-size: 20px;
-            margin-bottom: 16px;
-            font-weight: bold
+            font-weight: 700;
+            color: #0f172a;
+            margin: 0 0 16px 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
         .cart-modal .close-cart {
             position: absolute;
-            top: 12px;
-            right: 16px;
-            font-size: 24px;
-            cursor: pointer;
-            background: none;
+            top: 18px;
+            right: 20px;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: #f1f5f9;
             border: none;
-            color: #333
+            color: #64748b;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+
+        .cart-modal .close-cart:hover {
+            background: #e2e8f0;
+            color: #0f172a;
+            transform: rotate(90deg);
         }
 
         .cart-modal table {
             width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 16px
+            border-collapse: separate;
+            border-spacing: 0 8px;
+            margin-bottom: 16px;
         }
 
         .cart-modal th,
         .cart-modal td {
-            padding: 8px;
+            padding: 10px 8px;
             text-align: left;
-            border-bottom: 1px solid #eee;
-            font-size: 13px
+            font-size: 13.5px;
         }
 
         .cart-modal .cart-total {
@@ -23958,49 +23998,153 @@
             font-weight: bold;
             color: #d0021c;
             text-align: right;
-            margin: 10px 0
+            margin: 10px 0;
+        }
+
+        .cart-modal .cart-form-section-title {
+            font-size: 15px;
+            font-weight: 700;
+            color: #1e293b;
+            margin: 20px 0 12px 0;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .cart-modal .cart-form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        @media (max-width: 500px) {
+            .cart-modal .cart-form-grid {
+                grid-template-columns: 1fr;
+            }
         }
 
         .cart-modal .cart-form input,
+        .cart-modal .cart-form select,
         .cart-modal .cart-form textarea {
             width: 100%;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 6px;
-            margin-bottom: 10px;
+            padding: 12px 14px;
+            border: 1.5px solid #cbd5e1;
+            border-radius: 10px;
             font-size: 14px;
-            box-sizing: border-box
+            color: #0f172a;
+            background: #ffffff;
+            box-sizing: border-box;
+            transition: all 0.2s ease;
+            outline: none;
+        }
+
+        .cart-modal .cart-form input:focus,
+        .cart-modal .cart-form select:focus,
+        .cart-modal .cart-form textarea:focus {
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3.5px rgba(37, 99, 235, 0.15);
+        }
+
+        .cart-modal .pay-method-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 8px;
+        }
+
+        .cart-modal .pay-card {
+            border: 1.5px solid #cbd5e1;
+            border-radius: 12px;
+            padding: 12px 14px;
+            background: #ffffff;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+
+        .cart-modal .pay-card:hover {
+            border-color: #94a3b8;
+            background: #f8fafc;
+        }
+
+        .cart-modal .pay-card.active,
+        .cart-modal .pay-card:has(input:checked) {
+            border-color: #2563eb;
+            background: #eff6ff;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.1);
+        }
+
+        .cart-modal .pay-card input[type="radio"] {
+            accent-color: #2563eb;
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+            margin: 0;
+        }
+
+        .cart-modal .pay-card label {
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            color: #1e293b;
+            margin: 0;
         }
 
         .cart-modal .btn-checkout {
-            background: #ffd400;
-            color: #333;
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            color: #ffffff;
             border: none;
-            padding: 12px 24px;
-            border-radius: 8px;
+            padding: 15px 24px;
+            border-radius: 12px;
             font-size: 16px;
-            font-weight: bold;
+            font-weight: 700;
+            letter-spacing: 0.3px;
             cursor: pointer;
             width: 100%;
-            margin-top: 8px
+            margin-top: 18px;
+            box-shadow: 0 8px 20px rgba(217, 119, 6, 0.25);
+            transition: all 0.25s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
         }
 
         .cart-modal .btn-checkout:hover {
-            background: #e6c000
+            background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
+            box-shadow: 0 12px 25px rgba(217, 119, 6, 0.35);
+            transform: translateY(-1px);
         }
 
         .cart-modal .btn-remove {
-            background: none;
+            background: #fef2f2;
             border: none;
-            color: #d0021c;
+            color: #ef4444;
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
             cursor: pointer;
-            font-size: 12px
+            font-size: 13px;
+            font-weight: bold;
+            transition: all 0.15s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .cart-modal .btn-remove:hover {
+            background: #fee2e2;
+            color: #dc2626;
+            transform: scale(1.1);
         }
 
         .cart-modal .empty-cart {
             text-align: center;
-            padding: 30px;
-            color: #999
+            padding: 40px 20px;
+            color: #64748b;
         }
 
         .cart-success {
@@ -24343,78 +24487,105 @@
                 var finalTotal = rawTotal - discount;
                 var summaryEl = document.getElementById('cartSummary');
                 if (!summaryEl) return;
-                var dHtml = discount > 0 ? '<div style="color:green;font-size:13px;margin-bottom:4px">Giảm giá: -' + formatPrice(discount) + '</div>' : '';
-                summaryEl.innerHTML = dHtml + '<div class="cart-total" style="margin:0">Tổng thanh toán (' + selected.length + ' sản phẩm): <b style="color:#d0021c">' + formatPrice(finalTotal) + '</b></div>';
+                var dHtml = discount > 0 ? '<div style="color:#16a34a;font-size:13.5px;font-weight:600;margin-bottom:6px;display:flex;justify-content:space-between"><span>Giảm giá voucher:</span><span>-' + formatPrice(discount) + '</span></div>' : '';
+                summaryEl.innerHTML = dHtml + '<div class="cart-total" style="margin:0;display:flex;justify-content:space-between;align-items:center;font-size:15px;color:#1e293b"><span>Tổng thanh toán (' + selected.length + ' sản phẩm):</span><b style="color:#dc2626;font-size:20px;font-weight:800">' + formatPrice(finalTotal) + '</b></div>';
             }
 
             function renderCart() {
                 var el = document.getElementById('cartContent'); if (!el) return;
-                if (cart.length === 0) { el.innerHTML = '<h2>Giỏ hàng</h2><div class="empty-cart">🛒 Giỏ hàng trống</div>'; return; }
+                if (cart.length === 0) { el.innerHTML = '<h2>🛒 Giỏ hàng</h2><div class="empty-cart" style="padding:40px 20px;text-align:center;color:#64748b;font-size:15px">Giỏ hàng của bạn đang trống.<br><a href="/shop" style="display:inline-block;margin-top:12px;padding:8px 20px;background:#3b82f6;color:#fff;border-radius:8px;text-decoration:none;font-weight:600">Khám phá sản phẩm</a></div>'; return; }
 
-                var html = '<h2>Giỏ hàng (' + getTotalQty() + ' sản phẩm)</h2>';
+                var html = '<h2>🛒 Giỏ hàng (' + getTotalQty() + ' sản phẩm)</h2>';
 
                 // Nút chọn tất cả
-                html += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;padding:8px;background:#f8f8f8;border-radius:6px">';
-                html += '<input type="checkbox" id="checkAll" onchange="window._toggleAll(this.checked)" checked style="width:16px;height:16px;cursor:pointer">';
-                html += '<label for="checkAll" style="cursor:pointer;font-size:13px;font-weight:600">Chọn tất cả</label>';
-                html += '<button onclick="window._clearCart()" style="margin-left:auto;background:none;border:1px solid #d0021c;color:#d0021c;padding:4px 12px;border-radius:6px;cursor:pointer;font-size:12px">🗑 Xóa tất cả</button>';
+                html += '<div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;padding:10px 14px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px">';
+                html += '<input type="checkbox" id="checkAll" onchange="window._toggleAll(this.checked)" checked style="width:18px;height:18px;cursor:pointer;accent-color:#2563eb">';
+                html += '<label for="checkAll" style="cursor:pointer;font-size:13.5px;font-weight:600;color:#1e293b">Chọn tất cả</label>';
+                html += '<button onclick="window._clearCart()" style="margin-left:auto;background:#fef2f2;border:1px solid #fecaca;color:#dc2626;padding:5px 12px;border-radius:8px;cursor:pointer;font-size:12px;font-weight:600;transition:all 0.2s">🗑 Xóa tất cả</button>';
                 html += '</div>';
 
                 // Danh sách sản phẩm với checkbox
-                html += '<table style="width:100%;border-collapse:collapse">';
-                html += '<tr style="background:#f5f5f5"><th style="padding:8px 4px;text-align:left;font-size:12px;width:20px"></th><th style="padding:8px;text-align:left;font-size:12px">Sản phẩm</th><th style="padding:8px;text-align:center;font-size:12px">SL</th><th style="padding:8px;text-align:right;font-size:12px">Giá</th><th></th></tr>';
+                html += '<table style="width:100%;border-collapse:separate;border-spacing:0 8px">';
+                html += '<tr style="background:#f1f5f9;color:#475569"><th style="padding:10px 6px;text-align:left;font-size:12px;border-radius:8px 0 0 8px;width:24px"></th><th style="padding:10px 8px;text-align:left;font-size:12px">Sản phẩm</th><th style="padding:10px 8px;text-align:center;font-size:12px">Số lượng</th><th style="padding:10px 8px;text-align:right;font-size:12px">Thành tiền</th><th style="border-radius:0 8px 8px 0;width:30px"></th></tr>';
 
                 cart.forEach(function (item, i) {
                     var price = getLiveCartPrice(item);
                     var qty = parseInt(item.qty) || 0;
                     var lt = price * qty;
-                    html += '<tr style="border-bottom:1px solid #f0f0f0">';
-                    html += '<td style="padding:8px 4px"><input type="checkbox" class="cart-item-check" data-idx="' + i + '" checked onchange="window._onCheckChange()" style="width:16px;height:16px;cursor:pointer"></td>';
-                    html += '<td style="padding:8px;max-width:180px;word-break:break-word;font-size:13px">';
-                    if (item.img) html += '<img src="' + item.img + '" style="width:36px;height:36px;object-fit:cover;border-radius:4px;vertical-align:middle;margin-right:6px">';
-                    html += item.name + '</td>';
-                    html += '<td style="text-align:center;white-space:nowrap;padding:8px"><button onclick="window._changeQty(' + i + ',-1)" style="width:24px;height:24px;border:1px solid #ddd;background:#f5f5f5;cursor:pointer;border-radius:4px;font-size:13px">−</button> <span style="display:inline-block;min-width:20px;text-align:center;font-weight:bold;font-size:13px">' + qty + '</span> <button onclick="window._changeQty(' + i + ',1)" style="width:24px;height:24px;border:1px solid #ddd;background:#f5f5f5;cursor:pointer;border-radius:4px;font-size:13px">+</button></td>';
-                    html += '<td style="color:#d0021c;font-weight:bold;white-space:nowrap;text-align:right;padding:8px;font-size:13px">' + formatPrice(lt) + '</td>';
-                    html += '<td style="padding:8px"><button class="btn-remove" onclick="window._removeFromCart(' + i + ')">✕</button></td>';
+                    html += '<tr style="background:#fff;border-bottom:1px solid #f1f5f9">';
+                    html += '<td style="padding:10px 6px;vertical-align:middle"><input type="checkbox" class="cart-item-check" data-idx="' + i + '" checked onchange="window._onCheckChange()" style="width:18px;height:18px;cursor:pointer;accent-color:#2563eb"></td>';
+                    html += '<td style="padding:10px 8px;max-width:190px;word-break:break-word;font-size:13.5px;vertical-align:middle">';
+                    if (item.img) html += '<img src="' + item.img + '" style="width:42px;height:42px;object-fit:cover;border-radius:8px;vertical-align:middle;margin-right:8px;border:1px solid #e2e8f0;box-shadow:0 2px 4px rgba(0,0,0,0.04)">';
+                    html += '<span style="font-weight:600;color:#0f172a">' + item.name + '</span></td>';
+                    html += '<td style="text-align:center;white-space:nowrap;padding:10px 8px;vertical-align:middle"><button onclick="window._changeQty(' + i + ',-1)" style="width:26px;height:26px;border:1px solid #cbd5e1;background:#f8fafc;cursor:pointer;border-radius:6px;font-size:14px;font-weight:bold;color:#475569;transition:all 0.15s">−</button> <span style="display:inline-block;min-width:24px;text-align:center;font-weight:700;font-size:14px;color:#0f172a">' + qty + '</span> <button onclick="window._changeQty(' + i + ',1)" style="width:26px;height:26px;border:1px solid #cbd5e1;background:#f8fafc;cursor:pointer;border-radius:6px;font-size:14px;font-weight:bold;color:#475569;transition:all 0.15s">+</button></td>';
+                    html += '<td style="color:#dc2626;font-weight:700;white-space:nowrap;text-align:right;padding:10px 8px;font-size:14px;vertical-align:middle">' + formatPrice(lt) + '</td>';
+                    html += '<td style="padding:10px 6px;vertical-align:middle;text-align:center"><button class="btn-remove" onclick="window._removeFromCart(' + i + ')" style="background:#fef2f2;border:none;color:#ef4444;width:26px;height:26px;border-radius:50%;cursor:pointer;font-size:13px;font-weight:bold;transition:all 0.15s" title="Xóa">✕</button></td>';
                     html += '</tr>';
                 });
                 html += '</table>';
 
-                // Voucher
-                html += '<div style="margin:14px 0;padding:12px;background:#fffbea;border:1px solid #ffe066;border-radius:8px">';
-                html += '<div style="font-size:13px;font-weight:600;margin-bottom:8px">🎟 Chọn Voucher giảm giá</div>';
+                // Voucher Box
+                html += '<div style="margin:16px 0;padding:14px;background:linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);border:1px solid #fde68a;border-radius:12px;box-shadow:0 2px 8px rgba(245,158,11,0.06)">';
+                html += '<div style="font-size:13.5px;font-weight:700;color:#92400e;margin-bottom:10px;display:flex;align-items:center;gap:6px">🎁 Mã giảm giá cho đơn hàng</div>';
                 html += '<div style="display:flex;gap:8px">';
-                html += '<select id="voucherInput" onchange="window._applyVoucher()" style="flex:1;padding:8px 10px;border:1px solid #ddd;border-radius:6px;font-size:13px">';
+                html += '<select id="voucherInput" onchange="window._applyVoucher()" style="flex:1;padding:10px 12px;border:1.5px solid #fcd34d;border-radius:8px;font-size:13.5px;background:#fff;color:#1e293b;outline:none">';
                 html += '<option value="">⏳ Đang tải mã giảm giá...</option>';
                 html += '</select>';
-                html += '<button onclick="window._applyVoucher()" style="padding:8px 14px;background:#ffed00;border:none;border-radius:6px;font-weight:bold;cursor:pointer;font-size:13px">Áp dụng</button>';
+                html += '<button onclick="window._applyVoucher()" style="padding:10px 16px;background:linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);border:none;border-radius:8px;font-weight:700;color:#78350f;cursor:pointer;font-size:13.5px;box-shadow:0 3px 8px rgba(245,158,11,0.25);transition:all 0.2s">Áp dụng</button>';
                 html += '</div>';
-                html += '<div id="voucherMsg" style="margin-top:6px;font-size:12px"></div>';
+                html += '<div id="voucherMsg" style="margin-top:8px;font-size:12.5px;font-weight:600"></div>';
                 html += '</div>';
 
                 // Tổng tiền
-                html += '<div id="cartSummary"></div>';
+                html += '<div id="cartSummary" style="background:#f8fafc;padding:12px 16px;border-radius:10px;border:1px solid #e2e8f0;margin-bottom:16px"></div>';
 
-                // Form thông tin
-                html += '<h3 style="margin:16px 0 8px;font-size:16px">Thông tin đặt hàng</h3>';
-                html += '<div class="cart-form" style="display:flex;flex-direction:column;gap:10px">';
-                html += '<input type="text" id="coName" placeholder="Họ và tên" required style="padding:10px;border:1px solid #ddd;border-radius:4px">';
-                html += '<input type="tel" id="coPhone" placeholder="Số điện thoại" required style="padding:10px;border:1px solid #ddd;border-radius:4px">';
-                html += '<select id="coCity" style="padding:10px; border:1px solid #ddd; border-radius:4px;">';
+                // Form thông tin người nhận
+                html += '<h3 class="cart-form-section-title">📍 Thông tin giao hàng & Người nhận</h3>';
+                html += '<div class="cart-form" style="display:flex;flex-direction:column;gap:12px">';
+                
+                // Hàng 1: Họ tên + SĐT (2 cột trên desktop)
+                html += '<div class="cart-form-grid">';
+                html += '<div><label style="font-size:12px;font-weight:600;color:#475569;margin-bottom:4px;display:block">Họ và tên *</label><input type="text" id="coName" placeholder="Ví dụ: Nguyễn Văn A" required></div>';
+                html += '<div><label style="font-size:12px;font-weight:600;color:#475569;margin-bottom:4px;display:block">Số điện thoại *</label><input type="tel" id="coPhone" placeholder="Ví dụ: 0912345678" required></div>';
+                html += '</div>';
+
+                // Hàng 2: Tỉnh / Thành phố
+                html += '<div><label style="font-size:12px;font-weight:600;color:#475569;margin-bottom:4px;display:block">Tỉnh / Thành phố *</label>';
+                html += '<select id="coCity">';
                 html += '<option value="">-- Chọn Tỉnh / Thành phố --</option>';
                 ['An Giang', 'Bà Rịa – Vũng Tàu', 'Bạc Liêu', 'Bắc Kạn', 'Bắc Giang', 'Bắc Ninh', 'Bến Tre', 'Bình Dương', 'Bình Định', 'Bình Phước', 'Bình Thuận', 'Cà Mau', 'Cao Bằng', 'Cần Thơ', 'Đà Nẵng', 'Đắk Lắk', 'Đắk Nông', 'Điện Biên', 'Đồng Nai', 'Đồng Tháp', 'Gia Lai', 'Hà Giang', 'Hà Nam', 'Hà Nội', 'Hà Tây', 'Hà Tĩnh', 'Hải Dương', 'Hải Phòng', 'Hậu Giang', 'Hòa Bình', 'Hưng Yên', 'TP. Hồ Chí Minh', 'Khánh Hòa', 'Kiên Giang', 'Kon Tum', 'Lai Châu', 'Lạng Sơn', 'Lào Cai', 'Lâm Đồng', 'Long An', 'Nam Định', 'Nghệ An', 'Ninh Bình', 'Ninh Thuận', 'Phú Thọ', 'Phú Yên', 'Quảng Bình', 'Quảng Nam', 'Quảng Ngãi', 'Quảng Ninh', 'Quảng Trị', 'Sóc Trăng', 'Sơn La', 'Tây Ninh', 'Thái Bình', 'Thái Nguyên', 'Thanh Hóa', 'Thừa Thiên Huế', 'Tiền Giang', 'Trà Vinh', 'Tuyên Quang', 'Vĩnh Long', 'Vĩnh Phúc', 'Yên Bái'].forEach(function (c) { html += '<option value="' + c + '">' + c + '</option>'; });
-                html += '</select>';
-                html += '<input type="text" id="coDistrict" placeholder="Nhập Quận / Huyện" required style="padding:10px; border:1px solid #ddd; border-radius:4px;">';
-                html += '<input type="text" id="coWard" placeholder="Nhập Phường / Xã" required style="padding:10px; border:1px solid #ddd; border-radius:4px;">';
-                html += '<input type="text" id="coAddress" placeholder="Số nhà, tên đường cụ thể" required style="padding:10px; border:1px solid #ddd; border-radius:4px;">';
-                html += '<div style="margin-top:10px;text-align:left"><b style="font-size:14px">Thanh toán:</b>';
-                html += '<div style="margin:5px 0"><input type="radio" name="payMethod" value="COD" checked id="pCod" onclick="document.getElementById(\'qrArea\').style.display=\'none\'"> <label for="pCod">Tiền mặt (COD)</label></div>';
-                html += '<div style="margin:5px 0"><input type="radio" name="payMethod" value="BANK" id="pBank" onclick="document.getElementById(\'qrArea\').style.display=\'block\'"> <label for="pBank">Chuyển khoản (QR)</label></div>';
-                html += '<div id="qrArea" style="display:none;text-align:center;padding:10px;border:1px dashed #ccc;margin-top:10px;">';
-                html += '<p style="font-size:12px;color:#666">Quét mã để chuyển khoản:</p>';
-                html += '<img id="imgQr" src="/static/QR.jpg" style="max-width:150px;border-radius:8px;">';
+                html += '</select></div>';
+
+                // Hàng 3: Quận/Huyện + Phường/Xã (2 cột trên desktop)
+                html += '<div class="cart-form-grid">';
+                html += '<div><label style="font-size:12px;font-weight:600;color:#475569;margin-bottom:4px;display:block">Quận / Huyện *</label><input type="text" id="coDistrict" placeholder="Nhập Quận / Huyện" required></div>';
+                html += '<div><label style="font-size:12px;font-weight:600;color:#475569;margin-bottom:4px;display:block">Phường / Xã *</label><input type="text" id="coWard" placeholder="Nhập Phường / Xã" required></div>';
+                html += '</div>';
+
+                // Hàng 4: Địa chỉ cụ thể
+                html += '<div><label style="font-size:12px;font-weight:600;color:#475569;margin-bottom:4px;display:block">Số nhà, Tên đường cụ thể *</label><input type="text" id="coAddress" placeholder="Số nhà, tên đường, tòa nhà..." required></div>';
+
+                // Phương thức thanh toán
+                html += '<div style="margin-top:6px;text-align:left"><label style="font-size:13.5px;font-weight:700;color:#1e293b;display:block;margin-bottom:8px">💳 Phương thức thanh toán</label>';
+                html += '<div class="pay-method-group">';
+                html += '<div class="pay-card" onclick="document.getElementById(\'pCod\').checked=true;document.getElementById(\'qrArea\').style.display=\'none\';this.parentNode.querySelectorAll(\'.pay-card\').forEach(c=>c.classList.remove(\'active\'));this.classList.add(\'active\')">';
+                html += '<input type="radio" name="payMethod" value="COD" checked id="pCod" onclick="event.stopPropagation();document.getElementById(\'qrArea\').style.display=\'none\';this.closest(\'.pay-method-group\').querySelectorAll(\'.pay-card\').forEach(c=>c.classList.remove(\'active\'));this.closest(\'.pay-card\').classList.add(\'active\')">';
+                html += '<label for="pCod">💵 Tiền mặt (COD)</label>';
+                html += '</div>';
+
+                html += '<div class="pay-card" onclick="document.getElementById(\'pBank\').checked=true;document.getElementById(\'qrArea\').style.display=\'block\';this.parentNode.querySelectorAll(\'.pay-card\').forEach(c=>c.classList.remove(\'active\'));this.classList.add(\'active\')">';
+                html += '<input type="radio" name="payMethod" value="BANK" id="pBank" onclick="event.stopPropagation();document.getElementById(\'qrArea\').style.display=\'block\';this.closest(\'.pay-method-group\').querySelectorAll(\'.pay-card\').forEach(c=>c.classList.remove(\'active\'));this.closest(\'.pay-card\').classList.add(\'active\')">';
+                html += '<label for="pBank">📱 Chuyển khoản (QR)</label>';
+                html += '</div>';
+                html += '</div>';
+
+                html += '<div id="qrArea" style="display:none;text-align:center;padding:14px;background:#f8fafc;border:1.5px dashed #cbd5e1;border-radius:12px;margin-top:12px">';
+                html += '<p style="font-size:12.5px;font-weight:600;color:#475569;margin-bottom:8px">Mở ứng dụng Ngân hàng / Momo để Quét mã QR thanh toán:</p>';
+                html += '<img id="imgQr" src="/static/QR.jpg" style="max-width:170px;border-radius:10px;box-shadow:0 4px 12px rgba(0,0,0,0.1)">';
                 html += '</div></div>';
-                html += '<button class="btn-checkout" onclick="if(!localStorage.getItem(\'access_token\')){ alert(\'⚠️ Vui lòng đăng nhập để hoàn tất đặt hàng!\'); window.location.href=\'/login\'; } else { window._confirmOrder(); }">✓ Xác nhận đặt hàng</button>';
+
+                // Nút Xác nhận đặt hàng
+                html += '<button class="btn-checkout" onclick="if(!localStorage.getItem(\'access_token\')){ alert(\'⚠️ Vui lòng đăng nhập để hoàn tất đặt hàng!\'); window.location.href=\'/login\'; } else { window._confirmOrder(); }"><span>✓</span> XÁC NHẬN ĐẶT HÀNG</button>';
                 html += '</div>';
 
                 el.innerHTML = html;
