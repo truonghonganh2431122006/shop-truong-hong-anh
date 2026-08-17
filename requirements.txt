@@ -15,6 +15,6 @@ python-dotenv
 psycopg2-binary
 requests
 open_clip_torch
-torch
+torch --extra-index-url https://download.pytorch.org/whl/cpu
 pillow
 numpy

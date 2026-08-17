@@ -644,6 +644,8 @@ run_auto_migrations(engine)
 import io
 import json
 import base64
+import concurrent.futures
+from starlette.concurrency import run_in_threadpool
 
 _clip_model = None
 _clip_preprocess = None
@@ -651,7 +653,8 @@ _clip_device = "cpu"
 
 
 def _load_clip():
-    """Tải model CLIP vào bộ nhớ (chỉ chạy 1 lần, các lần sau dùng lại)."""
+    """Tải model CLIP vào bộ nhớ (chỉ chạy 1 lần, các lần sau dùng lại).
+    Có timeout 120s để tránh treo vô hạn khi mạng chậm / không tải được checkpoint."""
     global _clip_model, _clip_preprocess
     if _clip_model is not None:
         return _clip_model, _clip_preprocess
@@ -665,9 +668,22 @@ def _load_clip():
         ) from e
 
     print("[clip] Đang tải model CLIP (ViT-B-32, openai)... lần đầu có thể mất 30-60s")
-    model, _, preprocess = open_clip.create_model_and_transforms(
-        "ViT-B-32", pretrained="openai"
-    )
+
+    def _do_load():
+        return open_clip.create_model_and_transforms("ViT-B-32", pretrained="openai")
+
+    try:
+        with concurrent.futures.ThreadPoolExecutor(max_workers=1) as pool:
+            future = pool.submit(_do_load)
+            model, _, preprocess = future.result(timeout=120)
+    except concurrent.futures.TimeoutError:
+        raise RuntimeError(
+            "Tải model CLIP quá lâu (>120s). Có thể do mạng chậm hoặc bộ nhớ không đủ. "
+            "Vui lòng thử lại sau hoặc liên hệ admin."
+        )
+    except Exception as e:
+        raise RuntimeError(f"Lỗi khi tải model CLIP: {e}") from e
+
     model.eval()
     _clip_model, _clip_preprocess = model, preprocess
     print("[clip] Đã tải xong model CLIP.")
@@ -1616,12 +1632,14 @@ async def search_by_image(file: UploadFile = File(...), top_k: int = 12, db: Ses
         raise HTTPException(status_code=400, detail="Ảnh quá lớn (tối đa 8MB)")
 
     try:
-        query_vec = _encode_image_bytes(img_bytes)
+        query_vec = await run_in_threadpool(_encode_image_bytes, img_bytes)
     except RuntimeError as e:
-        # Model CLIP chưa được cài / lỗi tải model
+        # Model CLIP chưa được cài / lỗi tải model / timeout
         raise HTTPException(status_code=503, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Lỗi phân tích ảnh: {str(e)}")
 
-    matches = _cosine_search(query_vec, top_k=top_k)
+    matches = await run_in_threadpool(_cosine_search, query_vec, top_k)
     if not matches:
         return {"results": [], "message": "Chưa có dữ liệu ảnh sản phẩm để so khớp. Vui lòng liên hệ admin để dựng lại chỉ mục ảnh."}
 
