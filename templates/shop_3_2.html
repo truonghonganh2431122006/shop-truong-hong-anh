@@ -106,14 +106,15 @@
         }
 
         .header__search {
-            flex: 1 !important;
-            max-width: 480px !important;
+            flex: 1 1 auto !important;
+            min-width: 130px !important;
+            max-width: 300px !important;
             position: relative !important;
             display: flex !important;
             align-items: center !important;
             background: #ffffff !important;
             border-radius: 30px !important;
-            padding: 3px 16px !important;
+            padding: 2px 12px !important;
             box-shadow: 0 2px 8px rgba(0,0,0,0.08) !important;
             border: 1.5px solid rgba(0,0,0,0.05) !important;
         }
@@ -21337,28 +21338,30 @@
     <span class="badge-btn">MUA NGAY</span>
 </div>
 
-<header class="header v2024 hasbanner" data-sub="0">
-    <div class="header__top">
-        <div>
-            <a href="/" class="header__logo" aria-label="logo" style="text-decoration:none;">
-                <div class="tgdd-logo-box">
-                    <div class="tgdd-logo-circle">●</div>
-                    ShopTruongHongAnh<span style="color:#000;font-weight:400;font-size:15px;margin-left:2px;">.com</span>
+<header class="header v2024 hasbanner" data-sub="0" style="background:#ffd400 !important; border-bottom:none !important;">
+    <div class="header__top" style="max-width:1220px; margin:0 auto; padding:6px 12px;">
+        <div style="display:flex; align-items:center; justify-content:space-between; gap:4px; flex-wrap:nowrap; width:100%;">
+            <a href="/" class="header__logo" aria-label="logo" style="text-decoration:none; flex-shrink:0;">
+                <div class="tgdd-logo-box" style="font-size:18px;">
+                    <div class="tgdd-logo-circle" style="width:28px;height:28px;font-size:15px;">●</div>
+                    ShopTruongHongAnh<span style="color:#000;font-weight:400;font-size:13px;margin-left:2px;">.com</span>
                 </div>
             </a>
-            <form action="/tim-kiem" onsubmit="return false;" class="header__search">
+            
+            <form action="/tim-kiem" onsubmit="return false;" class="header__search" style="flex:1 1 auto; max-width:280px; margin:0 2px;">
                 <input id="skw" type="text" class="input-search"
-                    placeholder="Cuối tuần khuyến mãi khủng..." name="key" autocomplete="off" maxlength="100">
+                    placeholder="Tìm kiếm sản phẩm..." name="key" autocomplete="off" maxlength="100" style="font-size:12.5px; height:32px;">
                 <input type="file" id="haImageSearchFile" accept="image/*" style="display:none;">
                 <button type="submit" aria-label="button suggest search">
                     <i class="icon-search"></i>
                 </button>
                 <div id="search-result"></div>
             </form>
-            <div id="haSearchExtraBtns" style="display:flex;align-items:center;gap:6px;margin-left:8px;flex-shrink:0;">
+            
+            <div id="haSearchExtraBtns" style="display:flex;align-items:center;gap:3px;flex-shrink:0;">
                 <button type="button" id="haVoiceSearchBtn" onclick="startVoiceSearch()" title="Tìm bằng giọng nói" aria-label="Tìm bằng giọng nói"
-                    style="background:#fff;border:1px solid rgba(0,0,0,0.12);border-radius:50%;width:34px;height:34px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#555" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    style="background:#fff;border:1px solid rgba(0,0,0,0.12);border-radius:50%;width:30px;height:30px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#555" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
                         <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
                         <line x1="12" y1="19" x2="12" y2="23"></line>
@@ -21366,8 +21369,8 @@
                     </svg>
                 </button>
                 <button type="button" id="haImageSearchBtn" onclick="triggerImageSearch()" title="Tìm bằng hình ảnh" aria-label="Tìm bằng hình ảnh"
-                    style="background:#fff;border:1px solid rgba(0,0,0,0.12);border-radius:50%;width:34px;height:34px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#555" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    style="background:#fff;border:1px solid rgba(0,0,0,0.12);border-radius:50%;width:30px;height:30px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#555" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
                         <circle cx="12" cy="13" r="4"></circle>
                     </svg>
@@ -21375,27 +21378,28 @@
             </div>
             
             <!-- Nút chọn Tỉnh Thành chuẩn TGDD -->
-            <div class="location-btn" onclick="openProvinceSelectModal()" style="display:flex;align-items:center;gap:4px;background:rgba(255,255,255,0.7);padding:6px 10px;border-radius:20px;font-size:12px;font-weight:600;color:#111;cursor:pointer;flex-shrink:0;">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+            <div class="location-btn" onclick="openProvinceSelectModal()" style="display:flex;align-items:center;gap:3px;background:rgba(255,255,255,0.75);padding:4px 8px;border-radius:20px;font-size:11.5px;font-weight:600;color:#111;cursor:pointer;flex-shrink:0;white-space:nowrap;">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
                 <span id="ha-current-province">Hồ Chí Minh</span> ▾
             </div>
 
-            <div class="profile" style="display: flex; align-items: center; margin-right: 2px; flex-shrink: 0;">
+            <div class="profile" style="display: flex; align-items: center; flex-shrink: 0;">
                 <button type="button" onclick="goToOrderHistory()" class="btn-order-nav" style="
                     background: rgba(255, 255, 255, 0.85);
                     border: 1px solid rgba(0, 0, 0, 0.12);
                     color: #000000;
-                    padding: 6px 10px;
+                    padding: 4px 8px;
                     border-radius: 20px;
                     cursor: pointer;
                     display: flex;
                     align-items: center;
-                    gap: 4px;
+                    gap: 3px;
                     font-family: inherit;
-                    font-size: 12px;
+                    font-size: 11.5px;
                     flex-shrink: 0;
+                    white-space: nowrap;
                 ">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                         <line x1="8" y1="6" x2="21" y2="6"></line>
                         <line x1="8" y1="12" x2="21" y2="12"></line>
                         <line x1="8" y1="18" x2="21" y2="18"></line>
@@ -21403,31 +21407,27 @@
                         <line x1="3" y1="12" x2="3.01" y2="12"></line>
                         <line x1="3" y1="18" x2="3.01" y2="18"></line>
                     </svg>
-
-                    <span id="order-count-badge" style="font-size: 12px; font-weight: 600; color: #000000;">Đơn hàng</span>
+                    <span id="order-count-badge" style="font-size: 11.5px; font-weight: 600; color: #000000;">Đơn hàng</span>
                 </button>
             </div>
-            <a href="/cart" class="header__cart menu-info" id="cart-box" style="flex-shrink: 0; padding: 4px 8px;">
+            
+            <a href="/cart" class="header__cart menu-info" id="cart-box" style="flex-shrink: 0; padding: 4px 8px; display: flex; align-items: center; gap: 4px;">
                 <div class="box-cart">
                     <i class="iconnewglobal-whitecart"></i>
                     <span class="cart-number"></span>
                 </div>
-                <span style="font-size: 12px;">Giỏ hàng</span>
-                <div class="view-cart">
-                    <span>Đã thêm vào giỏ hàng</span>
-                    <b onclick="window.location.href='/cart'">Xem giỏ hàng</b>
-                </div>
+                <span style="font-size: 11.5px;">Giỏ hàng</span>
             </a>
-            <div id="auth-header-dynamic" style="display: flex; align-items: center; gap: 6px; margin: 0 4px; flex-shrink: 0;">
-                
-                <div id="group-guest" style="display: flex; gap: 6px; flex-shrink: 0;">
+
+            <div id="auth-header-dynamic" style="display: flex; align-items: center; gap: 4px; flex-shrink: 0;">
+                <div id="group-guest" style="display: flex; gap: 4px; flex-shrink: 0;">
                     <button onclick="window.location.href='/login'" style="
                         background: #ffffff; 
                         color: #111111; 
                         border: 1px solid rgba(0, 0, 0, 0.15); 
-                        padding: 6px 12px; 
+                        padding: 4px 8px; 
                         border-radius: 20px; 
-                        font-size: 12.5px; 
+                        font-size: 11.5px; 
                         font-weight: 600; 
                         cursor: pointer;
                         white-space: nowrap;
@@ -21437,24 +21437,24 @@
                         background: #111111; 
                         color: #ffd400; 
                         border: none; 
-                        padding: 6px 12px; 
+                        padding: 4px 8px; 
                         border-radius: 20px; 
-                        font-size: 12.5px; 
+                        font-size: 11.5px; 
                         font-weight: 700; 
                         cursor: pointer;
                         white-space: nowrap;
                     ">Đăng ký</button>
                 </div>
 
-                <div id="group-user" style="display: none; align-items: center; gap: 6px; flex-shrink: 0;">
-                    <span id="user-account-name" style="font-size: 12px; font-weight: 700; color: #111; max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: inline-block;" title="Tài khoản">Thành viên</span>
+                <div id="group-user" style="display: none; align-items: center; gap: 4px; flex-shrink: 0;">
+                    <span id="user-account-name" style="font-size: 11.5px; font-weight: 700; color: #111; max-width: 95px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: inline-block;" title="Tài khoản">Thành viên</span>
                     <button onclick="handleLogout()" style="
                         background: #d0021c; 
                         color: white; 
                         border: none; 
-                        padding: 6px 12px; 
+                        padding: 4px 8px; 
                         border-radius: 20px; 
-                        font-size: 12px; 
+                        font-size: 11.5px; 
                         font-weight: 700; 
                         cursor: pointer;
                         white-space: nowrap;
