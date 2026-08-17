@@ -1,5 +1,5 @@
 
-from fastapi import FastAPI, HTTPException, Depends, Request, Query, Header
+from fastapi import FastAPI, HTTPException, Depends, Request, Query, Header, UploadFile, File, BackgroundTasks
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from fastapi.responses import FileResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
@@ -380,6 +380,15 @@ class FlashSale(Base):
     product = relationship("Product")
 
 
+class ProductEmbedding(Base):
+    """Lưu vector đặc trưng (CLIP embedding) của ảnh sản phẩm, dùng để tìm kiếm bằng ảnh."""
+    __tablename__ = "product_embeddings"
+    product_id = Column(Integer, ForeignKey("products.id"), primary_key=True)
+    vector = Column(Text, nullable=False)          # JSON-encoded list[float], đã chuẩn hoá (L2-normalized)
+    image_url = Column(String, default="")          # ảnh đã dùng để encode, để biết khi nào cần encode lại
+    updated_at = Column(DateTime, default=now_vn)
+
+
 # Tìm đến phần Schema (BaseModel) và sửa lại cho chuẩn:
 class OrderItemCreate(BaseModel):
     product_id: int
@@ -621,6 +630,143 @@ def run_auto_migrations(engine):
     ensure_column(engine, "products", "category_id", "INTEGER")
 
 run_auto_migrations(engine)
+
+
+# ===================== TÌM KIẾM BẰNG HÌNH ẢNH (CLIP) =====================
+# Dùng model CLIP đã huấn luyện sẵn (OpenAI, ~400 triệu cặp ảnh-văn bản) để biến
+# ảnh thành vector đặc trưng rồi so khớp cosine similarity. Model KHÔNG học thêm
+# gì từ ảnh của shop — chỉ dùng để trích xuất đặc trưng (inference), nên tải rất
+# nhẹ (không cần GPU, không cần huấn luyện).
+#
+# Model được load "lười" (lazy) — chỉ tải vào bộ nhớ ở lần gọi đầu tiên, tránh
+# làm chậm lúc khởi động server (quan trọng khi deploy trên Render free tier).
+
+import io
+import json
+import base64
+
+_clip_model = None
+_clip_preprocess = None
+_clip_device = "cpu"
+
+
+def _load_clip():
+    """Tải model CLIP vào bộ nhớ (chỉ chạy 1 lần, các lần sau dùng lại)."""
+    global _clip_model, _clip_preprocess
+    if _clip_model is not None:
+        return _clip_model, _clip_preprocess
+    try:
+        import torch
+        import open_clip
+    except ImportError as e:
+        raise RuntimeError(
+            "Chưa cài thư viện cho tính năng tìm kiếm bằng ảnh. "
+            "Chạy: pip install open_clip_torch torch pillow numpy"
+        ) from e
+
+    print("[clip] Đang tải model CLIP (ViT-B-32, openai)... lần đầu có thể mất 30-60s")
+    model, _, preprocess = open_clip.create_model_and_transforms(
+        "ViT-B-32", pretrained="openai"
+    )
+    model.eval()
+    _clip_model, _clip_preprocess = model, preprocess
+    print("[clip] Đã tải xong model CLIP.")
+    return _clip_model, _clip_preprocess
+
+
+def _encode_image_bytes(image_bytes: bytes):
+    """Ảnh (bytes) -> vector đặc trưng đã chuẩn hoá (list[float])."""
+    import torch
+    from PIL import Image
+    import numpy as np
+
+    model, preprocess = _load_clip()
+    try:
+        img = Image.open(io.BytesIO(image_bytes)).convert("RGB")
+    except Exception as e:
+        raise HTTPException(status_code=400, detail="File ảnh không hợp lệ hoặc bị hỏng") from e
+
+    tensor = preprocess(img).unsqueeze(0)
+    with torch.no_grad():
+        features = model.encode_image(tensor)
+        features = features / features.norm(dim=-1, keepdim=True)  # chuẩn hoá về vector đơn vị
+    return features.squeeze(0).cpu().numpy().astype("float32")
+
+
+def _fetch_image_bytes(image_url: str) -> Optional[bytes]:
+    """Lấy bytes ảnh từ URL (http...) hoặc đường dẫn local (/static/...)."""
+    if not image_url:
+        return None
+    try:
+        if image_url.startswith("http://") or image_url.startswith("https://"):
+            resp = http_requests.get(image_url, timeout=10)
+            resp.raise_for_status()
+            return resp.content
+        # đường dẫn local kiểu /static/xxx.jpg
+        local_path = BASE_DIR / image_url.lstrip("/")
+        if local_path.is_file():
+            return local_path.read_bytes()
+    except Exception as e:
+        print(f"[clip] Không tải được ảnh '{image_url}': {e}")
+    return None
+
+
+def _encode_product_image(db: Session, product: "Product") -> bool:
+    """Encode ảnh của 1 sản phẩm và lưu/cập nhật vào bảng product_embeddings.
+    Trả về True nếu thành công."""
+    if not product.image_url:
+        return False
+    img_bytes = _fetch_image_bytes(product.image_url)
+    if not img_bytes:
+        return False
+    try:
+        vec = _encode_image_bytes(img_bytes)
+    except Exception as e:
+        print(f"[clip] Lỗi encode sản phẩm #{product.id}: {e}")
+        return False
+
+    row = db.query(ProductEmbedding).filter(ProductEmbedding.product_id == product.id).first()
+    vec_json = json.dumps(vec.tolist())
+    if row:
+        row.vector = vec_json
+        row.image_url = product.image_url
+        row.updated_at = now_vn()
+    else:
+        row = ProductEmbedding(
+            product_id=product.id, vector=vec_json,
+            image_url=product.image_url, updated_at=now_vn()
+        )
+        db.add(row)
+    db.commit()
+    return True
+
+
+def _cosine_search(query_vec, top_k: int = 12):
+    """So query_vec với toàn bộ vector đã lưu, trả về [(product_id, score), ...] giảm dần."""
+    import numpy as np
+
+    db = SessionLocal()
+    try:
+        rows = db.query(ProductEmbedding).all()
+        if not rows:
+            return []
+        ids = []
+        mat = []
+        for r in rows:
+            try:
+                ids.append(r.product_id)
+                mat.append(json.loads(r.vector))
+            except Exception:
+                continue
+        if not mat:
+            return []
+        mat = np.array(mat, dtype="float32")          # (N, D), đã chuẩn hoá sẵn lúc lưu
+        q = np.array(query_vec, dtype="float32")
+        sims = mat @ q                                  # cosine similarity (vì đã L2-normalize)
+        order = np.argsort(-sims)[:top_k]
+        return [(ids[i], float(sims[i])) for i in order]
+    finally:
+        db.close()
 
 
 def seed_admin():
@@ -1427,7 +1573,7 @@ class ProductCreate(BaseModel):
 
 # ĐÂY LÀ HÀM CẬU ĐANG THIẾU:
 @app.post("/products")
-def create_product(product_data: ProductCreate, db: Session = Depends(get_db)):
+def create_product(product_data: ProductCreate, background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
     # Tạo đối tượng Product mới để lưu vào Database
     new_product = Product(
         name=product_data.name,
@@ -1439,7 +1585,96 @@ def create_product(product_data: ProductCreate, db: Session = Depends(get_db)):
     db.add(new_product)
     db.commit()
     db.refresh(new_product)
+    # Encode ảnh sản phẩm ngầm (không làm chậm response) để phục vụ tìm kiếm bằng ảnh
+    background_tasks.add_task(_encode_product_image_bg, new_product.id)
     return new_product
+
+
+def _encode_product_image_bg(product_id: int):
+    """Chạy trong background: encode ảnh sản phẩm và lưu vector. Tự mở session riêng."""
+    db = SessionLocal()
+    try:
+        p = db.query(Product).filter(Product.id == product_id).first()
+        if p:
+            _encode_product_image(db, p)
+    except Exception as e:
+        print(f"[clip] Lỗi encode ngầm sản phẩm #{product_id}: {e}")
+    finally:
+        db.close()
+
+
+# ===================== ENDPOINT: TÌM KIẾM BẰNG HÌNH ẢNH =====================
+
+@app.post("/search-by-image")
+async def search_by_image(file: UploadFile = File(...), top_k: int = 12, db: Session = Depends(get_db)):
+    """Nhận 1 ảnh, trả về danh sách sản phẩm có ảnh giống nhất (dùng CLIP + cosine similarity)."""
+    if not file.content_type or not file.content_type.startswith("image/"):
+        raise HTTPException(status_code=400, detail="Vui lòng tải lên 1 file ảnh (jpg, png...)")
+
+    img_bytes = await file.read()
+    if len(img_bytes) > 8 * 1024 * 1024:
+        raise HTTPException(status_code=400, detail="Ảnh quá lớn (tối đa 8MB)")
+
+    try:
+        query_vec = _encode_image_bytes(img_bytes)
+    except RuntimeError as e:
+        # Model CLIP chưa được cài / lỗi tải model
+        raise HTTPException(status_code=503, detail=str(e))
+
+    matches = _cosine_search(query_vec, top_k=top_k)
+    if not matches:
+        return {"results": [], "message": "Chưa có dữ liệu ảnh sản phẩm để so khớp. Vui lòng liên hệ admin để dựng lại chỉ mục ảnh."}
+
+    ids = [pid for pid, _score in matches]
+    scores = {pid: score for pid, score in matches}
+    prods = db.query(Product).filter(Product.id.in_(ids), Product.is_active == True).all()
+    prod_map = {p.id: p for p in prods}
+
+    results = []
+    for pid, score in matches:
+        p = prod_map.get(pid)
+        if not p:
+            continue
+        results.append({
+            "id": p.id,
+            "name": p.name,
+            "price": p.price,
+            "image_url": p.image_url,
+            "description": p.description,
+            "similarity": round(score * 100, 1),   # % giống nhau, dễ hiểu hơn cho người dùng
+        })
+    return {"results": results}
+
+
+@app.post("/admin/rebuild-image-index")
+def rebuild_image_index(background_tasks: BackgroundTasks, admin: User = Depends(require_admin), db: Session = Depends(get_db)):
+    """Admin bấm nút này để encode lại (hoặc encode lần đầu) toàn bộ ảnh sản phẩm.
+    Chạy nền vì có thể mất vài phút nếu nhiều sản phẩm."""
+    product_ids = [p.id for p in db.query(Product.id).filter(Product.is_active == True).all()]
+    background_tasks.add_task(_rebuild_index_bg, product_ids)
+    return {"message": f"Đã bắt đầu dựng chỉ mục ảnh cho {len(product_ids)} sản phẩm (chạy ngầm, có thể mất vài phút)."}
+
+
+def _rebuild_index_bg(product_ids: List[int]):
+    db = SessionLocal()
+    ok, fail = 0, 0
+    try:
+        for pid in product_ids:
+            p = db.query(Product).filter(Product.id == pid).first()
+            if p and _encode_product_image(db, p):
+                ok += 1
+            else:
+                fail += 1
+        print(f"[clip] Dựng chỉ mục ảnh xong: {ok} thành công, {fail} thất bại.")
+    finally:
+        db.close()
+
+
+@app.get("/admin/image-index-status")
+def image_index_status(admin: User = Depends(require_admin), db: Session = Depends(get_db)):
+    total_products = db.query(Product).filter(Product.is_active == True).count()
+    total_indexed = db.query(ProductEmbedding).count()
+    return {"total_products": total_products, "total_indexed": total_indexed}
 
 @app.post("/admin/seed-products")
 def seed_products(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
@@ -2169,6 +2404,7 @@ def startup_event():
 def update_product_info(
     product_id: int,
     data: ProductUpdateSchema,
+    background_tasks: BackgroundTasks,
     user: User = Depends(require_staff_or_admin),
     db: Session = Depends(get_db)
 ):
@@ -2179,6 +2415,7 @@ def update_product_info(
         p.name = data.name.strip()
     if data.price is not None:
         p.price = data.price
+    image_changed = data.image_url is not None and data.image_url != p.image_url
     if data.image_url is not None:
         p.image_url = data.image_url
     if data.description is not None:
@@ -2186,6 +2423,9 @@ def update_product_info(
     if data.stock is not None:
         p.stock = data.stock
     db.commit()
+    if image_changed:
+        # Ảnh vừa đổi -> encode lại vector cho đúng, chạy ngầm để không làm chậm response
+        background_tasks.add_task(_encode_product_image_bg, p.id)
     return {"message": "Đã cập nhật sản phẩm thành công"}
 
 
@@ -2193,6 +2433,7 @@ def update_product_info(
 @app.post("/admin/products/new")
 def admin_create_product(
     data: ProductCreateSchema,
+    background_tasks: BackgroundTasks,
     user: User = Depends(require_staff_or_admin),
     db: Session = Depends(get_db)
 ):
@@ -2207,6 +2448,7 @@ def admin_create_product(
     db.add(p)
     db.commit()
     db.refresh(p)
+    background_tasks.add_task(_encode_product_image_bg, p.id)
     return {"message": "Đã thêm sản phẩm mới", "id": p.id, "name": p.name}
 
 
