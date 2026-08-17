@@ -470,11 +470,12 @@
 
                 const itemsHtml = (order.items || []).map(item => {
                     const displayItemPrice = item.unit_price || item.price || 0;
+                    const imgSrc = item.image || item.img || (item.product ? item.product.image : '') || 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 56 56%22%3E%3Crect fill=%22%23f0f1f3%22 width=%2256%22 height=%2256%22/%3E%3Ctext x=%2228%22 y=%2232%22 text-anchor=%22middle%22 font-size=%2220%22%3E📦%3C/text%3E%3C/svg%3E';
                     return `
                     <li class="product-item">
-                        <img class="product-img" src="${item.image || 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 56 56%22%3E%3Crect fill=%22%23f0f1f3%22 width=%2256%22 height=%2256%22/%3E%3Ctext x=%2228%22 y=%2232%22 text-anchor=%22middle%22 font-size=%2220%22%3E✅%3C/text%3E%3C/svg%3E'}" alt="${item.name}" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 56 56%22%3E%3Crect fill=%22%23f0f1f3%22 width=%2256%22 height=%2256%22/%3E%3Ctext x=%2228%22 y=%2232%22 text-anchor=%22middle%22 font-size=%2220%22%3E✅%3C/text%3E%3C/svg%3E'" />
+                        <img class="product-img" src="${imgSrc}" alt="${item.name || ''}" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 56 56%22%3E%3Crect fill=%22%23f0f1f3%22 width=%2256%22 height=%2256%22/%3E%3Ctext x=%2228%22 y=%2232%22 text-anchor=%22middle%22 font-size=%2220%22%3E📦%3C/text%3E%3C/svg%3E'" />
                         <div class="product-info">
-                            <div class="product-name">${item.name}</div>
+                            <div class="product-name">${item.name || 'Sản phẩm'}</div>
                             <div class="product-qty">Số lượng: ${item.qty || item.quantity || 1}</div>
                         </div>
                         <span class="product-price">${displayItemPrice.toLocaleString()}đ</span>

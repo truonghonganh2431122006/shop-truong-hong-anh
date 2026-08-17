@@ -23715,7 +23715,7 @@
                 let optionsQo = '<option value="">-- Chọn mã giảm giá (nếu có) --</option>';
                 
                 coupons.forEach(c => {
-                    const valStr = c.discount_type === 'percent' ? `${c.discount_value}%` : `${cleanPrice(c.discount_value)}đ`;
+                    const valStr = c.discount_type === 'percent' ? `${c.discount_value}%` : `${(c.discount_value || 0).toLocaleString()}đ`;
                     const prefix = c.personal ? '🎁 [Dành riêng cho bạn] ' : '🌐 ';
                     optionsCart += `<option value="${c.code}">${prefix}${c.code} – ${c.label} (Giảm ${valStr})</option>`;
                     optionsQo += `<option value="${c.code}" data-type="${c.discount_type}" data-value="${c.discount_value}">${prefix}${c.code} – ${c.label} (Giảm ${valStr})</option>`;

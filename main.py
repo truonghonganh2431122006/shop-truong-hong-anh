@@ -2100,7 +2100,8 @@ def my_orders(user: User = Depends(get_current_user), db: Session = Depends(get_
                 {
                     "name": i.product.name if i.product else f"Sản phẩm #{i.product_id}",
                     "qty": i.quantity,
-                    "price": i.unit_price
+                    "price": i.unit_price,
+                    "image": (i.product.image if (i.product and i.product.image) else "")
                 }
                 for i in o.items
             ]
