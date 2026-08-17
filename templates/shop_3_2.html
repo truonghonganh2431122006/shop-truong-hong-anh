@@ -21330,42 +21330,17 @@
     </div>
 </div>
 
-<div class="tgdd-top-bar">
-    <span>🎓 LAPTOP TỰU TRƯỜNG - Học Gì Cũng Mượt</span>
-    <span style="color:#ea580c">•</span>
-    <span>TÂN SINH VIÊN ĐỔI ĐIỂM GIẢM THÊM ĐẾN 3 TRIỆU</span>
-    <span class="badge-btn">MUA NGAY</span>
-</div>
-
-<header class="header v2024 hasbanner" data-sub="0">
-    <div class="header__top">
-        <div>
-            <a href="/" class="header__logo" aria-label="logo" style="text-decoration:none;">
-                <div class="tgdd-logo-box">
-                    <div class="tgdd-logo-circle">●</div>
-                    ShopTruongHongAnh<span style="color:#000;font-weight:400;font-size:15px;margin-left:2px;">.com</span>
-                </div>
-            </a>
-            <form action="/tim-kiem" onsubmit="return false;" class="header__search">
-                <input id="skw" type="text" class="input-search"
-                    placeholder="Cuối tuần khuyến mãi khủng..." name="key" autocomplete="off" maxlength="100">
-                <input type="file" id="haImageSearchFile" accept="image/*" style="display:none;">
-                <button type="submit" aria-label="button suggest search">
-                    <i class="icon-search"></i>
-                </button>
-                <div id="search-result"></div>
-            </form>
-            <div id="haSearchExtraBtns" style="display:flex;align-items:center;gap:6px;margin-left:8px;flex-shrink:0;">
-                <button type="button" id="haVoiceSearchBtn" title="Tìm bằng giọng nói" aria-label="Tìm bằng giọng nói"
+<div class="tgd            <div id="haSearchExtraBtns" style="display:flex;align-items:center;gap:6px;margin-left:8px;flex-shrink:0;">
+                <button type="button" id="haVoiceSearchBtn" onclick="startVoiceSearch()" title="Tìm bằng giọng nói" aria-label="Tìm bằng giọng nói"
                     style="background:#fff;border:1px solid rgba(0,0,0,0.12);border-radius:50%;width:34px;height:34px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#555" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
+                        <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
                         <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
                         <line x1="12" y1="19" x2="12" y2="23"></line>
                         <line x1="8" y1="23" x2="16" y2="23"></line>
                     </svg>
                 </button>
-                <button type="button" id="haImageSearchBtn" title="Tìm bằng hình ảnh" aria-label="Tìm bằng hình ảnh"
+                <button type="button" id="haImageSearchBtn" onclick="triggerImageSearch()" title="Tìm bằng hình ảnh" aria-label="Tìm bằng hình ảnh"
                     style="background:#fff;border:1px solid rgba(0,0,0,0.12);border-radius:50%;width:34px;height:34px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#555" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
@@ -21375,26 +21350,27 @@
             </div>
             
             <!-- Nút chọn Tỉnh Thành chuẩn TGDD -->
-            <div class="location-btn" onclick="openProvinceSelectModal()" style="display:flex;align-items:center;gap:4px;background:rgba(255,255,255,0.7);padding:6px 12px;border-radius:20px;font-size:12.5px;font-weight:600;color:#111;cursor:pointer;">
+            <div class="location-btn" onclick="openProvinceSelectModal()" style="display:flex;align-items:center;gap:4px;background:rgba(255,255,255,0.7);padding:6px 10px;border-radius:20px;font-size:12px;font-weight:600;color:#111;cursor:pointer;flex-shrink:0;">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
                 <span id="ha-current-province">Hồ Chí Minh</span> ▾
             </div>
 
-            <div class="profile" style="display: flex; align-items: center; margin-right: 4px;">
+            <div class="profile" style="display: flex; align-items: center; margin-right: 2px; flex-shrink: 0;">
                 <button type="button" onclick="goToOrderHistory()" class="btn-order-nav" style="
                     background: rgba(255, 255, 255, 0.85);
                     border: 1px solid rgba(0, 0, 0, 0.12);
                     color: #000000;
-                    padding: 6px 12px;
+                    padding: 6px 10px;
                     border-radius: 20px;
                     cursor: pointer;
                     display: flex;
                     align-items: center;
-                    gap: 6px;
+                    gap: 4px;
                     font-family: inherit;
-                    transition: all 0.2s ease;
+                    font-size: 12px;
+                    flex-shrink: 0;
                 ">
-                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                         <line x1="8" y1="6" x2="21" y2="6"></line>
                         <line x1="8" y1="12" x2="21" y2="12"></line>
                         <line x1="8" y1="18" x2="21" y2="18"></line>
@@ -21406,29 +21382,61 @@
                     <span id="order-count-badge" style="font-size: 12px; font-weight: 600; color: #000000;">Đơn hàng</span>
                 </button>
             </div>
-            <a href="/cart" class="header__cart menu-info" id="cart-box">
+            <a href="/cart" class="header__cart menu-info" id="cart-box" style="flex-shrink: 0; padding: 4px 8px;">
                 <div class="box-cart">
                     <i class="iconnewglobal-whitecart"></i>
                     <span class="cart-number"></span>
                 </div>
-                <span>Giỏ hàng</span>
+                <span style="font-size: 12px;">Giỏ hàng</span>
                 <div class="view-cart">
                     <span>Đã thêm vào giỏ hàng</span>
                     <b onclick="window.location.href='/cart'">Xem giỏ hàng</b>
                 </div>
             </a>
-            <div id="auth-header-dynamic" style="display: flex; align-items: center; gap: 8px; margin: 0 10px;">
+            <div id="auth-header-dynamic" style="display: flex; align-items: center; gap: 6px; margin: 0 4px; flex-shrink: 0;">
                 
-                <div id="group-guest" style="display: flex; gap: 8px;">
+                <div id="group-guest" style="display: flex; gap: 6px; flex-shrink: 0;">
                     <button onclick="window.location.href='/login'" style="
                         background: #ffffff; 
                         color: #111111; 
                         border: 1px solid rgba(0, 0, 0, 0.15); 
-                        padding: 6px 14px; 
+                        padding: 6px 12px; 
                         border-radius: 20px; 
-                        font-size: 13px; 
+                        font-size: 12.5px; 
                         font-weight: 600; 
                         cursor: pointer;
+                        white-space: nowrap;
+                    ">Đăng nhập</button>
+
+                    <button onclick="window.location.href='/register'" style="
+                        background: #111111; 
+                        color: #ffd400; 
+                        border: none; 
+                        padding: 6px 12px; 
+                        border-radius: 20px; 
+                        font-size: 12.5px; 
+                        font-weight: 700; 
+                        cursor: pointer;
+                        white-space: nowrap;
+                    ">Đăng ký</button>
+                </div>
+
+                <div id="group-user" style="display: none; align-items: center; gap: 6px; flex-shrink: 0;">
+                    <span id="user-account-name" style="font-size: 12px; font-weight: 700; color: #111; max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: inline-block;" title="Tài khoản">Thành viên</span>
+                    <button onclick="handleLogout()" style="
+                        background: #d0021c; 
+                        color: white; 
+                        border: none; 
+                        padding: 6px 12px; 
+                        border-radius: 20px; 
+                        font-size: 12px; 
+                        font-weight: 700; 
+                        cursor: pointer;
+                        white-space: nowrap;
+                        flex-shrink: 0;
+                    ">Đăng xuất</button>
+                </div>
+            </div>                    cursor: pointer;
                         transition: 0.2s;
                     ">Đăng nhập</button>
 
@@ -27425,119 +27433,125 @@ document.addEventListener('DOMContentLoaded', function() {
 <div id="haVoiceListenDot"><span class="dot"></span> Đang nghe... hãy nói tên sản phẩm bạn muốn tìm</div>
 
 <script>
-(function () {
-    // ============ TÌM KIẾM BẰNG GIỌNG NÓI ============
-    // Dùng Web Speech API có sẵn trên trình duyệt (Chrome/Edge) — không cần backend,
-    // không tốn phí. Nghe xong tự điền vào ô tìm kiếm chữ đang có sẵn, để dùng
-    // đúng bộ lọc sản phẩm hiện tại (không cần viết search engine mới).
+// ============ TÌM KIẾM BẰNG GIỌNG NÓI ============
+window.startVoiceSearch = function () {
+    var SpeechRecognitionCtor = window.SpeechRecognition || window.webkitSpeechRecognition;
     var voiceBtn = document.getElementById('haVoiceSearchBtn');
     var listenDot = document.getElementById('haVoiceListenDot');
-    var SpeechRecognitionCtor = window.SpeechRecognition || window.webkitSpeechRecognition;
 
-    if (voiceBtn) {
-        if (!SpeechRecognitionCtor) {
-            // Trình duyệt không hỗ trợ (ví dụ Firefox, Safari cũ) -> ẩn nút cho gọn, tránh bấm vào không chạy được
-            voiceBtn.style.display = 'none';
-        } else {
-            voiceBtn.addEventListener('click', function () {
-                var recognition = new SpeechRecognitionCtor();
-                recognition.lang = 'vi-VN';
-                recognition.interimResults = false;
-                recognition.maxAlternatives = 1;
-
-                recognition.onstart = function () { listenDot.classList.add('show'); };
-                recognition.onend = function () { listenDot.classList.remove('show'); };
-                recognition.onerror = function (e) {
-                    listenDot.classList.remove('show');
-                    if (e.error === 'not-allowed' || e.error === 'permission-denied') {
-                        alert('⚠️ Vui lòng cho phép truy cập micro để dùng tìm kiếm bằng giọng nói!');
-                    } else if (e.error === 'no-speech') {
-                        // im lặng, không cần alert làm phiền
-                    } else {
-                        console.warn('[voice-search] Lỗi nhận diện giọng nói:', e.error);
-                    }
-                };
-                recognition.onresult = function (event) {
-                    var transcript = event.results[0][0].transcript || '';
-                    var input = document.getElementById('skw');
-                    if (input && transcript.trim()) {
-                        input.value = transcript.trim();
-                        // Bắn sự kiện 'input' thật để bộ lọc sản phẩm đang lắng nghe (#skw) tự chạy
-                        input.dispatchEvent(new Event('input', { bubbles: true }));
-                        input.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    }
-                };
-                try {
-                    recognition.start();
-                } catch (e) {
-                    console.warn('[voice-search] Không thể bắt đầu nghe:', e);
-                }
-            });
-        }
+    if (!SpeechRecognitionCtor) {
+        if (typeof showToast === 'function') showToast('⚠️ Trình duyệt của bạn chưa hỗ trợ Voice Search. Vui lòng thử Chrome hoặc Edge!');
+        else alert('Trình duyệt của bạn chưa hỗ trợ Voice Search. Vui lòng thử Chrome hoặc Edge!');
+        return;
     }
 
-    // ============ TÌM KIẾM BẰNG HÌNH ẢNH ============
-    // Ảnh được gửi lên backend (/search-by-image), backend dùng CLIP encode ảnh
-    // rồi so khớp với vector ảnh sản phẩm đã lưu sẵn, trả về danh sách gần giống nhất.
-    var imgBtn = document.getElementById('haImageSearchBtn');
-    var imgFileInput = document.getElementById('haImageSearchFile');
-    var imgModal = document.getElementById('haImgSearchModal');
-    var imgBody = document.getElementById('haImgSearchBody');
+    try {
+        var recognition = new SpeechRecognitionCtor();
+        recognition.lang = 'vi-VN';
+        recognition.interimResults = false;
+        recognition.maxAlternatives = 1;
 
-    if (imgBtn && imgFileInput) {
-        imgBtn.addEventListener('click', function () {
-            imgFileInput.value = '';
-            imgFileInput.click();
-        });
+        if (listenDot) listenDot.classList.add('show');
+        if (typeof showToast === 'function') showToast('🎤 Đang nghe... Hãy nói tên sản phẩm!');
 
-        imgFileInput.addEventListener('change', async function () {
-            var file = imgFileInput.files && imgFileInput.files[0];
-            if (!file) return;
+        recognition.onstart = function () {
+            if (listenDot) listenDot.classList.add('show');
+        };
 
-            imgModal.classList.add('show');
-            imgBody.innerHTML = '<div style="text-align:center;padding:40px 0;color:#888;">⏳ Đang phân tích ảnh, vui lòng đợi...</div>';
+        recognition.onend = function () {
+            if (listenDot) listenDot.classList.remove('show');
+        };
 
-            var formData = new FormData();
-            formData.append('file', file);
-
-            try {
-                var res = await fetch('/search-by-image', { method: 'POST', body: formData });
-                var data = await res.json();
-
-                if (!res.ok) {
-                    imgBody.innerHTML = '<div style="text-align:center;padding:40px 0;color:#d0021c;">❌ ' + (data.detail || 'Không thể tìm kiếm bằng ảnh lúc này') + '</div>';
-                    return;
-                }
-
-                var results = data.results || [];
-                if (results.length === 0) {
-                    imgBody.innerHTML = '<div style="text-align:center;padding:40px 0;color:#888;">🔍 Không tìm thấy sản phẩm nào giống ảnh này.' +
-                        (data.message ? '<br><span style="font-size:12px">' + data.message + '</span>' : '') + '</div>';
-                    return;
-                }
-
-                var fmt = function (n) { return (n || 0).toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.'); };
-                var html = '<div class="ha-is-grid">';
-                results.forEach(function (p) {
-                    var safeName = (p.name || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
-                    html += '<div class="ha-is-card" onclick="' +
-                        'document.getElementById(\'haImgSearchModal\').classList.remove(\'show\');' +
-                        'if(typeof showProductModal===\'function\') showProductModal(\'' + safeName + '\',' + (p.price || 0) + ',\'' + (p.image_url || '') + '\',\'\',' + p.id + ');' +
-                        '">' +
-                        '<img src="' + (p.image_url || '') + '" onerror="this.onerror=null;this.src=\'https://placehold.co/200x200?text=No+Image\'">' +
-                        '<div class="n">' + (p.name || '') + '</div>' +
-                        '<div class="p">' + fmt(p.price) + ' ₫</div>' +
-                        '<div class="s">Giống ' + p.similarity + '%</div>' +
-                        '</div>';
-                });
-                html += '</div>';
-                imgBody.innerHTML = html;
-            } catch (e) {
-                imgBody.innerHTML = '<div style="text-align:center;padding:40px 0;color:#d0021c;">❌ Lỗi kết nối, vui lòng thử lại.</div>';
+        recognition.onerror = function (e) {
+            if (listenDot) listenDot.classList.remove('show');
+            if (e.error === 'not-allowed' || e.error === 'permission-denied') {
+                alert('⚠️ Vui lòng cho phép truy cập micro trên trình duyệt để sử dụng tìm kiếm giọng nói!');
+            } else if (e.error !== 'no-speech') {
+                console.warn('[voice-search] Lỗi:', e.error);
             }
-        });
+        };
+
+        recognition.onresult = function (event) {
+            if (listenDot) listenDot.classList.remove('show');
+            var transcript = (event.results && event.results[0] && event.results[0][0] && event.results[0][0].transcript) || '';
+            var input = document.getElementById('skw');
+            if (input && transcript.trim()) {
+                input.value = transcript.trim();
+                input.focus();
+                if (typeof showToast === 'function') showToast('🔍 Đã nhận diện: "' + transcript.trim() + '"');
+                if (typeof window.tgddFilterTab === 'function') {
+                    window.tgddFilterTab(transcript.trim(), null);
+                }
+            }
+        };
+
+        recognition.start();
+    } catch (e) {
+        console.warn('[voice-search] Exception:', e);
     }
+};
+
+// ============ TÌM KIẾM BẰNG HÌNH ẢNH ============
+window.triggerImageSearch = function () {
+    var imgFileInput = document.getElementById('haImageSearchFile');
+    if (imgFileInput) {
+        imgFileInput.value = '';
+        imgFileInput.click();
+    }
+};
+
+(function initImageSearchHandler() {
+    var imgFileInput = document.getElementById('haImageSearchFile');
+    if (!imgFileInput) return;
+
+    imgFileInput.addEventListener('change', async function () {
+        var file = imgFileInput.files && imgFileInput.files[0];
+        if (!file) return;
+
+        var imgModal = document.getElementById('haImgSearchModal');
+        var imgBody = document.getElementById('haImgSearchBody');
+        if (imgModal) imgModal.classList.add('show');
+        if (imgBody) imgBody.innerHTML = '<div style="text-align:center;padding:40px 0;color:#888;">⏳ Đang phân tích hình ảnh sản phẩm, vui lòng đợi...</div>';
+
+        var formData = new FormData();
+        formData.append('file', file);
+
+        try {
+            var res = await fetch('/search-by-image', { method: 'POST', body: formData });
+            var data = await res.json();
+
+            if (!res.ok) {
+                if (imgBody) imgBody.innerHTML = '<div style="text-align:center;padding:40px 0;color:#d0021c;">❌ ' + (data.detail || 'Không thể tìm kiếm bằng ảnh lúc này') + '</div>';
+                return;
+            }
+
+            var results = data.results || [];
+            if (results.length === 0) {
+                if (imgBody) imgBody.innerHTML = '<div style="text-align:center;padding:40px 0;color:#888;">🔍 Không tìm thấy sản phẩm tương tự trong ảnh này.</div>';
+                return;
+            }
+
+            var fmt = function (n) { return (n || 0).toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.'); };
+            var html = '<div class="ha-is-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px;padding:12px;">';
+            results.forEach(function (p) {
+                var safeName = (p.name || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
+                html += '<div class="ha-is-card" style="background:#fff;border-radius:12px;padding:8px;border:1px solid #eee;cursor:pointer;text-align:center;" onclick="' +
+                    'document.getElementById(\'haImgSearchModal\').classList.remove(\'show\');' +
+                    'if(typeof showProductModal===\'function\') showProductModal(\'' + safeName + '\',' + (p.price || 0) + ',\'' + (p.image_url || '') + '\',\'\',' + p.id + ');' +
+                    '">' +
+                    '<img src="' + (p.image_url || '') + '" style="width:100px;height:100px;object-fit:contain;" onerror="this.onerror=null;this.src=\'https://placehold.co/200x200?text=No+Image\'">' +
+                    '<div style="font-size:12px;font-weight:700;height:32px;overflow:hidden;margin-top:4px;">' + (p.name || '') + '</div>' +
+                    '<div style="font-size:12px;color:#e60023;font-weight:800;">' + fmt(p.price) + ' ₫</div>' +
+                    '</div>';
+            });
+            html += '</div>';
+            if (imgBody) imgBody.innerHTML = html;
+        } catch (e) {
+            if (imgBody) imgBody.innerHTML = '<div style="text-align:center;padding:40px 0;color:#d0021c;">❌ Lỗi kết nối khi tìm kiếm ảnh, vui lòng thử lại.</div>';
+        }
+    });
 })();
+</script>
 <!-- ============ PROVINCE SELECTION MODAL (63 TỈNH THÀNH VIỆT NAM) ============ -->
 <div id="ha-province-modal" class="modal-overlay" style="z-index: 99999;">
     <div class="modal-content" style="max-width: 580px; max-height: 80vh; border-radius: 20px; overflow: hidden; display: flex; flex-direction: column; background: #fff;">
