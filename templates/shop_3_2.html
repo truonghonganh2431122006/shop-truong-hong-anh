@@ -26071,15 +26071,15 @@
 
         #ha-win {
             position: fixed;
-            bottom: 75px;
+            bottom: 60px;
             right: 28px;
-            width: 680px;
-            max-width: calc(100vw - 36px);
-            height: 780px;
-            max-height: calc(100vh - 95px);
+            width: 780px;
+            max-width: calc(100vw - 32px);
+            height: 840px;
+            max-height: calc(100vh - 70px);
             background: #fff;
             border-radius: 28px;
-            box-shadow: 0 32px 80px rgba(15, 23, 42, 0.35);
+            box-shadow: 0 32px 80px rgba(15, 23, 42, 0.38);
             display: flex;
             flex-direction: column;
             overflow: hidden;
@@ -27530,25 +27530,12 @@
 
             /* ── Mở form với dữ liệu sản phẩm ── */
             window.openQuickOrder = function (idOrObj, name, price, img) {
-                /* ══ KIỂM TRA ĐĂNG NHẬP — hỗ trợ tất cả các key lưu token ══ */
+                /* ══ Mở Form Mua Nhanh / Thanh Toán trực tiếp không bị chặn ══ */
                 var userToken = localStorage.getItem('access_token') || localStorage.getItem('token') || (function () {
                     try { return JSON.parse(localStorage.getItem('user') || '{}').token || JSON.parse(localStorage.getItem('user') || '{}').access_token; } catch (e) { return null; }
                 })() || (function () {
                     try { return JSON.parse(localStorage.getItem('currentUser') || '{}').token || JSON.parse(localStorage.getItem('currentUser') || '{}').access_token; } catch (e) { return null; }
                 })();
-
-                if (!userToken) {
-                    if (typeof showCustomModal === 'function') {
-                        showCustomModal(
-                            'Yêu cầu đăng nhập',
-                            'Vui lòng đăng nhập để mua hàng bạn nhé!',
-                            function () { window.location.href = '/login'; }
-                        );
-                    } else {
-                        if (confirm('Vui lòng đăng nhập để mua hàng!')) window.location.href = '/login';
-                    }
-                    return;
-                }
 
                 if (arguments.length === 1) {
                     var pid = parseInt(idOrObj) || 0;
