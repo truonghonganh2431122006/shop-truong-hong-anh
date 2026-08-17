@@ -26073,9 +26073,9 @@
             position: fixed;
             bottom: 70px;
             right: 24px;
-            width: 620px;
+            width: 900px;
             max-width: calc(100vw - 20px);
-            height: 780px;
+            height: min(900px, calc(100vh - 80px));
             max-height: calc(100vh - 80px);
             background: #fff;
             border-radius: 24px;
@@ -26667,11 +26667,16 @@
                     
                     btn.onclick = function (e) {
                         if (e) { e.preventDefault(); e.stopPropagation(); }
-                        if (typeof window.openQuickOrder === 'function') {
-                            window.openQuickOrder(p.id, p.name, p.price, img);
-                        } else {
-                            alert('Vui lòng tải lại trang để mở form mua ngay!');
-                        }
+                        // Đóng chatbot rồi mở form mua ngay có sẵn
+                        var win = document.getElementById('ha-win');
+                        if (win) win.classList.remove('open');
+                        setTimeout(function() {
+                            if (typeof window.openQuickOrder === 'function') {
+                                window.openQuickOrder(p.id, p.name, p.price, p.image_url || p.img || '');
+                            } else if (typeof showProductModal === 'function') {
+                                showProductModal(p.name, p.price, p.image_url || p.img || '', p.description || '', p.id);
+                            }
+                        }, 250);
                     };
 
                     card.appendChild(imgEl);
@@ -27738,19 +27743,10 @@
                 var _qot = document.getElementById('quick-order-total');
                 if (_qot) _qot.textContent = _price;
 
-                /* Reset toàn bộ form & điền sẵn thông tin user từ localStorage nếu có */
+                /* Reset toàn bộ form */
                 ['haQoName', 'haQoPhone', 'haQoAddress'].forEach(function (fid) {
                     var el = document.getElementById(fid); if (el) el.value = '';
                 });
-                try {
-                    var u = JSON.parse(localStorage.getItem('user') || localStorage.getItem('currentUser') || '{}');
-                    var nEl = document.getElementById('haQoName');
-                    var pEl = document.getElementById('haQoPhone');
-                    var aEl = document.getElementById('haQoAddress');
-                    if (nEl) nEl.value = u.full_name || u.name || u.username || '';
-                    if (pEl) pEl.value = u.phone || u.phone_number || '';
-                    if (aEl) aEl.value = u.address || u.shipping_address || '';
-                } catch (e) { }
                 haQoRemoveVoucher();
                 _payMethod = 'cod';
                 var cod = document.getElementById('haQoPayCOD');
@@ -29251,6 +29247,24 @@
             loadCartVouchers();
         });
     </script>
+
+<style>
+#ha-win {
+  width: 900px !important;
+  max-width: calc(100vw - 20px) !important;
+  height: min(900px, calc(100vh - 80px)) !important;
+  max-height: calc(100vh - 80px) !important;
+  border-radius: 28px !important;
+}
+@media (max-width: 960px) {
+  #ha-win {
+    width: calc(100vw - 24px) !important;
+    right: 12px !important;
+    bottom: 75px !important;
+    height: calc(100vh - 90px) !important;
+  }
+}
+</style>
     </body>
 
 </html>
