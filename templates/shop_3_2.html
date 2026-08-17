@@ -26071,15 +26071,15 @@
 
         #ha-win {
             position: fixed;
-            bottom: 90px;
+            bottom: 75px;
             right: 28px;
-            width: 540px;
-            max-width: calc(100vw - 32px);
-            height: 720px;
-            max-height: calc(100vh - 80px);
+            width: 680px;
+            max-width: calc(100vw - 36px);
+            height: 780px;
+            max-height: calc(100vh - 95px);
             background: #fff;
-            border-radius: 24px;
-            box-shadow: 0 24px 64px rgba(15, 23, 42, 0.28);
+            border-radius: 28px;
+            box-shadow: 0 32px 80px rgba(15, 23, 42, 0.35);
             display: flex;
             flex-direction: column;
             overflow: hidden;
@@ -26089,7 +26089,7 @@
             pointer-events: none;
             transition: transform 0.28s cubic-bezier(.34, 1.56, .64, 1), opacity 0.22s;
             transform-origin: bottom right;
-            border: 1px solid rgba(226, 232, 240, 0.8);
+            border: 1px solid rgba(226, 232, 240, 0.9);
         }
 
         #ha-win.open {
@@ -27530,8 +27530,14 @@
 
             /* ── Mở form với dữ liệu sản phẩm ── */
             window.openQuickOrder = function (idOrObj, name, price, img) {
-                /* ══ KIỂM TRA ĐĂNG NHẬP — bắt buộc trước khi hiện form ══ */
-                if (!localStorage.getItem('access_token')) {
+                /* ══ KIỂM TRA ĐĂNG NHẬP — hỗ trợ tất cả các key lưu token ══ */
+                var userToken = localStorage.getItem('access_token') || localStorage.getItem('token') || (function () {
+                    try { return JSON.parse(localStorage.getItem('user') || '{}').token || JSON.parse(localStorage.getItem('user') || '{}').access_token; } catch (e) { return null; }
+                })() || (function () {
+                    try { return JSON.parse(localStorage.getItem('currentUser') || '{}').token || JSON.parse(localStorage.getItem('currentUser') || '{}').access_token; } catch (e) { return null; }
+                })();
+
+                if (!userToken) {
                     if (typeof showCustomModal === 'function') {
                         showCustomModal(
                             'Yêu cầu đăng nhập',
