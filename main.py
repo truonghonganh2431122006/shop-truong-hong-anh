@@ -1632,8 +1632,8 @@ async def search_by_image(file: UploadFile = File(...), top_k: int = 12, db: Ses
     if len(img_bytes) > 8 * 1024 * 1024:
         raise HTTPException(status_code=400, detail="Ảnh quá lớn (tối đa 8MB)")
 
-    # Kiểm tra Gemini API key
-    gemini_key = os.getenv("GEMINI_API_KEY", "")
+    # Lấy Gemini API key (có key dự phòng giống chatbot)
+    gemini_key = os.getenv("GEMINI_API_KEY", "AIzaSyAJKjMcv0vhlG-KDfeOZGNxtppZ6lyN3B4")
     if not gemini_key:
         raise HTTPException(status_code=503, detail="Chưa cấu hình GEMINI_API_KEY. Vui lòng liên hệ admin.")
 
@@ -1644,29 +1644,32 @@ async def search_by_image(file: UploadFile = File(...), top_k: int = 12, db: Ses
     if not products:
         return {"results": [], "message": "Chưa có sản phẩm nào trong cửa hàng."}
 
-    # Gửi ảnh tới Gemini Vision API
-    img_b64 = base64.b64encode(img_bytes).decode("utf-8")
-    mime_type = file.content_type or "image/jpeg"
+    # Chuẩn bị payload cho Gemini Vision (gửi kèm ảnh sản phẩm thực tế để Gemini so sánh trực quan)
+    parts = [
+        {"inlineData": {"mimeType": mime_type, "data": img_b64}},
+        {"text": "ĐÂY LÀ ẢNH KHÁCH HÀNG TẢI LÊN. Dưới đây là danh sách sản phẩm trong shop kèm hình ảnh mẫu thực tế để so sánh:\n"}
+    ]
 
-    # Tạo danh sách sản phẩm để Gemini so sánh trực tiếp
-    product_lines = "\n".join([f"{p.id}|{p.name}" for p in products])
+    for p in products:
+        p_img_bytes = _fetch_image_bytes(p.image_url) if p.image_url else None
+        if p_img_bytes:
+            p_mime = "image/png" if p.image_url.lower().endswith(".png") else "image/jpeg"
+            parts.append({"text": f"\nSản phẩm ID {p.id}: {p.name}"})
+            parts.append({"inlineData": {"mimeType": p_mime, "data": base64.b64encode(p_img_bytes).decode("utf-8")}})
+        else:
+            parts.append({"text": f"\nSản phẩm ID {p.id}: {p.name}"})
 
-    gemini_payload = {
-        "contents": [{
-            "parts": [
-                {"inlineData": {"mimeType": mime_type, "data": img_b64}},
-                {"text": (
-                    "Nhìn ảnh sản phẩm này. Dưới đây là danh sách sản phẩm của shop (mỗi dòng: ID|Tên):\n"
-                    f"{product_lines}\n\n"
-                    "Hãy chọn tối đa 6 sản phẩm GIỐNG NHẤT với sản phẩm trong ảnh.\n"
-                    "Trả lời ĐÚNG FORMAT, mỗi dòng một sản phẩm: ID,điểm_giống(0-100)\n"
-                    "Ví dụ:\n5,95\n12,80\n3,60\n"
-                    "CHỈ trả lời theo format trên, KHÔNG viết gì thêm.\n"
-                    "Nếu không nhận ra sản phẩm nào giống, trả lời: NONE"
-                )}
-            ]
-        }]
-    }
+    parts.append({"text": (
+        "\n\nNHIỆM VỤ: Hãy so sánh TRỰC QUAN hình ảnh khách tải lên với từng ảnh sản phẩm thực tế của shop ở trên "
+        "(về thiết kế, thương hiệu, loại thiết bị, cụm camera, màu sắc).\n"
+        "Hãy chọn ra tối đa 6 sản phẩm GIỐNG NHẤT.\n"
+        "Trả lời ĐÚNG FORMAT, mỗi dòng một sản phẩm: ID,điểm_giống(0-100)\n"
+        "Ví dụ:\n5,95\n12,80\n3,60\n"
+        "CHỈ trả lời theo format trên, KHÔNG viết gì thêm.\n"
+        "Nếu không có sản phẩm nào giống, trả lời: NONE"
+    )})
+
+    gemini_payload = {"contents": [{"parts": parts}]}
 
     try:
         import httpx as _httpx
