@@ -21703,7 +21703,7 @@
             </div>
 
             <!-- Nút Đơn hàng -->
-            <a href="/order-history.html" onclick="window.location.href='/order-history.html'" class="ha-header-btn ha-btn-orders" title="Lịch sử đơn hàng">
+            <a href="/order-history.html" onclick="event.stopPropagation(); window.location.href='/order-history.html'; return true;" class="ha-header-btn ha-btn-orders" title="Lịch sử đơn hàng">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
                 <span>Đơn hàng</span>
             </a>
@@ -24165,6 +24165,12 @@ async function applyVoucher() {
 
                 if (link) {
                     var href = (link.getAttribute('href') || '').trim();
+
+                    // Order History link -> Force direct navigation to order-history.html
+                    if (link.closest('.ha-btn-orders') || href.indexOf('order-history') > -1) {
+                        window.location.href = '/order-history.html';
+                        return true;
+                    }
 
                     // Cart icon
                     if (link.closest('#cart-box') || link.closest('.header__cart') || link.closest('.view-cart')) {
