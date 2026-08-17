@@ -26072,14 +26072,14 @@
         #ha-win {
             position: fixed;
             bottom: 90px;
-            right: 24px;
-            width: 440px;
+            right: 28px;
+            width: 540px;
             max-width: calc(100vw - 32px);
-            height: 620px;
-            max-height: calc(100vh - 100px);
+            height: 720px;
+            max-height: calc(100vh - 80px);
             background: #fff;
             border-radius: 24px;
-            box-shadow: 0 16px 56px rgba(0, 0, 0, 0.22);
+            box-shadow: 0 24px 64px rgba(15, 23, 42, 0.28);
             display: flex;
             flex-direction: column;
             overflow: hidden;
@@ -26089,6 +26089,7 @@
             pointer-events: none;
             transition: transform 0.28s cubic-bezier(.34, 1.56, .64, 1), opacity 0.22s;
             transform-origin: bottom right;
+            border: 1px solid rgba(226, 232, 240, 0.8);
         }
 
         #ha-win.open {
@@ -26098,28 +26099,30 @@
         }
 
         #ha-hdr {
-            background: linear-gradient(135deg, #1a1a2e, #16213e);
-            padding: 14px 18px;
+            background: linear-gradient(135deg, #0f172a, #1e293b);
+            padding: 16px 20px;
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 14px;
             flex-shrink: 0;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.12);
         }
 
         #ha-av {
-            width: 40px;
-            height: 40px;
-            background: #ffed00;
+            width: 44px;
+            height: 44px;
+            background: linear-gradient(135deg, #f59e0b, #d97706);
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             flex-shrink: 0;
+            box-shadow: 0 3px 10px rgba(245, 158, 11, 0.4);
         }
 
         #ha-av svg {
-            width: 22px;
-            height: 22px;
+            width: 24px;
+            height: 24px;
         }
 
         #ha-hdr-info {
@@ -26129,72 +26132,78 @@
 
         #ha-hdr-name {
             color: #fff;
-            font-size: 14px;
-            font-weight: 700;
-            font-family: -apple-system, sans-serif;
+            font-size: 15.5px;
+            font-weight: 800;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            letter-spacing: 0.2px;
         }
 
         #ha-hdr-status {
             color: #4ade80;
-            font-size: 11px;
-            margin-top: 1px;
-            font-family: -apple-system, sans-serif;
+            font-size: 12px;
+            margin-top: 2px;
+            font-weight: 600;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            display: flex;
+            align-items: center;
+            gap: 4px;
         }
 
         #ha-x {
-            background: rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.12);
             border: none;
             color: #fff;
-            width: 30px;
-            height: 30px;
+            width: 34px;
+            height: 34px;
             border-radius: 50%;
             cursor: pointer;
-            font-size: 16px;
+            font-size: 18px;
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: background 0.2s;
+            transition: all 0.2s;
             flex-shrink: 0;
         }
 
         #ha-x:hover {
-            background: rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.25);
+            transform: rotate(90deg);
         }
 
         #ha-msgs {
             flex: 1;
             overflow-y: auto;
-            padding: 16px 14px;
+            padding: 18px 16px;
             display: flex;
             flex-direction: column;
-            gap: 10px;
-            background: #f7f8fc;
+            gap: 12px;
+            background: #f8fafc;
             scroll-behavior: smooth;
         }
 
         #ha-msgs::-webkit-scrollbar {
-            width: 4px;
+            width: 5px;
         }
 
         #ha-msgs::-webkit-scrollbar-thumb {
-            background: #d0d0d0;
-            border-radius: 4px;
+            background: #cbd5e1;
+            border-radius: 6px;
         }
 
         .ha-b {
-            max-width: 82%;
-            padding: 10px 14px;
-            border-radius: 18px;
-            font-size: 13.5px;
-            line-height: 1.55;
+            max-width: 85%;
+            padding: 12px 18px;
+            border-radius: 20px;
+            font-size: 14px;
+            line-height: 1.6;
             word-break: break-word;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             animation: ha-pop 0.2s cubic-bezier(.34, 1.56, .64, 1);
         }
 
         @keyframes ha-pop {
             from {
-                transform: scale(0.88);
+                transform: scale(0.92);
                 opacity: 0
             }
 
@@ -26206,43 +26215,46 @@
 
         .ha-b.bot {
             background: #fff;
-            color: #1a1a2e;
+            color: #0f172a;
             align-self: flex-start;
             border-bottom-left-radius: 6px;
-            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
         }
 
         .ha-b.usr {
-            background: #1a1a2e;
+            background: linear-gradient(135deg, #1e293b, #0f172a);
             color: #fff;
             align-self: flex-end;
             border-bottom-right-radius: 6px;
+            box-shadow: 0 3px 10px rgba(15, 23, 42, 0.18);
         }
 
         .ha-b.err {
-            background: #fff3cd;
-            color: #856404;
+            background: #fef2f2;
+            color: #991b1b;
             align-self: flex-start;
             border-bottom-left-radius: 6px;
-            border-left: 3px solid #ffc107;
+            border: 1px solid #fecaca;
         }
 
         .ha-dots {
             display: flex;
-            gap: 5px;
+            gap: 6px;
             align-items: center;
-            padding: 12px 16px;
+            padding: 14px 18px;
             background: #fff;
-            border-radius: 18px;
+            border-radius: 20px;
             border-bottom-left-radius: 6px;
             align-self: flex-start;
-            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
         }
 
         .ha-dots span {
-            width: 7px;
-            height: 7px;
-            background: #aaa;
+            width: 8px;
+            height: 8px;
+            background: #94a3b8;
             border-radius: 50%;
             animation: ha-bounce 1.2s infinite;
         }
@@ -26261,75 +26273,81 @@
             60%,
             100% {
                 transform: translateY(0);
-                background: #bbb
+                background: #94a3b8
             }
 
             30% {
                 transform: translateY(-6px);
-                background: #ffed00
+                background: #f59e0b
             }
         }
 
         #ha-chips {
             display: flex;
-            gap: 6px;
+            gap: 8px;
             flex-wrap: wrap;
-            padding: 0 14px 10px;
-            background: #f7f8fc;
+            padding: 0 16px 12px;
+            background: #f8fafc;
             flex-shrink: 0;
         }
 
         .ha-chip {
-            padding: 5px 12px;
+            padding: 6px 14px;
             background: #fff;
-            border: 1.5px solid #e2e8f0;
-            border-radius: 20px;
-            font-size: 12px;
+            border: 1.5px solid #cbd5e1;
+            border-radius: 24px;
+            font-size: 12.5px;
             cursor: pointer;
-            color: #1a1a2e;
-            font-weight: 500;
-            transition: all .18s;
+            color: #1e293b;
+            font-weight: 600;
+            transition: all .2s;
             white-space: nowrap;
-            font-family: -apple-system, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.03);
         }
 
         .ha-chip:hover {
-            background: #ffed00;
-            border-color: #ffed00;
+            background: #f59e0b;
+            border-color: #f59e0b;
+            color: #fff;
+            transform: translateY(-1px);
+            box-shadow: 0 3px 8px rgba(245, 158, 11, 0.3);
         }
 
         #ha-inp-area {
             display: flex;
             align-items: center;
-            gap: 8px;
-            padding: 12px 14px;
+            gap: 10px;
+            padding: 14px 16px;
             background: #fff;
-            border-top: 1px solid #eee;
+            border-top: 1px solid #e2e8f0;
             flex-shrink: 0;
         }
 
         #ha-inp {
             flex: 1;
-            padding: 10px 14px;
-            border: 1.5px solid #e2e8f0;
-            border-radius: 24px;
-            font-size: 13.5px;
+            padding: 12px 18px;
+            border: 1.5px solid #cbd5e1;
+            border-radius: 28px;
+            font-size: 14px;
             outline: none;
             resize: none;
-            font-family: -apple-system, sans-serif;
-            transition: border-color .2s;
-            max-height: 80px;
-            line-height: 1.4;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            transition: all .2s;
+            max-height: 90px;
+            line-height: 1.45;
+            color: #0f172a;
         }
 
         #ha-inp:focus {
-            border-color: #ffed00;
+            border-color: #f59e0b;
+            box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.2);
         }
 
         #ha-send {
-            width: 40px;
-            height: 40px;
-            background: #ffed00;
+            width: 44px;
+            height: 44px;
+            background: linear-gradient(135deg, #f59e0b, #d97706);
             border: none;
             border-radius: 50%;
             cursor: pointer;
@@ -26337,17 +26355,18 @@
             align-items: center;
             justify-content: center;
             flex-shrink: 0;
-            transition: transform .2s, box-shadow .2s;
+            transition: all .2s;
+            box-shadow: 0 3px 10px rgba(245, 158, 11, 0.4);
         }
 
         #ha-send:hover {
             transform: scale(1.08);
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+            box-shadow: 0 4px 14px rgba(245, 158, 11, 0.5);
         }
 
         #ha-send svg {
-            width: 18px;
-            height: 18px;
+            width: 20px;
+            height: 20px;
         }
     </style>
 
@@ -26604,35 +26623,35 @@
                 if (!matched.length) return;
 
                 var cardWrap = document.createElement('div');
-                cardWrap.style.cssText = 'margin:12px 0;padding:12px;background:#f8fafc;border-radius:16px;border:1px solid #e2e8f0;box-shadow:0 3px 12px rgba(0,0,0,0.05);';
-                cardWrap.innerHTML = '<div style="font-size:13px;font-weight:700;color:#0f172a;margin-bottom:10px;display:flex;align-items:center;gap:6px;">🛍️ Sản phẩm gợi ý dành cho bạn:</div>';
+                cardWrap.style.cssText = 'margin:14px 0;padding:14px;background:#f8fafc;border-radius:18px;border:1px solid #e2e8f0;box-shadow:0 3px 12px rgba(0,0,0,0.05);';
+                cardWrap.innerHTML = '<div style="font-size:13.5px;font-weight:800;color:#0f172a;margin-bottom:12px;display:flex;align-items:center;gap:6px;">🛍️ Sản phẩm phù hợp dành cho bạn:</div>';
 
                 var scrollBox = document.createElement('div');
-                scrollBox.style.cssText = 'display:flex;gap:12px;overflow-x:auto;padding-bottom:8px;scroll-behavior:smooth;-webkit-overflow-scrolling:touch;';
+                scrollBox.style.cssText = 'display:flex;gap:14px;overflow-x:auto;padding-bottom:10px;scroll-behavior:smooth;-webkit-overflow-scrolling:touch;';
 
                 matched.forEach(function (p) {
                     var fmtPrice = new Intl.NumberFormat('vi-VN').format(p.price) + '₫';
                     var img = p.image_url || p.img || 'https://via.placeholder.com/150';
                     
                     var card = document.createElement('div');
-                    card.style.cssText = 'flex:0 0 160px;width:160px;background:#fff;border-radius:12px;padding:10px;border:1px solid #cbd5e1;box-shadow:0 3px 10px rgba(0,0,0,0.07);display:flex;flex-direction:column;justify-between:space-between;text-align:center;box-sizing:border-box;overflow:hidden;';
+                    card.style.cssText = 'flex:0 0 185px;width:185px;background:#fff;border-radius:14px;padding:12px;border:1px solid #cbd5e1;box-shadow:0 4px 12px rgba(0,0,0,0.07);display:flex;flex-direction:column;justify-between:space-between;text-align:center;box-sizing:border-box;overflow:hidden;transition:all 0.2s;';
                     
                     var imgEl = document.createElement('img');
                     imgEl.src = img;
                     imgEl.alt = p.name || '';
-                    imgEl.style.cssText = 'width:100%;height:100px;object-fit:contain;border-radius:8px;margin-bottom:8px;background:#f8fafc;padding:4px;box-sizing:border-box;';
+                    imgEl.style.cssText = 'width:100%;height:110px;object-fit:contain;border-radius:10px;margin-bottom:8px;background:#f8fafc;padding:6px;box-sizing:border-box;border:1px solid #f1f5f9;';
                     
                     var titleEl = document.createElement('div');
-                    titleEl.style.cssText = 'font-size:12px;font-weight:700;color:#1e293b;height:34px;overflow:hidden;text-overflow:ellipsis;line-height:1.3;margin-bottom:6px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;';
+                    titleEl.style.cssText = 'font-size:13px;font-weight:700;color:#0f172a;height:36px;overflow:hidden;text-overflow:ellipsis;line-height:1.35;margin-bottom:6px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;';
                     titleEl.textContent = p.name || '';
 
                     var priceEl = document.createElement('div');
-                    priceEl.style.cssText = 'font-size:13px;font-weight:800;color:#e11d48;margin-bottom:10px;';
+                    priceEl.style.cssText = 'font-size:14px;font-weight:800;color:#e11d48;margin-bottom:10px;';
                     priceEl.textContent = fmtPrice;
 
                     var btn = document.createElement('button');
                     btn.type = 'button';
-                    btn.style.cssText = 'background:linear-gradient(135deg,#eab308,#ca8a04);color:#fff;border:none;padding:7px 10px;border-radius:8px;font-size:11.5px;font-weight:800;cursor:pointer;width:100%;display:flex;align-items:center;justify-content:center;gap:4px;box-shadow:0 3px 8px rgba(202,138,4,0.4);transition:all 0.2s;';
+                    btn.style.cssText = 'background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff;border:none;padding:8px 12px;border-radius:10px;font-size:12px;font-weight:800;cursor:pointer;width:100%;display:flex;align-items:center;justify-content:center;gap:5px;box-shadow:0 3px 10px rgba(245,158,11,0.4);transition:all 0.2s;';
                     btn.innerHTML = '⚡ MUA NGAY';
                     
                     btn.onclick = function (e) {
