@@ -245,6 +245,34 @@
             gap: 3px;
         }
 
+        /* Side Banners 2 bên cố định lề màn hình (Tuyệt đối không nằm giữa dòng document) */
+        .tgdd-side-banner {
+            position: fixed !important;
+            top: 140px !important;
+            width: 120px !important;
+            z-index: 9999 !important;
+            display: block !important;
+            transition: all 0.3s ease !important;
+        }
+        .tgdd-side-banner.left {
+            left: 10px !important;
+        }
+        .tgdd-side-banner.right {
+            right: 10px !important;
+        }
+        .tgdd-side-banner img {
+            width: 100% !important;
+            height: auto !important;
+            border-radius: 12px !important;
+            box-shadow: 0 4px 18px rgba(0,0,0,0.18) !important;
+            display: block !important;
+        }
+        @media (max-width: 1360px) {
+            .tgdd-side-banner {
+                display: none !important;
+            }
+        }
+
         .modal-overlay {
             display: none !important; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.65); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
