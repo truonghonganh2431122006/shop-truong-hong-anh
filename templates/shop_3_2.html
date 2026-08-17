@@ -26071,15 +26071,15 @@
 
         #ha-win {
             position: fixed;
-            bottom: 60px;
-            right: 28px;
-            width: 780px;
-            max-width: calc(100vw - 32px);
-            height: 840px;
-            max-height: calc(100vh - 70px);
+            bottom: 70px;
+            right: 24px;
+            width: 620px;
+            max-width: calc(100vw - 20px);
+            height: 780px;
+            max-height: calc(100vh - 80px);
             background: #fff;
-            border-radius: 28px;
-            box-shadow: 0 32px 80px rgba(15, 23, 42, 0.38);
+            border-radius: 24px;
+            box-shadow: 0 24px 70px rgba(15, 23, 42, 0.32);
             display: flex;
             flex-direction: column;
             overflow: hidden;
@@ -26096,6 +26096,17 @@
             transform: scale(1) translateY(0);
             opacity: 1;
             pointer-events: all;
+        }
+
+        @media (max-width: 640px) {
+            #ha-win {
+                width: calc(100vw - 16px) !important;
+                right: 8px !important;
+                bottom: 70px !important;
+                height: calc(100vh - 85px) !important;
+                max-height: calc(100vh - 85px) !important;
+                border-radius: 20px !important;
+            }
         }
 
         #ha-hdr {
@@ -26656,11 +26667,7 @@
                     
                     btn.onclick = function (e) {
                         if (e) { e.preventDefault(); e.stopPropagation(); }
-                        if (typeof window.openQuickOrder === 'function') {
-                            window.openQuickOrder(p.id, p.name, p.price, img);
-                        } else {
-                            alert('Vui lòng tải lại trang để mở form mua ngay!');
-                        }
+                        haToggleInlineCheckout(p, cardWrap);
                     };
 
                     card.appendChild(imgEl);
@@ -26673,6 +26680,167 @@
                 cardWrap.appendChild(scrollBox);
                 el('ha-msgs').appendChild(cardWrap);
                 scroll();
+            }
+
+            // 🛒 Hàm Toggle Form Thanh Toán Trực Tiếp Nhỏ ngay TRONG khung chat
+            function haToggleInlineCheckout(p, cardWrap) {
+                var formId = 'ha-ic-form-' + p.id;
+                var existingForm = document.getElementById(formId);
+
+                if (existingForm) {
+                    if (existingForm.style.display === 'none') {
+                        existingForm.style.display = 'block';
+                    } else {
+                        existingForm.style.display = 'none';
+                    }
+                    scroll();
+                    return;
+                }
+
+                // Ẩn tất cả inline checkout form khác nếu đang mở
+                var allForms = document.querySelectorAll('.ha-inline-checkout');
+                allForms.forEach(function (f) { f.style.display = 'none'; });
+
+                // Tự động lấy trước thông tin người dùng nếu đã đăng nhập
+                var savedUser = {};
+                try {
+                    savedUser = JSON.parse(localStorage.getItem('user') || localStorage.getItem('currentUser') || '{}');
+                } catch (e) { }
+                var preName = savedUser.full_name || savedUser.name || savedUser.username || '';
+                var prePhone = savedUser.phone || savedUser.phone_number || '';
+                var preAddr = savedUser.address || savedUser.shipping_address || '';
+
+                var fmtPrice = new Intl.NumberFormat('vi-VN').format(p.price) + '₫';
+
+                var formBox = document.createElement('div');
+                formBox.id = formId;
+                formBox.className = 'ha-inline-checkout';
+                formBox.style.cssText = 'margin-top:12px;padding:14px;background:#ffffff;border-radius:16px;border:2px solid #f59e0b;box-shadow:0 6px 24px rgba(245,158,11,0.18);text-align:left;animation:ha-pop 0.25s cubic-bezier(.34,1.56,.64,1);';
+
+                formBox.innerHTML = [
+                    '<div style="font-size:13px;font-weight:800;color:#0f172a;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #f1f5f9;padding-bottom:8px">',
+                    '  <span>📝 Form Đặt Mua Nhanh: <span style="color:#e11d48">' + p.name + '</span> (' + fmtPrice + ')</span>',
+                    '  <button type="button" onclick="document.getElementById(\'' + formId + '\').style.display=\'none\'" style="background:none;border:none;color:#94a3b8;font-size:16px;cursor:pointer;padding:0 4px">✖</button>',
+                    '</div>',
+                    '<div style="display:flex;flex-direction:column;gap:9px">',
+                    '  <div>',
+                    '    <label style="font-size:11px;font-weight:700;color:#475569;margin-bottom:3px;display:block">Họ và tên người nhận <span style="color:#e11d48">*</span></label>',
+                    '    <input type="text" id="ha-ic-name-' + p.id + '" placeholder="Nhập họ và tên..." value="' + preName + '" style="width:100%;padding:9px 12px;border:1.5px solid #cbd5e1;border-radius:8px;font-size:13px;outline:none;box-sizing:border-box">',
+                    '  </div>',
+                    '  <div>',
+                    '    <label style="font-size:11px;font-weight:700;color:#475569;margin-bottom:3px;display:block">Số điện thoại liên hệ <span style="color:#e11d48">*</span></label>',
+                    '    <input type="tel" id="ha-ic-phone-' + p.id + '" placeholder="Nhập số điện thoại..." value="' + prePhone + '" style="width:100%;padding:9px 12px;border:1.5px solid #cbd5e1;border-radius:8px;font-size:13px;outline:none;box-sizing:border-box">',
+                    '  </div>',
+                    '  <div>',
+                    '    <label style="font-size:11px;font-weight:700;color:#475569;margin-bottom:3px;display:block">Địa chỉ nhận hàng <span style="color:#e11d48">*</span></label>',
+                    '    <input type="text" id="ha-ic-addr-' + p.id + '" placeholder="Số nhà, tên đường, phường/xã, quận/huyện..." value="' + preAddr + '" style="width:100%;padding:9px 12px;border:1.5px solid #cbd5e1;border-radius:8px;font-size:13px;outline:none;box-sizing:border-box">',
+                    '  </div>',
+                    '  <div>',
+                    '    <label style="font-size:11px;font-weight:700;color:#475569;margin-bottom:3px;display:block">Mã giảm giá (Tùy chọn)</label>',
+                    '    <input type="text" id="ha-ic-voucher-' + p.id + '" placeholder="Nhập mã voucher (nếu có)..." style="width:100%;padding:9px 12px;border:1.5px solid #cbd5e1;border-radius:8px;font-size:13px;outline:none;box-sizing:border-box">',
+                    '  </div>',
+                    '  <div id="ha-ic-err-' + p.id + '" style="display:none;color:#dc2626;font-size:12px;font-weight:600;padding:2px 4px"></div>',
+                    '  <div style="display:flex;gap:10px;margin-top:6px">',
+                    '    <button type="button" onclick="document.getElementById(\'' + formId + '\').style.display=\'none\'" style="flex:1;background:#f1f5f9;color:#475569;border:1px solid #cbd5e1;padding:10px;border-radius:10px;font-size:12.5px;font-weight:700;cursor:pointer">✖ Đóng</button>',
+                    '    <button type="button" id="ha-ic-btn-' + p.id + '" style="flex:2;background:linear-gradient(135deg,#16a34a,#15803d);color:#fff;border:none;padding:10px;border-radius:10px;font-size:13px;font-weight:800;cursor:pointer;box-shadow:0 3px 10px rgba(22,163,74,0.35)">✅ XÁC NHẬN MUA NGAY</button>',
+                    '  </div>',
+                    '</div>'
+                ].join('');
+
+                cardWrap.appendChild(formBox);
+                scroll();
+
+                var submitBtn = document.getElementById('ha-ic-btn-' + p.id);
+                submitBtn.onclick = function () {
+                    haSubmitInlineOrder(p, formId);
+                };
+            }
+
+            // 🚀 Hàm xử lý Đặt hàng qua API POST /orders ngay trong Chatbot
+            async function haSubmitInlineOrder(p, formId) {
+                var nameEl = document.getElementById('ha-ic-name-' + p.id);
+                var phoneEl = document.getElementById('ha-ic-phone-' + p.id);
+                var addrEl = document.getElementById('ha-ic-addr-' + p.id);
+                var voucherEl = document.getElementById('ha-ic-voucher-' + p.id);
+                var errEl = document.getElementById('ha-ic-err-' + p.id);
+                var btnEl = document.getElementById('ha-ic-btn-' + p.id);
+
+                var nameVal = (nameEl ? nameEl.value : '').trim();
+                var phoneVal = (phoneEl ? phoneEl.value : '').trim();
+                var addrVal = (addrEl ? addrEl.value : '').trim();
+                var voucherVal = (voucherEl ? voucherEl.value : '').trim();
+
+                if (!nameVal) {
+                    if (errEl) { errEl.textContent = '⚠️ Vui lòng nhập Họ và tên người nhận!'; errEl.style.display = 'block'; }
+                    if (nameEl) nameEl.focus();
+                    return;
+                }
+                if (!phoneVal || phoneVal.length < 9) {
+                    if (errEl) { errEl.textContent = '⚠️ Vui lòng nhập Số điện thoại liên hệ hợp lệ!'; errEl.style.display = 'block'; }
+                    if (phoneEl) phoneEl.focus();
+                    return;
+                }
+                if (!addrVal) {
+                    if (errEl) { errEl.textContent = '⚠️ Vui lòng nhập Địa chỉ chi tiết nhận hàng!'; errEl.style.display = 'block'; }
+                    if (addrEl) addrEl.focus();
+                    return;
+                }
+
+                if (errEl) errEl.style.display = 'none';
+                if (btnEl) { btnEl.disabled = true; btnEl.innerHTML = '⏳ Đang tạo đơn...'; }
+
+                var userToken = localStorage.getItem('access_token') || localStorage.getItem('token') || (function () {
+                    try { return JSON.parse(localStorage.getItem('user') || '{}').token || JSON.parse(localStorage.getItem('user') || '{}').access_token; } catch (e) { return null; }
+                })() || (function () {
+                    try { return JSON.parse(localStorage.getItem('currentUser') || '{}').token || JSON.parse(localStorage.getItem('currentUser') || '{}').access_token; } catch (e) { return null; }
+                })();
+
+                var headers = { 'Content-Type': 'application/json' };
+                if (userToken) {
+                    headers['Authorization'] = 'Bearer ' + userToken;
+                }
+
+                try {
+                    var res = await fetch('/orders', {
+                        method: 'POST',
+                        headers: headers,
+                        body: JSON.stringify({
+                            items: [{ product_id: p.id, quantity: 1 }],
+                            customer_name: nameVal,
+                            phone_number: phoneVal,
+                            shipping_address: addrVal,
+                            voucher_code: voucherVal || null
+                        })
+                    });
+
+                    var data = await res.json();
+                    if (res.ok) {
+                        var formBox = document.getElementById(formId);
+                        var orderCode = '#' + (data.id || data.order_id || Math.floor(Math.random() * 90000 + 10000));
+                        if (formBox) {
+                            formBox.style.cssText = 'margin-top:12px;padding:14px;background:#f0fdf4;border-radius:16px;border:2px solid #22c55e;box-shadow:0 4px 18px rgba(34,197,94,0.18);text-align:left;animation:ha-pop 0.25s cubic-bezier(.34,1.56,.64,1);';
+                            formBox.innerHTML = [
+                                '<div style="font-size:14.5px;font-weight:800;color:#15803d;margin-bottom:8px">🎉 ĐẶT HÀNG THÀNH CÔNG!</div>',
+                                '<div style="font-size:13px;color:#1e293b;line-height:1.55">',
+                                '  Mã đơn hàng: <b style="color:#2563eb">' + orderCode + '</b><br>',
+                                '  Sản phẩm: <b>' + p.name + '</b><br>',
+                                '  Người nhận: <b>' + nameVal + '</b> (' + phoneVal + ')<br>',
+                                '  Địa chỉ giao: ' + addrVal + '<br>',
+                                '  <div style="margin-top:10px;padding:8px 10px;background:#dcfce7;border-radius:8px;color:#166534;font-weight:700">✅ Cảm ơn bạn! Shop Trương Hồng Anh sẽ gọi điện xác nhận và giao hàng ngay cho bạn nhé.</div>',
+                                '</div>'
+                            ].join('');
+                        }
+
+                        botMsg('✅ Cảm ơn <b>' + nameVal + '</b>! Đơn hàng mua <b>' + p.name + '</b> (' + orderCode + ') của bạn đã được khởi tạo thành công. Shop sẽ liên hệ qua SĐT ' + phoneVal + ' để giao hàng nhé!');
+                    } else {
+                        var msg = data.detail || data.message || 'Đặt hàng không thành công. Vui lòng kiểm tra lại.';
+                        if (errEl) { errEl.textContent = '❌ ' + msg; errEl.style.display = 'block'; }
+                        if (btnEl) { btnEl.disabled = false; btnEl.innerHTML = '✅ XÁC NHẬN MUA NGAY'; }
+                    }
+                } catch (err) {
+                    if (errEl) { errEl.textContent = '❌ Lỗi kết nối: ' + err.message; errEl.style.display = 'block'; }
+                    if (btnEl) { btnEl.disabled = false; btnEl.innerHTML = '✅ XÁC NHẬN MUA NGAY'; }
+                }
             }
 
             function usrMsg(t) {
