@@ -2936,14 +2936,14 @@ async def chatbot_chat_endpoint(req: List[ChatMessage], db: Session = Depends(ge
     }
 
     models_to_try = [
-        os.getenv("GEMINI_MODEL", "gemini-1.5-flash"),
-        "gemini-2.0-flash",
-        "gemini-1.5-pro",
-        "gemini-2.0-flash-lite-preview-02-05"
+        os.getenv("GEMINI_MODEL", "gemini-3.6-flash"),
+        "gemini-3.5-flash-lite",
+        "gemini-3.6-flash"
     ]
 
     async with httpx.AsyncClient(timeout=18.0) as client:
         last_error = "Không thể kết nối Gemini API"
+        # 1. Thử các model Gemini chuẩn
         for mod in models_to_try:
             url = f"https://generativelanguage.googleapis.com/v1beta/models/{mod}:generateContent?key={gemini_key}"
             try:
@@ -2955,10 +2955,36 @@ async def chatbot_chat_endpoint(req: List[ChatMessage], db: Session = Depends(ge
                         parts = candidates[0].get("content", {}).get("parts", [])
                         if parts:
                             text = parts[0].get("text", "")
-                            return {"reply": text}
+                            if text.strip():
+                                return {"reply": text}
                 else:
                     last_error = f"Gemini API ({mod}) error HTTP {res.status_code}: {res.text}"
             except Exception as e:
                 last_error = str(e)
+
+        # 2. Fallback sang Groq API trên Server nếu Gemini bận hoặc Key hết hạn
+        groq_key = "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"
+        groq_url = "https://api.groq.com/openai/v1/chat/completions"
+        groq_models = ["openai/gpt-oss-20b", "groq/compound", "qwen/qwen3.6-27b"]
+        
+        groq_messages = [{"role": "system", "content": full_system}] + [
+            {"role": "user" if m.role == "user" else "assistant", "content": m.content}
+            for m in req
+        ]
+
+        for gmod in groq_models:
+            try:
+                res = await client.post(
+                    groq_url,
+                    headers={"Authorization": f"Bearer {groq_key}", "Content-Type": "application/json"},
+                    json={"model": gmod, "messages": groq_messages, "max_tokens": 450, "temperature": 0.7}
+                )
+                if res.status_code == 200:
+                    gdata = res.json()
+                    choices = gdata.get("choices", [])
+                    if choices and choices[0].get("message"):
+                        return {"reply": choices[0]["message"]["content"]}
+            except Exception:
+                pass
 
     raise HTTPException(status_code=502, detail=last_error)

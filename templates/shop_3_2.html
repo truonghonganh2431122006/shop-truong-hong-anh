@@ -26408,7 +26408,7 @@
             // ============================================================
             var GROQ_KEY = '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'; // ← AI #1 — Điền Groq API key của bạn vào đây
             var GROQ_URL = 'https://api.groq.com/openai/v1/chat/completions';
-            var MODEL = 'llama-3.1-8b-instant'; // Model siêu nhanh từ Groq (miễn phí)
+            var MODEL = 'openai/gpt-oss-20b'; // Model Groq chính thức siêu nhanh & miễn phí
 
             /* ── System prompt CSKH — biết sản phẩm nhưng CHỈ tư vấn, không hiển thị card ── */
             function getSYS() {
@@ -26490,7 +26490,7 @@
 
                 // 2. FALLBACK: Nếu Backend Gemini bận hoặc chưa hồi đáp → Thử Groq API trực tiếp
                 if (!reply) {
-                    var candidateModels = [MODEL, 'llama-3.3-70b-versatile', 'llama-3.1-8b-instant'];
+                    var candidateModels = ['openai/gpt-oss-20b', 'groq/compound', 'qwen/qwen3.6-27b', 'openai/gpt-oss-120b'];
                     var messages = [{ role: 'system', content: getSYS() }].concat(hist);
                     var lastErr = null;
 
