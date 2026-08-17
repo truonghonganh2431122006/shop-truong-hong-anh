@@ -1815,17 +1815,10 @@ def delete_product(product_id: int, admin: User = Depends(require_admin), db: Se
 
 # ===================== ORDERS (USER & ADMIN) =====================
 
-# 1. SCHEMAS (Giữ để không lỗi 422)
-class OrderItemSchema(BaseModel):
-    product_id: int
-    quantity: int 
-
-#helloh
-class OrderCreateSchema(BaseModel):
-    items: List[CartItemSchema]
-    shipping_address: Optional[str] = ""
-    phone_number: Optional[str] = ""
-    customer_name: Optional[str] = ""
+# (Đã gộp OrderCreateSchema về 1 định nghĩa duy nhất ở trên, có đủ field voucher_code
+#  — trước đây có 1 class OrderCreateSchema TRÙNG TÊN bị khai báo lại ở đây và THIẾU
+#  field voucher_code, khiến Python ghi đè lên class gốc. Do đó dòng `if data.voucher_code:`
+#  trong create_order() bị AttributeError -> mọi đơn hàng đều lỗi 500 "Lỗi hệ thống khi lưu đơn hàng".)
 
 # 2. API: USER XEM ĐƠN HÀNG CỦA CHÍNH MÌNH (Sửa lỗi 405 & Phân quyền)
 @app.get("/orders")
