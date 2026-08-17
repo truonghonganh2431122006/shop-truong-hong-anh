@@ -24,13 +24,225 @@
         ════════════════════════════════════════════════ */
         :root {
             --ha-blue: #0071e3; --ha-blue-dk: #0058b8;
-            --ha-yellow: #ffed00; --ha-red: #d0021c;
-            --ha-bg: #f5f5f7; --ha-white: #ffffff;
-            --ha-text: #1d1d1f; --ha-sub: #6e6e73;
-            --ha-border: #d2d2d7; --ha-radius: 16px;
-            --ha-shadow: 0 2px 12px rgba(0,0,0,0.09);
+            --ha-yellow: #ffd400; --ha-red: #d0021c;
+            --ha-bg: #f3f4f6; --ha-white: #ffffff;
+            --ha-text: #111111; --ha-sub: #666666;
+            --ha-border: #e2e8f0; --ha-radius: 12px;
+            --ha-shadow: 0 4px 16px rgba(0,0,0,0.06);
             --ha-shadow-lg: 0 16px 48px rgba(0,0,0,0.17);
             --ha-ease: cubic-bezier(0.4,0,0.2,1);
+            --tgdd-yellow: #ffd400;
+            --tgdd-dark: #111111;
+            --tgdd-red: #d0021c;
+        }
+
+        /* ════════════════════════════════════════════════
+           THEGIOIDIDONG.COM STYLES (Header, Banners, Cards)
+        ════════════════════════════════════════════════ */
+        .tgdd-top-bar {
+            background: #ffd400;
+            color: #000;
+            text-align: center;
+            font-size: 13px;
+            font-weight: 700;
+            padding: 7px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            border-bottom: 1px solid rgba(0,0,0,0.06);
+        }
+        .tgdd-top-bar .badge-btn {
+            background: #ea580c;
+            color: #fff;
+            padding: 3px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        .header.v2024 {
+            background: #ffd400 !important;
+            border-bottom: none !important;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08) !important;
+        }
+        .header__top {
+            background: #ffd400 !important;
+            max-width: 1220px !important;
+            margin: 0 auto !important;
+            padding: 10px 16px !important;
+        }
+        .header__top > div {
+            display: flex !important;
+            align-items: center !important;
+            justify-content: space-between !important;
+            gap: 12px !important;
+        }
+
+        .tgdd-logo-box {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            text-decoration: none;
+            color: #000;
+            font-weight: 900;
+            font-size: 22px;
+            letter-spacing: -0.5px;
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+        .tgdd-logo-circle {
+            width: 32px;
+            height: 32px;
+            background: #000;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #ffd400;
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .header__search {
+            flex: 1 !important;
+            max-width: 480px !important;
+            position: relative !important;
+            display: flex !important;
+            align-items: center !important;
+            background: #ffffff !important;
+            border-radius: 30px !important;
+            padding: 3px 16px !important;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08) !important;
+            border: 1.5px solid rgba(0,0,0,0.05) !important;
+        }
+        .header__search input.input-search {
+            border: none !important;
+            outline: none !important;
+            width: 100% !important;
+            height: 36px !important;
+            font-size: 13.5px !important;
+            background: transparent !important;
+            padding: 0 8px !important;
+            color: #111 !important;
+        }
+
+        .tgdd-paylater-banner {
+            max-width: 1200px;
+            margin: 14px auto;
+            background: #ffffff;
+            border-radius: 30px;
+            padding: 10px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            font-size: 13px;
+            color: #333;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            border: 1px solid #e5e7eb;
+        }
+        .tgdd-paylater-banner strong {
+            color: #0071e3;
+        }
+
+        .tgdd-online-promo {
+            max-width: 1200px;
+            margin: 20px auto;
+            background: #ffffff;
+            border-radius: 18px;
+            padding: 20px 24px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+            border: 1px solid #f0f0f0;
+        }
+        .tgdd-online-title {
+            font-size: 24px;
+            font-weight: 800;
+            color: #111;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .tgdd-promo-tabs-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            overflow-x: auto;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #f0f0f0;
+            margin-bottom: 20px;
+        }
+        .tgdd-tab-btn {
+            padding: 8px 18px;
+            border-radius: 20px;
+            background: #f5f5f7;
+            border: 1px solid #e2e8f0;
+            font-size: 13px;
+            font-weight: 700;
+            color: #333;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.2s ease;
+        }
+        .tgdd-tab-btn:hover, .tgdd-tab-btn.active {
+            background: #111;
+            color: #fff;
+            border-color: #111;
+        }
+        .tgdd-tab-btn.flashsale {
+            background: #fff0f0;
+            border-color: #fecdd3;
+            color: #d0021c;
+        }
+        .tgdd-tab-btn.flashsale.active {
+            background: #d0021c;
+            color: #fff;
+            border-color: #d0021c;
+        }
+
+        .tgdd-countdown-box {
+            background: linear-gradient(135deg, #ff9800 0%, #ed6c02 100%);
+            border-radius: 24px;
+            padding: 10px 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            color: #fff;
+            font-weight: 800;
+            font-size: 14px;
+            margin: 0 auto 24px;
+            width: fit-content;
+            box-shadow: 0 4px 16px rgba(237, 108, 2, 0.35);
+        }
+        .tgdd-cd-num {
+            background: #ffffff;
+            color: #ed6c02;
+            padding: 4px 10px;
+            border-radius: 8px;
+            font-family: -apple-system, BlinkMacSystemFont, monospace;
+            font-size: 16px;
+            font-weight: 900;
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .tgdd-ai-badge {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: linear-gradient(135deg, #a855f7 0%, #6366f1 100%);
+            color: #fff;
+            font-size: 10px;
+            font-weight: 800;
+            padding: 3px 8px;
+            border-radius: 12px;
+            z-index: 5;
+            box-shadow: 0 2px 8px rgba(168, 85, 247, 0.4);
+            display: flex;
+            align-items: center;
+            gap: 3px;
         }
 
         .modal-overlay {
@@ -21095,14 +21307,25 @@
     </div>
 </div>
 
-<header class="header v2024        hasbanner" data-sub="0">
+<div class="tgdd-top-bar">
+    <span>🎓 LAPTOP TỰU TRƯỜNG - Học Gì Cũng Mượt</span>
+    <span style="color:#ea580c">•</span>
+    <span>TÂN SINH VIÊN ĐỔI ĐIỂM GIẢM THÊM ĐẾN 3 TRIỆU</span>
+    <span class="badge-btn">MUA NGAY</span>
+</div>
+
+<header class="header v2024 hasbanner" data-sub="0">
     <div class="header__top">
         <div>
-            <a href="/" class="header__logo" aria-label="logo">
+            <a href="/" class="header__logo" aria-label="logo" style="text-decoration:none;">
+                <div class="tgdd-logo-box">
+                    <div class="tgdd-logo-circle">●</div>
+                    thegioididong<span style="color:#000;font-weight:400;font-size:15px;margin-left:-2px;">.com</span>
+                </div>
             </a>
-            <form action="/tim-kiem" onsubmit="return false;" class="header__search ">
+            <form action="/tim-kiem" onsubmit="return false;" class="header__search">
                 <input id="skw" type="text" class="input-search"
-                    placeholder="Bạn tìm gì..." name="key" autocomplete="off" maxlength="100">
+                    placeholder="Cuối tuần khuyến mãi khủng..." name="key" autocomplete="off" maxlength="100">
                 <input type="file" id="haImageSearchFile" accept="image/*" style="display:none;">
                 <button type="submit" aria-label="button suggest search">
                     <i class="icon-search"></i>
@@ -21111,8 +21334,8 @@
             </form>
             <div id="haSearchExtraBtns" style="display:flex;align-items:center;gap:6px;margin-left:8px;flex-shrink:0;">
                 <button type="button" id="haVoiceSearchBtn" title="Tìm bằng giọng nói" aria-label="Tìm bằng giọng nói"
-                    style="background:#fff;border:1px solid rgba(0,0,0,0.12);border-radius:50%;width:36px;height:36px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-                    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#555" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    style="background:#fff;border:1px solid rgba(0,0,0,0.12);border-radius:50%;width:34px;height:34px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#555" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
                         <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
                         <line x1="12" y1="19" x2="12" y2="23"></line>
@@ -21120,28 +21343,35 @@
                     </svg>
                 </button>
                 <button type="button" id="haImageSearchBtn" title="Tìm bằng hình ảnh" aria-label="Tìm bằng hình ảnh"
-                    style="background:#fff;border:1px solid rgba(0,0,0,0.12);border-radius:50%;width:36px;height:36px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-                    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#555" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    style="background:#fff;border:1px solid rgba(0,0,0,0.12);border-radius:50%;width:34px;height:34px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#555" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
                         <circle cx="12" cy="13" r="4"></circle>
                     </svg>
                 </button>
             </div>
-            <div class="profile" style="display: flex; align-items: center; margin-right: 10px;">
+            
+            <!-- Nút chọn Tỉnh Thành chuẩn TGDD -->
+            <div class="location-btn" style="display:flex;align-items:center;gap:4px;background:rgba(255,255,255,0.7);padding:6px 12px;border-radius:20px;font-size:12.5px;font-weight:600;color:#111;cursor:pointer;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                <span>Hồ Chí Minh</span> ▾
+            </div>
+
+            <div class="profile" style="display: flex; align-items: center; margin-right: 4px;">
                 <button type="button" onclick="goToOrderHistory()" class="btn-order-nav" style="
-                    background: rgba(255, 255, 255, 0.7);
-                    border: 1px solid rgba(0, 0, 0, 0.2);
+                    background: rgba(255, 255, 255, 0.85);
+                    border: 1px solid rgba(0, 0, 0, 0.12);
                     color: #000000;
                     padding: 6px 12px;
                     border-radius: 20px;
                     cursor: pointer;
                     display: flex;
                     align-items: center;
-                    gap: 8px;
+                    gap: 6px;
                     font-family: inherit;
-                    transition: all 0.3s ease;
+                    transition: all 0.2s ease;
                 ">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                         <line x1="8" y1="6" x2="21" y2="6"></line>
                         <line x1="8" y1="12" x2="21" y2="12"></line>
                         <line x1="8" y1="18" x2="21" y2="18"></line>
@@ -21164,43 +21394,44 @@
                     <b onclick="window.location.href='/cart'">Xem giỏ hàng</b>
                 </div>
             </a>
-            <div id="auth-header-dynamic" style="display: flex; align-items: center; gap: 10px; margin: 0 15px;">
+            <div id="auth-header-dynamic" style="display: flex; align-items: center; gap: 8px; margin: 0 10px;">
                 
-                <div id="group-guest" style="display: flex; gap: 10px;">
+                <div id="group-guest" style="display: flex; gap: 8px;">
                     <button onclick="window.location.href='/login'" style="
-                        background: rgba(255, 255, 255, 0.1); 
-                        color: white; 
-                        border: 1px solid white; 
-                        padding: 7px 15px; 
-                        border-radius: 5px; 
+                        background: #ffffff; 
+                        color: #111111; 
+                        border: 1px solid rgba(0, 0, 0, 0.15); 
+                        padding: 6px 14px; 
+                        border-radius: 20px; 
                         font-size: 13px; 
-                        font-weight: 500; 
+                        font-weight: 600; 
                         cursor: pointer;
-                        transition: 0.3s;
+                        transition: 0.2s;
                     ">Đăng nhập</button>
 
                     <button onclick="window.location.href='/register'" style="
-                        background: #ffd400; 
-                        color: #000; 
+                        background: #111111; 
+                        color: #ffd400; 
                         border: none; 
-                        padding: 7px 15px; 
-                        border-radius: 5px; 
+                        padding: 6px 14px; 
+                        border-radius: 20px; 
                         font-size: 13px; 
-                        font-weight: bold; 
+                        font-weight: 700; 
                         cursor: pointer;
-                        transition: 0.3s;
+                        transition: 0.2s;
                     ">Đăng ký</button>
                 </div>
 
-                <div id="group-user" style="display: none; align-items: center; gap: 12px;">
+                <div id="group-user" style="display: none; align-items: center; gap: 8px;">
+                    <span id="user-account-name" style="font-size: 13px; font-weight: 700; color: #111;">Thành viên</span>
                     <button onclick="handleLogout()" style="
-                        background: #ff4d4d; 
+                        background: #d0021c; 
                         color: white; 
                         border: none; 
-                        padding: 7px 15px; 
-                        border-radius: 5px; 
+                        padding: 6px 14px; 
+                        border-radius: 20px; 
                         font-size: 13px; 
-                        font-weight: bold; 
+                        font-weight: 700; 
                         cursor: pointer;
                     ">Đăng xuất</button>
                 </div>
@@ -22043,27 +22274,78 @@
     </div>
 </header>
 <input type="hidden" data-location-twolevel="True" />
-<div class="body-home">
-    <div class="popup-banner">
-        <div class="only-banner">
-            <div class="icon-close-popup"></div>
-            <button class="readmore-btn" style="cursor:pointer; border:none; background:none; padding:0;">
-                <img style="cursor:pointer"
-                    src="https://cdnv2.tgdd.vn/mwg-static/tgdd/Banner/3f/89/3f89fe89326796b874b9ce47a36f3df7.png"
-                    alt="Banner popup" width="640" height="720">
-            </button>
-        </div>
+
+<!-- ⚡ TGDD PAYLATER & CREDIT CARD NOTICE BANNER -->
+<div class="tgdd-paylater-banner">
+    <div style="display:flex;align-items:center;gap:6px;">
+        <span style="background:#ffd400;color:#000;border-radius:50%;width:22px;height:22px;display:inline-flex;align-items:center;justify-content:center;font-weight:bold;font-size:11px;">🏃</span>
+        <span>MWG Paylater hạn mức đến <strong style="color:#0071e3">40 triệu</strong></span>
+    </div>
+    <span style="color:#ddd">•</span>
+    <div style="display:flex;align-items:center;gap:6px;">
+        <span style="background:#111;color:#fff;border-radius:4px;padding:2px 6px;font-size:10px;font-weight:bold;">CARD</span>
+        <span>Thẻ tín dụng VPBank MWG hạn mức đến <strong style="color:#0071e3">100 triệu</strong></span>
     </div>
 </div>
-<div class="big-banner">
-    <div class="close-bigBanner lazyload"></div>
-    <button class="readmore-btn" style="cursor:pointer; border:none; background:none; padding:0; width:100%;">
-        <img width='1200' height='260'
-            src="https://cdnv2.tgdd.vn/mwg-static/tgdd/Banner/3b/05/3b0530bcf8e6a5cef9d4af5f26e77685.jpg" alt="Banner Big">
-    </button>
+
+<!-- 📍 TGDD STICKY SIDE BANNERS -->
+<div class="tgdd-side-banner left">
+    <img src="/static/Banner-trai.jpg" alt="Banner trái" style="width:100%; border-radius:12px; box-shadow:0 4px 12px rgba(0,0,0,0.15);" onerror="this.src='/static/trai.jpg'">
 </div>
-<!--End-->
+<div class="tgdd-side-banner right">
+    <img src="/static/Banner-phai.jpg" alt="Banner phải" style="width:100%; border-radius:12px; box-shadow:0 4px 12px rgba(0,0,0,0.15);" onerror="this.src='/static/phai.jpg'">
+</div>
+
 <div class="main-container">
+    <!-- 🔥 KHUYẾN MÃI ONLINE SECTION & COUNTDOWN TIMER -->
+    <div class="tgdd-online-promo">
+        <div class="tgdd-online-title">Khuyến mãi online</div>
+        <div class="tgdd-promo-tabs-container">
+            <button class="tgdd-tab-btn flashsale active" onclick="tgddFilterTab('flashsale', this)">🔥 FLASH SALE GIÁ SỐC</button>
+            <button class="tgdd-tab-btn" onclick="tgddFilterTab('50', this)">🏷️ GIẢM ĐẾN 50%</button>
+            <button class="tgdd-tab-btn" onclick="tgddFilterTab('online', this)">⚡ ONLINE ONLY GIẢM ĐẾN 50%</button>
+            <button class="tgdd-tab-btn" onclick="tgddFilterTab('điện thoại', this)">Điện thoại</button>
+            <button class="tgdd-tab-btn" onclick="tgddFilterTab('apple', this)">Apple</button>
+            <button class="tgdd-tab-btn" onclick="tgddFilterTab('laptop', this)">Laptop</button>
+            <button class="tgdd-tab-btn" onclick="tgddFilterTab('phụ kiện', this)">Phụ kiện</button>
+            <button class="tgdd-tab-btn" onclick="tgddFilterTab('đồng hồ', this)">Đồng hồ</button>
+            <button class="tgdd-tab-btn" onclick="tgddFilterTab('pc', this)">PC, Máy in</button>
+        </div>
+        <div class="tgdd-countdown-box">
+            <span>Chỉ còn:</span>
+            <span class="tgdd-cd-num" id="tgdd-cd-h">03</span> : 
+            <span class="tgdd-cd-num" id="tgdd-cd-m">21</span> : 
+            <span class="tgdd-cd-num" id="tgdd-cd-s">55</span>
+        </div>
+    </div>
+    <script>
+        (function initTgddCountdown() {
+            let secondsLeft = 3 * 3600 + 21 * 60 + 55;
+            function updateCd() {
+                if (secondsLeft <= 0) secondsLeft = 24 * 3600;
+                secondsLeft--;
+                const h = Math.floor(secondsLeft / 3600);
+                const m = Math.floor((secondsLeft % 3600) / 60);
+                const s = secondsLeft % 60;
+                const elH = document.getElementById('tgdd-cd-h');
+                const elM = document.getElementById('tgdd-cd-m');
+                const elS = document.getElementById('tgdd-cd-s');
+                if (elH) elH.textContent = String(h).padStart(2, '0');
+                if (elM) elM.textContent = String(m).padStart(2, '0');
+                if (elS) elS.textContent = String(s).padStart(2, '0');
+            }
+            updateCd();
+            setInterval(updateCd, 1000);
+        })();
+
+        function tgddFilterTab(tabKeyword, btnEl) {
+            document.querySelectorAll('.tgdd-tab-btn').forEach(b => b.classList.remove('active'));
+            if (btnEl) btnEl.classList.add('active');
+            if (typeof window.filterProductsByTab === 'function') {
+                window.filterProductsByTab(tabKeyword.toLowerCase());
+            }
+        }
+    </script>
     <!-- ════ NÚT LỌC SẢN PHẨM — nằm ngay trên danh sách ════ -->
     <div id="ha-filter-wrapper">
         <button id="ha-filter-btn" onclick="haToggleFilter()">
@@ -24327,6 +24609,10 @@ async function applyVoucher() {
                         ? '<span class="ha-badge">HOT</span>'
                         : isSale ? '<span class="ha-badge" style="background:#0071e3">SALE</span>' : '';
 
+                    const aiBadge = (p.id % 2 === 0 || /samsung|apple|iphone|watch|ultra/i.test(p.name)) ? '<span class="tgdd-ai-badge">✦ AI</span>' : '';
+                    const oldPriceVal = cleanPrice(Math.round(p.price * 1.35));
+                    const discountPct = Math.round(15 + (p.id * 7) % 30);
+
                     const safeName = p.name.replace(/'/g, "\\'").replace(/"/g, '&quot;');
 
                     let fsTimerHtml = '';
@@ -24339,7 +24625,7 @@ async function applyVoucher() {
 
                     // Vẽ nội dung bên trong
                     itemDiv.innerHTML = `
-                        
+                        ${aiBadge}
                         ${fsBadge}
                         ${badge}
                         <a href="javascript:void(0)" class="remain_quantity main-contain">
@@ -24351,8 +24637,8 @@ async function applyVoucher() {
                             <strong class="price">
                                 ${displayPrice} ₫
                                 <span class="price-and-discount">
-                                    <label class="price-old black">Giá gốc</label>
-                                    <small>-30%</small>
+                                    <label class="price-old black">${oldPriceVal} ₫</label>
+                                    <small>-${discountPct}%</small>
                                 </span>
                             </strong>
                             ${fsTimerHtml}
@@ -24360,7 +24646,7 @@ async function applyVoucher() {
                         <div class="btn-buy">
                             <a href="javascript:void(0)" class="buy-now"
                                onclick="event.stopPropagation(); addToCart(${p.id}, '${safeName}', ${effectivePrice}, '${imgUrl}')">
-                                🛒 Thêm vào giỏ
+                                🛒 MUA NGAY
                             </a>
                         </div>
                     `;
