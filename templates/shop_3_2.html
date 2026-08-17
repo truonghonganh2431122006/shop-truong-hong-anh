@@ -26667,7 +26667,11 @@
                     
                     btn.onclick = function (e) {
                         if (e) { e.preventDefault(); e.stopPropagation(); }
-                        haToggleInlineCheckout(p, cardWrap);
+                        if (typeof window.openQuickOrder === 'function') {
+                            window.openQuickOrder(p.id, p.name, p.price, img);
+                        } else {
+                            alert('Vui lòng tải lại trang để mở form mua ngay!');
+                        }
                     };
 
                     card.appendChild(imgEl);
@@ -27734,10 +27738,19 @@
                 var _qot = document.getElementById('quick-order-total');
                 if (_qot) _qot.textContent = _price;
 
-                /* Reset toàn bộ form */
+                /* Reset toàn bộ form & điền sẵn thông tin user từ localStorage nếu có */
                 ['haQoName', 'haQoPhone', 'haQoAddress'].forEach(function (fid) {
                     var el = document.getElementById(fid); if (el) el.value = '';
                 });
+                try {
+                    var u = JSON.parse(localStorage.getItem('user') || localStorage.getItem('currentUser') || '{}');
+                    var nEl = document.getElementById('haQoName');
+                    var pEl = document.getElementById('haQoPhone');
+                    var aEl = document.getElementById('haQoAddress');
+                    if (nEl) nEl.value = u.full_name || u.name || u.username || '';
+                    if (pEl) pEl.value = u.phone || u.phone_number || '';
+                    if (aEl) aEl.value = u.address || u.shipping_address || '';
+                } catch (e) { }
                 haQoRemoveVoucher();
                 _payMethod = 'cod';
                 var cod = document.getElementById('haQoPayCOD');
