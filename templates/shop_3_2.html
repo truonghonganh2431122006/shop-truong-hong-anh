@@ -26547,11 +26547,87 @@
 
                 botMsg(md(cleanReply));
 
+                // 🌟 Tự động nhận diện nhu cầu sản phẩm kể cả khi AI quên trả SEARCH: directive
+                if (!searchKw && hist.length) {
+                    var lastUsrTxt = (hist[hist.length - 2] && hist[hist.length - 2].content || '').toLowerCase();
+                    var botTxt = reply.toLowerCase();
+                    var intentWords = ['iphone', 'samsung', 'xiaomi', 'oppo', 'macbook', 'laptop', 'ipad', 'tai nghe', 'đồng hồ', 'sạc', 'ốp', 'mua', 'xem', 'giá', 'bán', 'tư vấn', 'sản phẩm', 'máy'];
+                    if (intentWords.some(function (w) { return lastUsrTxt.includes(w) || botTxt.includes(w); })) {
+                        var prods = window.allProducts || [];
+                        for (var i = 0; i < prods.length; i++) {
+                            var pName = prods[i].name.toLowerCase();
+                            var pTokens = pName.split(/\s+/);
+                            for (var j = 0; j < pTokens.length; j++) {
+                                var tok = pTokens[j];
+                                if (tok.length > 2 && (lastUsrTxt.includes(tok) || botTxt.includes(tok))) {
+                                    searchKw = tok;
+                                    break;
+                                }
+                            }
+                            if (searchKw) break;
+                        }
+                        if (!searchKw) searchKw = 'all';
+                    }
+                }
+
                 if (searchKw) {
-                    setTimeout(function () { haShowProducts(searchKw); }, 200);
+                    setTimeout(function () { haShowProducts(searchKw); }, 150);
                 }
 
                 isBusy = false;
+            }
+
+            // 🛒 Hàm hiển thị sản phẩm với nút ⚡ MUA NGAY trực tiếp trong Chatbot
+            function haShowProducts(kw) {
+                var prods = window.allProducts || [];
+                if (!prods.length) return;
+
+                kw = (kw || '').trim().toLowerCase();
+                var matched = [];
+
+                if (kw && kw !== 'all') {
+                    var words = kw.split(/\s+/).filter(function (w) { return w.length > 1; });
+                    matched = prods.filter(function (p) {
+                        var name = (p.name || '').toLowerCase();
+                        var cat = (p.category || '').toLowerCase();
+                        if (name.includes(kw) || cat.includes(kw)) return true;
+                        return words.some(function (w) { return name.includes(w); });
+                    });
+                }
+
+                if (!matched.length) {
+                    matched = prods.slice(0, 4);
+                } else {
+                    matched = matched.slice(0, 6);
+                }
+
+                if (!matched.length) return;
+
+                var cardWrap = document.createElement('div');
+                cardWrap.style.cssText = 'margin:10px 0;padding:10px;background:#f8fafc;border-radius:14px;border:1px solid #e2e8f0;box-shadow:0 2px 8px rgba(0,0,0,0.04);';
+                cardWrap.innerHTML = '<div style="font-size:12px;font-weight:700;color:#0f172a;margin-bottom:8px;display:flex;align-items:center;gap:5px;">🛍️ Sản phẩm phù hợp dành cho bạn:</div>';
+
+                var scrollBox = document.createElement('div');
+                scrollBox.style.cssText = 'display:flex;gap:10px;overflow-x:auto;padding-bottom:6px;scroll-behavior:smooth;-webkit-overflow-scrolling:touch;';
+
+                matched.forEach(function (p) {
+                    var fmtPrice = new Intl.NumberFormat('vi-VN').format(p.price) + '₫';
+                    var img = p.image_url || 'https://via.placeholder.com/150';
+                    var safeName = (p.name || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
+                    var card = document.createElement('div');
+                    card.style.cssText = 'flex:0 0 145px;background:#fff;border-radius:10px;padding:8px;border:1px solid #cbd5e1;box-shadow:0 2px 6px rgba(0,0,0,0.06);display:flex;flex-direction:column;justify-between:space-between;text-align:center;';
+                    card.innerHTML = [
+                        '<img src="' + img + '" style="width:100%;height:90px;object-fit:cover;border-radius:8px;margin-bottom:6px" alt="' + safeName + '">',
+                        '<div style="font-size:11px;font-weight:700;color:#1e293b;height:32px;overflow:hidden;text-overflow:ellipsis;line-height:1.3;margin-bottom:4px">' + p.name + '</div>',
+                        '<div style="font-size:12px;font-weight:800;color:#e11d48;margin-bottom:8px">' + fmtPrice + '</div>',
+                        '<button onclick="window.openQuickOrder(' + p.id + ', \'' + safeName + '\', ' + p.price + ', \'' + img + '\')" style="background:linear-gradient(135deg,#eab308,#ca8a04);color:#fff;border:none;padding:6px 8px;border-radius:8px;font-size:11px;font-weight:700;cursor:pointer;width:100%;display:flex;align-items:center;justify-content:center;gap:4px;box-shadow:0 2px 6px rgba(202,138,4,0.35)">⚡ MUA NGAY</button>'
+                    ].join('');
+                    scrollBox.appendChild(card);
+                });
+
+                cardWrap.appendChild(scrollBox);
+                el('ha-msgs').appendChild(cardWrap);
+                scroll();
             }
 
             function usrMsg(t) {
