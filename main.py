@@ -2311,40 +2311,58 @@ def report_top_products(
 
 # 1. Khách gửi đơn lên Server (Dùng trong shop_3_2.html)
 @app.post("/api/orders")
-async def create_new_order(data: dict, db: Session = Depends(get_db)):
+@app.post("/api/orders/create")
+async def create_new_order(data: dict, user: Optional[User] = Depends(get_current_user_optional), db: Session = Depends(get_db)):
     try:
-        # Tìm user để gán đơn hàng (Ưu tiên user_id từ data hoặc user đầu tiên)
         u_id = data.get('user_id')
+        if not u_id and user:
+            u_id = user.id
         if not u_id:
             first_user = db.query(User).first()
             u_id = first_user.id if first_user else 1
 
-        # Tạo đơn hàng mới
+        cust_name = data.get('customer_name') or ''
+        cust_phone = data.get('customer_phone') or data.get('phone_number') or ''
+        cust_addr = data.get('customer_address') or data.get('shipping_address') or ''
+        pay_method = data.get('payment_method') or 'COD'
+        note_str = f"{cust_name} - {pay_method}".strip(" -")
+
         new_order = Order(
             user_id=u_id,
-            status="Chờ xác nhận", # Trạng thái ban đầu
-            created_at=datetime.utcnow(),
-            updated_at=datetime.utcnow()
+            status="Chờ xác nhận",
+            shipping_address=cust_addr,
+            phone_number=cust_phone,
+            note=note_str,
+            created_at=now_vn(),
+            updated_at=now_vn()
         )
         db.add(new_order)
-        db.commit()
-        db.refresh(new_order)
-        
-        # Lưu từng món hàng vào chi tiết đơn
+        db.flush()
+
         for item in data.get('items', []):
+            pid = int(item.get('product_id') or item.get('id') or 1)
+            qty = int(item.get('quantity') or item.get('qty') or 1)
+            prc = int(float(item.get('price') or item.get('unit_price') or 0))
             order_item = OrderItem(
                 order_id=new_order.id,
-                product_id=int(item['product_id']),
-                quantity=int(item.get('quantity', 1)),
-                unit_price=int(item['price'])
+                product_id=pid,
+                quantity=qty,
+                unit_price=prc
             )
             db.add(order_item)
-        
+
         db.commit()
-        return {"message": "Thành công", "order_id": new_order.id}
+        db.refresh(new_order)
+        return {
+            "success": True,
+            "status": "success",
+            "message": "Đặt hàng thành công!",
+            "order_id": new_order.id,
+            "redirect_url": "/order-history.html"
+        }
     except Exception as e:
         db.rollback()
-        return {"error": str(e)}, 500
+        return {"success": False, "status": "error", "message": str(e)}, 500
 
 # 2. Admin lấy danh sách đơn để hiển thị (Dùng trong admin.html)
 @app.get("/api/admin/all-orders")
