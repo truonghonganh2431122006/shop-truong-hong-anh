@@ -26471,59 +26471,71 @@
             async function ask() {
                 isBusy = true;
                 var dot = showDots();
-                var candidateModels = ['llama-3.1-8b-instant', 'llama-3.3-70b-versatile', 'gemma2-9b-it'];
-                var messages = [{ role: 'system', content: getSYS() }].concat(hist);
-                var lastErr = null;
-                var res = null, d = null;
+                var reply = null;
 
-                for (var i = 0; i < candidateModels.length; i++) {
-                    var currentModel = candidateModels[i];
-                    try {
-                        res = await fetch(GROQ_URL, {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'Authorization': 'Bearer ' + GROQ_KEY
-                            },
-                            body: JSON.stringify({
-                                model: currentModel,
-                                messages: messages,
-                                max_tokens: 450,
-                                temperature: 0.7
-                            })
-                        });
-                        d = await res.json();
-                        if (res.ok) {
-                            MODEL = currentModel;
-                            break;
+                // 1. ƯU TIÊN HÀNG ĐẦU: Gọi Backend Proxy dùng Gemini API (đã có GEMINI_API_KEY trên Render)
+                try {
+                    var backendRes = await fetch('/api/chatbot/chat', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(hist)
+                    });
+                    if (backendRes.ok) {
+                        var backendData = await backendRes.json();
+                        if (backendData && backendData.reply) {
+                            reply = backendData.reply;
                         }
-                        lastErr = (d.error && d.error.message) || ('HTTP ' + res.status);
-                        if (res.status === 404 || (lastErr && lastErr.toLowerCase().includes('model'))) {
-                            continue;
-                        } else {
-                            break;
+                    }
+                } catch (e) { }
+
+                // 2. FALLBACK: Nếu Backend Gemini bận hoặc chưa hồi đáp → Thử Groq API trực tiếp
+                if (!reply) {
+                    var candidateModels = [MODEL, 'llama-3.3-70b-versatile', 'llama-3.1-8b-instant'];
+                    var messages = [{ role: 'system', content: getSYS() }].concat(hist);
+                    var lastErr = null;
+
+                    for (var i = 0; i < candidateModels.length; i++) {
+                        var currentModel = candidateModels[i];
+                        try {
+                            var res = await fetch(GROQ_URL, {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'Authorization': 'Bearer ' + GROQ_KEY
+                                },
+                                body: JSON.stringify({
+                                    model: currentModel,
+                                    messages: messages,
+                                    max_tokens: 450,
+                                    temperature: 0.7
+                                })
+                            });
+                            var d = await res.json();
+                            if (res.ok && d.choices && d.choices[0] && d.choices[0].message) {
+                                reply = d.choices[0].message.content;
+                                MODEL = currentModel;
+                                break;
+                            }
+                            lastErr = (d.error && d.error.message) || ('HTTP ' + res.status);
+                            if (res.status === 404 || (lastErr && lastErr.toLowerCase().includes('model'))) {
+                                continue;
+                            } else {
+                                break;
+                            }
+                        } catch (err) {
+                            lastErr = err.message;
                         }
-                    } catch (err) {
-                        lastErr = err.message;
                     }
                 }
 
                 dot.remove();
 
-                if (!res || !res.ok) {
-                    if (res && res.status === 429) {
-                        errMsg('⏳ AI đang bận quá, vui lòng thử lại sau 10 giây nhé!');
-                    } else {
-                        errMsg('⚠️ ' + (lastErr || 'Lỗi kết nối Groq API. Vui lòng kiểm tra lại GROQ_KEY.'));
-                    }
+                if (!reply) {
+                    errMsg('⚠️ AI đang bận hoặc gián đoạn kết nối. Vui lòng thử lại sau vài giây!');
                     if (hist.length && hist[hist.length - 1].role === 'user') hist.pop();
                     isBusy = false;
                     return;
                 }
-
-                var reply = d.choices && d.choices[0] && d.choices[0].message
-                    ? d.choices[0].message.content
-                    : 'Xin lỗi, mình chưa hiểu câu hỏi. Bạn thử hỏi lại nhé!';
 
                 hist.push({ role: 'assistant', content: reply });
 

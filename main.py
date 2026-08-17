@@ -2895,3 +2895,68 @@ def build_chatbot_system(db: Session) -> str:
 class ChatMessage(BaseModel):
     role: str       # "user" hoặc "assistant"
     content: str
+
+@app.post("/api/chatbot/chat")
+@app.post("/api/chat")
+async def chatbot_chat_endpoint(req: List[ChatMessage], db: Session = Depends(get_db)):
+    gemini_key = os.getenv("GEMINI_API_KEY", "AIzaSyAJKjMcv0vhlG-KDfeOZGNxtppZ6lyN3B4")
+    
+    system_instruction = (
+        "Bạn là Hồng Anh AI — trợ lý AI toàn năng của shop Trương Hồng Anh (Smart Shopping & CSKH).\n"
+        "Nhiệm vụ của bạn:\n"
+        "1. CSKH & Hỗ trợ: Giải thích chính sách bảo hành (12 tháng chính hãng), đổi trả (7 ngày), hỗ trợ đơn hàng, hướng dẫn thanh toán, xử lý khiếu nại.\n"
+        "2. Tư vấn sản phẩm: Giúp khách chọn điện thoại, laptop, phụ kiện, đồng hồ... phù hợp nhu cầu.\n"
+        "3. ĐẶC BIỆT QUAN TRỌNG: Khi khách có nhu cầu xem hoặc mua sản phẩm CÓ trong shop, "
+        "hãy thêm dòng cuối cùng: SEARCH:từ_khóa (ví dụ: SEARCH:iphone, SEARCH:laptop, SEARCH:tai nghe, SEARCH:samsung, SEARCH:đồng hồ). Chỉ 1-3 từ, không dấu câu thêm.\n"
+        "Trả lời thân thiện 2-3 câu bằng tiếng Việt có dấu. Tuyệt đối KHÔNG bịa sản phẩm shop không có."
+    )
+    
+    catalog = build_chatbot_system(db)
+    full_system = system_instruction + "\n\n" + catalog
+
+    contents = [
+        {
+            "role": "user",
+            "parts": [{"text": "SYSTEM INSTRUCTION:\n" + full_system}]
+        },
+        {
+            "role": "model",
+            "parts": [{"text": "Đã hiểu! Tôi là Hồng Anh AI — trợ lý Chăm sóc khách hàng và Gợi ý sản phẩm thông minh của shop Trương Hồng Anh."}]
+        }
+    ]
+
+    for m in req:
+        r = "user" if m.role == "user" else "model"
+        contents.append({
+            "role": r,
+            "parts": [{"text": m.content}]
+        })
+
+    models_to_try = [
+        os.getenv("GEMINI_MODEL", "gemini-2.5-flash"),
+        "gemini-2.0-flash",
+        "gemini-1.5-flash",
+        "gemini-1.5-pro",
+        "gemini-2.0-flash-lite-preview-02-05"
+    ]
+
+    async with httpx.AsyncClient(timeout=15.0) as client:
+        last_error = "Không thể kết nối Gemini API"
+        for mod in models_to_try:
+            url = f"https://generativelanguage.googleapis.com/v1beta/models/{mod}:generateContent?key={gemini_key}"
+            try:
+                res = await client.post(url, json={"contents": contents})
+                if res.status_code == 200:
+                    data = res.json()
+                    candidates = data.get("candidates", [])
+                    if candidates:
+                        parts = candidates[0].get("content", {}).get("parts", [])
+                        if parts:
+                            text = parts[0].get("text", "")
+                            return {"reply": text}
+                else:
+                    last_error = f"Gemini API ({mod}) error HTTP {res.status_code}: {res.text}"
+            except Exception as e:
+                last_error = str(e)
+
+    raise HTTPException(status_code=502, detail=last_error)
