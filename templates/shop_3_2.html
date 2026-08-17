@@ -26408,7 +26408,7 @@
             // ============================================================
             var GROQ_KEY = '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'; // ← AI #1 — Điền Groq API key của bạn vào đây
             var GROQ_URL = 'https://api.groq.com/openai/v1/chat/completions';
-            var MODEL = 'llama-3.3-70b-versatile'; // Model chính thức từ Groq (miễn phí, thông minh)
+            var MODEL = 'llama-3.1-8b-instant'; // Model siêu nhanh từ Groq (miễn phí)
 
             /* ── System prompt CSKH — biết sản phẩm nhưng CHỈ tư vấn, không hiển thị card ── */
             function getSYS() {
@@ -26471,7 +26471,7 @@
             async function ask() {
                 isBusy = true;
                 var dot = showDots();
-                var candidateModels = ['llama-3.3-70b-versatile', 'llama-3.1-8b-instant', 'gemma2-9b-it', 'qwen-2.5-32b'];
+                var candidateModels = ['llama-3.1-8b-instant', 'llama-3.3-70b-versatile', 'gemma2-9b-it'];
                 var messages = [{ role: 'system', content: getSYS() }].concat(hist);
                 var lastErr = null;
                 var res = null, d = null;
