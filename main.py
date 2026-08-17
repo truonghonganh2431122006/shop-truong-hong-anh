@@ -1674,7 +1674,7 @@ async def search_by_image(file: UploadFile = File(...), top_k: int = 12, db: Ses
     if not gemini_key:
         raise HTTPException(status_code=503, detail="Chưa cấu hình GEMINI_API_KEY. Vui lòng liên hệ admin.")
 
-    gemini_model = os.getenv("GEMINI_MODEL", "gemini-3.5-flash-lite")
+    gemini_model = os.getenv("GEMINI_MODEL", "gemini-1.5-flash")
     gemini_url = f"https://generativelanguage.googleapis.com/v1beta/models/{gemini_model}:generateContent?key={gemini_key}"
 
     # Lấy danh sách sản phẩm đang bán
@@ -2861,7 +2861,7 @@ import asyncio
 # Lưu ý: Bạn nên dán Key vào mục Environment trên Render như tớ hướng dẫn ở trên
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "AIzaSyAJKjMcv0vhlG-KDfeOZGNxtppZ6lyN3B4")
 
-GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-3.5-flash-lite")
+GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-1.5-flash")
 GEMINI_URL = f"https://generativelanguage.googleapis.com/v1beta/models/{GEMINI_MODEL}:generateContent?key={GEMINI_API_KEY}"
 
 # 3. Giữ nguyên System Prompt của bạn (Rất tốt)
@@ -2899,7 +2899,10 @@ class ChatMessage(BaseModel):
 @app.post("/api/chatbot/chat")
 @app.post("/api/chat")
 async def chatbot_chat_endpoint(req: List[ChatMessage], db: Session = Depends(get_db)):
-    gemini_key = os.getenv("GEMINI_API_KEY", "AIzaSyAJKjMcv0vhlG-KDfeOZGNxtppZ6lyN3B4")
+    gemini_key = os.getenv("GEMINI_API_KEY", "") or os.getenv("GOOGLE_API_KEY", "")
+    if not gemini_key:
+        # Fallback key nếu môi trường Render chưa set
+        gemini_key = "AIzaSyAJKjMcv0vhlG-KDfeOZGNxtppZ6lyN3B4"
     
     system_instruction = (
         "Bạn là Hồng Anh AI — trợ lý AI toàn năng của shop Trương Hồng Anh (Smart Shopping & CSKH).\n"
@@ -2914,17 +2917,12 @@ async def chatbot_chat_endpoint(req: List[ChatMessage], db: Session = Depends(ge
     catalog = build_chatbot_system(db)
     full_system = system_instruction + "\n\n" + catalog
 
-    contents = [
-        {
-            "role": "user",
-            "parts": [{"text": "SYSTEM INSTRUCTION:\n" + full_system}]
-        },
-        {
-            "role": "model",
-            "parts": [{"text": "Đã hiểu! Tôi là Hồng Anh AI — trợ lý Chăm sóc khách hàng và Gợi ý sản phẩm thông minh của shop Trương Hồng Anh."}]
-        }
-    ]
+    # Format chuẩn của Google Gemini REST API v1beta
+    system_instruction_obj = {
+        "parts": [{"text": full_system}]
+    }
 
+    contents = []
     for m in req:
         r = "user" if m.role == "user" else "model"
         contents.append({
@@ -2932,20 +2930,24 @@ async def chatbot_chat_endpoint(req: List[ChatMessage], db: Session = Depends(ge
             "parts": [{"text": m.content}]
         })
 
+    payload = {
+        "systemInstruction": system_instruction_obj,
+        "contents": contents
+    }
+
     models_to_try = [
-        os.getenv("GEMINI_MODEL", "gemini-2.5-flash"),
+        os.getenv("GEMINI_MODEL", "gemini-1.5-flash"),
         "gemini-2.0-flash",
-        "gemini-1.5-flash",
         "gemini-1.5-pro",
         "gemini-2.0-flash-lite-preview-02-05"
     ]
 
-    async with httpx.AsyncClient(timeout=15.0) as client:
+    async with httpx.AsyncClient(timeout=18.0) as client:
         last_error = "Không thể kết nối Gemini API"
         for mod in models_to_try:
             url = f"https://generativelanguage.googleapis.com/v1beta/models/{mod}:generateContent?key={gemini_key}"
             try:
-                res = await client.post(url, json={"contents": contents})
+                res = await client.post(url, json=payload)
                 if res.status_code == 200:
                     data = res.json()
                     candidates = data.get("candidates", [])
