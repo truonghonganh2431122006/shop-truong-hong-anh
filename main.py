@@ -2102,28 +2102,7 @@ async def update_order_status(
 @app.get("/orders/me")
 def my_orders(user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     orders = db.query(Order).filter(Order.user_id == user.id).order_by(Order.id.desc()).all()
-    result = []
-    for o in orders:
-        total = sum(i.quantity * i.unit_price for i in o.items)
-        result.append({
-            "id": o.id,
-            "status": o.status or "Chờ xác nhận",
-            "date": o.created_at.strftime("%H:%M %d/%m/%Y") if o.created_at else "N/A",
-            "total": total,
-            "shipping_address": o.shipping_address or "",
-            "phone_number": o.phone_number or "",
-            "customer_name": o.note or "",
-            "items": [
-                {
-                    "name": i.product.name if i.product else f"Sản phẩm #{i.product_id}",
-                    "qty": i.quantity,
-                    "price": i.unit_price,
-                    "image": (i.product.image if (i.product and i.product.image) else "")
-                }
-                for i in o.items
-            ]
-        })
-    return result
+    return [format_order_dict(o, db) for o in orders]
 
 
 # ===================== ORDERS (STAFF/ADMIN) =====================

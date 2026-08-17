@@ -514,12 +514,26 @@
                 orderMap.set(key, o);
             });
 
-            // Local orders chỉ thêm nếu chưa có từ API
+            // Local orders thêm nếu chưa có từ API, hoặc bổ sung sản phẩm/ảnh nếu API bị thiếu
             (localOrders || []).forEach(function(o) {
                 const key = safeOrderId(o);
                 if (!orderMap.has(key)) {
                     o._displayId = key;
                     orderMap.set(key, o);
+                } else {
+                    const existing = orderMap.get(key);
+                    if (existing && Array.isArray(existing.items) && Array.isArray(o.items)) {
+                        existing.items.forEach(function(apiItem, idx) {
+                            const locItem = o.items[idx] || o.items.find(function(li) { return String(li.product_id || li.id) === String(apiItem.product_id); });
+                            if (locItem) {
+                                if (!apiItem.name || apiItem.name.indexOf('Sản phẩm #') === 0) apiItem.name = locItem.name || locItem.title || apiItem.name;
+                                if (!apiItem.image && !apiItem.img) {
+                                    apiItem.image = locItem.image || locItem.img || locItem.image_url || locItem.photo || '';
+                                    apiItem.img = apiItem.image;
+                                }
+                            }
+                        });
+                    }
                 }
             });
 
