@@ -66,7 +66,8 @@
         .header.v2024 {
             background: #ffd400 !important;
             border-bottom: none !important;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.08) !important;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.06) !important;
+            padding: 4px 0 0 0 !important;
         }
         .header__top {
             background: #ffd400 !important;
@@ -80,6 +81,45 @@
             justify-content: space-between !important;
             gap: 16px !important;
             width: 100% !important;
+        }
+
+        .header__main {
+            background: #ffd400 !important;
+            max-width: 1200px !important;
+            margin: 0 auto !important;
+            padding: 2px 16px 6px !important;
+        }
+        .header.v2024 .main-menu {
+            display: flex !important;
+            align-items: center !important;
+            justify-content: space-between !important;
+            width: 100% !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            list-style: none !important;
+        }
+        .header.v2024 .main-menu li {
+            padding: 5px 6px !important;
+            display: flex !important;
+            align-items: center !important;
+            font-size: 13px !important;
+            font-weight: 600 !important;
+            color: #000 !important;
+            white-space: nowrap !important;
+            border-radius: 6px !important;
+            transition: background 0.15s ease !important;
+        }
+        .header.v2024 .main-menu li:hover {
+            background: rgba(0, 0, 0, 0.06) !important;
+        }
+        .header.v2024 .main-menu li a {
+            display: flex !important;
+            align-items: center !important;
+            gap: 5px !important;
+            color: #000 !important;
+            text-decoration: none !important;
+            font-size: 13px !important;
+            font-weight: 600 !important;
         }
 
         .tgdd-logo-box {
@@ -21359,8 +21399,8 @@
             <!-- Auth (Đăng nhập / Tài khoản & Đăng xuất) -->
             <div id="auth-header-dynamic" style="display:flex; align-items:center; flex-shrink:0;">
                 <div id="group-guest" style="display:flex; align-items:center; gap:12px;">
-                    <a href="/login" style="display:flex; align-items:center; gap:6px; text-decoration:none; color:#000; font-size:13.5px; font-weight:600; padding:6px 8px; border-radius:20px; transition:0.2s;" onmouseover="this.style.background='rgba(0,0,0,0.05)'" onmouseout="this.style.background='transparent'">
-                        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                    <a href="/login" style="display:flex; align-items:center; gap:6px; text-decoration:none; color:#111; font-size:13px; font-weight:600; padding:6px 14px; background:#ffffff; border-radius:20px; border:1px solid rgba(0,0,0,0.08); box-shadow:0 1px 4px rgba(0,0,0,0.05); transition:0.2s;" onmouseover="this.style.background='#f8f8f8'" onmouseout="this.style.background='#ffffff'">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
                         <span>Đăng nhập</span>
                     </a>
                 </div>
