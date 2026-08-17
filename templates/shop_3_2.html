@@ -21375,9 +21375,9 @@
             </div>
             
             <!-- Nút chọn Tỉnh Thành chuẩn TGDD -->
-            <div class="location-btn" style="display:flex;align-items:center;gap:4px;background:rgba(255,255,255,0.7);padding:6px 12px;border-radius:20px;font-size:12.5px;font-weight:600;color:#111;cursor:pointer;">
+            <div class="location-btn" onclick="openProvinceSelectModal()" style="display:flex;align-items:center;gap:4px;background:rgba(255,255,255,0.7);padding:6px 12px;border-radius:20px;font-size:12.5px;font-weight:600;color:#111;cursor:pointer;">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
-                <span>Hồ Chí Minh</span> ▾
+                <span id="ha-current-province">Hồ Chí Minh</span> ▾
             </div>
 
             <div class="profile" style="display: flex; align-items: center; margin-right: 4px;">
@@ -21489,7 +21489,22 @@
             // 2. Cập nhật giao diện khi đã đăng nhập
             function updateHeaderAuth() {
                 const token = localStorage.getItem("access_token");
-                const username = localStorage.getItem("username") || "Thành viên";
+                let displayEmail = localStorage.getItem("user_email") || localStorage.getItem("email") || localStorage.getItem("username");
+
+                if (token && token !== "null") {
+                    try {
+                        const parts = token.split('.');
+                        if (parts.length === 3) {
+                            const payload = JSON.parse(atob(parts[1]));
+                            if (payload && (payload.email || payload.sub)) {
+                                displayEmail = payload.email || payload.sub;
+                            }
+                        }
+                    } catch(e) {}
+                }
+
+                if (!displayEmail || displayEmail === "null") displayEmail = "Thành viên";
+
                 const guestZone = document.getElementById("group-guest");
                 const userZone = document.getElementById("group-user");
                 const nameLabel = document.getElementById("user-account-name"); 
@@ -21498,7 +21513,7 @@
                     if(guestZone) guestZone.style.display = "none";
                     if(userZone) {
                         userZone.style.display = "flex";
-                        if(nameLabel) nameLabel.innerText = username;
+                        if(nameLabel) nameLabel.innerText = displayEmail;
                     }
                 } else {
                     if(guestZone) guestZone.style.display = "flex";
@@ -22385,19 +22400,24 @@
                 if (kw === 'flashsale' || kw === 'flash' || kw === '50' || kw === 'online') {
                     show = true;
                 } else if (kw === 'apple') {
-                    show = /apple|iphone|ipad|macbook|airpod|watch/i.test(fullText);
+                    // CHỈ hiển thị Apple (iPhone, iPad, MacBook, Apple Watch, AirPods) — Loại trừ hoàn toàn Samsung/Oppo/Xiaomi
+                    const isApple = /apple|iphone|ipad|macbook|airpod|apple watch/i.test(name) || cate.includes('apple');
+                    const isOtherBrand = /samsung|galaxy|oppo|xiaomi|vivo|realme|asus|dell|hp|lenovo/i.test(name);
+                    show = isApple && !isOtherBrand;
                 } else if (kw === 'điện thoại') {
-                    show = /iphone|samsung|oppo|xiaomi|vivo|realme|điện thoại|phone|galaxy/i.test(fullText);
+                    const isPhone = /iphone|samsung|oppo|xiaomi|vivo|realme|điện thoại|phone|galaxy/i.test(name) || cate.includes('điện thoại');
+                    const isNotPhone = /watch|laptop|macbook|dell|hp|asus|lenovo|tai nghe|airpod|loa|sạc/i.test(name);
+                    show = isPhone && !isNotPhone;
                 } else if (kw === 'laptop') {
-                    show = /laptop|macbook|dell|hp|asus|lenovo|acer|notebook|thinkpad/i.test(fullText);
+                    show = /laptop|macbook|dell|hp|asus|lenovo|acer|notebook|thinkpad/i.test(name) || cate.includes('laptop');
                 } else if (kw === 'phụ kiện') {
-                    show = /tai nghe|airpod|headphone|earphone|loa|sạc|cáp|ốp|phụ kiện|củ sạc/i.test(fullText);
+                    show = /tai nghe|airpod|headphone|earphone|loa|sạc|cáp|ốp|phụ kiện|củ sạc/i.test(name) || cate.includes('phụ kiện');
                 } else if (kw === 'đồng hồ') {
-                    show = /watch|đồng hồ|smartwatch|garmin|apple watch|galaxy watch/i.test(fullText);
+                    show = /watch|đồng hồ|smartwatch|garmin/i.test(name) || cate.includes('đồng hồ');
                 } else if (kw === 'pc') {
-                    show = /pc|máy in|màn hình|máy tính để bàn|chuột|bàn phím|printer/i.test(fullText);
+                    show = /pc|máy in|màn hình|máy tính để bàn|chuột|bàn phím|printer/i.test(name) || cate.includes('pc');
                 } else {
-                    show = fullText.indexOf(kw) > -1;
+                    show = fullText.includes(kw);
                 }
 
                 if (show) {
@@ -24663,15 +24683,18 @@ async function applyVoucher() {
                     itemDiv.setAttribute('data-fs-active', isFsActive ? '1' : '0');
                     itemDiv.setAttribute('data-fs-price', fs ? fs.sale_price : '');
                     itemDiv.setAttribute('data-fs-end', fs ? fs.end_time : '');
-                    // data-pcate giúp lọc danh mục — suy ra từ tên sản phẩm
+                    // data-pcate giúp lọc danh mục — suy ra chính xác từ tên sản phẩm
                     const nameLower = p.name.toLowerCase();
-                    let pcate = '';
-                    if (/iphone|samsung|oppo|xiaomi|vivo|realme|điện thoại|galaxy s|galaxy a/i.test(p.name)) pcate = 'điện thoại iphone samsung oppo xiaomi';
-                    else if (/laptop|macbook|dell|hp asus|lenovo|acer|notebook/i.test(p.name)) pcate = 'laptop macbook notebook';
-                    else if (/tai nghe|airpod|headphone|earphone|loa|sạc|cáp|ốp lưng|phụ kiện/i.test(p.name)) pcate = 'phụ kiện tai nghe loa sạc';
-                    else if (/smartwatch|đồng hồ thông minh|apple watch|galaxy watch/i.test(p.name)) pcate = 'smartwatch đồng hồ thông minh';
-                    else if (/tablet|ipad|máy tính bảng|galaxy tab/i.test(p.name)) pcate = 'tablet ipad máy tính bảng';
-                    itemDiv.setAttribute('data-pcate', pcate);
+                    let pcates = [];
+                    if (/apple|iphone|ipad|macbook|airpod|apple watch/i.test(nameLower)) pcates.push('apple');
+                    if (/samsung|galaxy/i.test(nameLower)) pcates.push('samsung');
+                    if (/oppo/i.test(nameLower)) pcates.push('oppo');
+                    if (/xiaomi|redmi/i.test(nameLower)) pcates.push('xiaomi');
+                    if (/laptop|macbook|dell|hp|asus|lenovo|acer|notebook/i.test(nameLower)) pcates.push('laptop');
+                    else if (/tai nghe|airpod|headphone|earphone|loa|sạc|cáp|ốp|phụ kiện/i.test(nameLower)) pcates.push('phụ kiện');
+                    else if (/smartwatch|đồng hồ|garmin|apple watch|galaxy watch/i.test(nameLower)) pcates.push('đồng hồ');
+                    else if (/iphone|samsung|oppo|xiaomi|vivo|realme|điện thoại|phone/i.test(nameLower)) pcates.push('điện thoại');
+                    itemDiv.setAttribute('data-pcate', pcates.join(' '));
 
                     itemDiv.style.cursor = 'pointer';
 
@@ -24805,9 +24828,39 @@ async function applyVoucher() {
                 modalContent.appendChild(relBox);
             }
             const all = window.allProducts || [];
-            const currentItem = all.find(p => p.id === id);
-            const currentCate = currentItem ? currentItem.category_id : null;
-            let related = all.filter(p => p.id !== id && (currentCate ? p.category_id === currentCate : true)).slice(0, 4);
+            const nameL = (name || '').toLowerCase();
+            let brandKw = '';
+            if (/apple|iphone|ipad|macbook|airpod|apple watch/i.test(nameL)) brandKw = 'apple';
+            else if (/samsung|galaxy/i.test(nameL)) brandKw = 'samsung';
+            else if (/oppo/i.test(nameL)) brandKw = 'oppo';
+            else if (/xiaomi|redmi/i.test(nameL)) brandKw = 'xiaomi';
+
+            let typeKw = '';
+            if (/laptop|macbook|notebook|dell|hp|asus|lenovo/i.test(nameL)) typeKw = 'laptop';
+            else if (/watch|đồng hồ|smartwatch/i.test(nameL)) typeKw = 'watch';
+            else if (/tai nghe|airpod|headphone|loa|sạc/i.test(nameL)) typeKw = 'accessory';
+            else if (/iphone|samsung|oppo|xiaomi|vivo|realme|galaxy|phone/i.test(nameL)) typeKw = 'phone';
+
+            let related = all.filter(p => {
+                if (p.id === id) return false;
+                const pName = p.name.toLowerCase();
+                
+                if (brandKw) {
+                    if (brandKw === 'apple' && /apple|iphone|ipad|macbook|airpod|apple watch/i.test(pName)) return true;
+                    if (brandKw === 'samsung' && /samsung|galaxy/i.test(pName)) return true;
+                    if (brandKw === 'oppo' && /oppo/i.test(pName)) return true;
+                    if (brandKw === 'xiaomi' && /xiaomi|redmi/i.test(pName)) return true;
+                }
+                
+                if (typeKw) {
+                    if (typeKw === 'laptop' && /laptop|macbook|notebook|dell|hp|asus|lenovo/i.test(pName)) return true;
+                    if (typeKw === 'watch' && /watch|đồng hồ|smartwatch/i.test(pName)) return true;
+                    if (typeKw === 'accessory' && /tai nghe|airpod|headphone|loa|sạc/i.test(pName)) return true;
+                    if (typeKw === 'phone' && /iphone|samsung|oppo|xiaomi|vivo|realme|galaxy|phone/i.test(pName)) return true;
+                }
+                return false;
+            }).slice(0, 5);
+
             if (!related.length) related = all.filter(p => p.id !== id).slice(0, 4);
 
             if (related.length) {
@@ -27097,7 +27150,7 @@ document.addEventListener('DOMContentLoaded', function() {
 .wl-cstock{font-size:10px;font-weight:600;margin-top:3px}
 .wl-empty{text-align:center;padding:72px 20px;color:#9ca3af}
 .wl-empty-icon{font-size:48px;margin-bottom:10px}
-.item-wl-btn{position:absolute;top:8px;right:8px;z-index:4;width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,.9);border:1.5px solid #f0f0f4;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(0,0,0,.1);transition:all .2s}
+.item-wl-btn{display:none !important;}
 .item-wl-btn:hover{transform:scale(1.2);border-color:#fecdd3}
 .item-wl-btn.wl-on{background:#fff0f3;border-color:#f43f5e}
 @keyframes wlpop{0%{transform:scale(1)}50%{transform:scale(1.4)}100%{transform:scale(1)}}
@@ -27485,5 +27538,85 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 })();
+<!-- ============ PROVINCE SELECTION MODAL (63 TỈNH THÀNH VIỆT NAM) ============ -->
+<div id="ha-province-modal" class="modal-overlay" style="z-index: 99999;">
+    <div class="modal-content" style="max-width: 580px; max-height: 80vh; border-radius: 20px; overflow: hidden; display: flex; flex-direction: column; background: #fff;">
+        <div style="background:#ffd400; padding:16px 20px; display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid #e0c000;">
+            <h3 style="margin:0; font-size:16px; font-weight:800; color:#111;">📍 Chọn Tỉnh / Thành phố giao hàng</h3>
+            <button onclick="closeProvinceSelectModal()" style="background:none; border:none; font-size:24px; cursor:pointer; color:#111; font-weight:bold;">&times;</button>
+        </div>
+        <div style="padding:14px 20px 8px; background:#f8f9fa; border-bottom:1px solid #eee;">
+            <input type="text" id="ha-province-search" placeholder="🔍 Tìm nhanh Tỉnh / Thành phố..." onkeyup="filterProvinceList()" style="width:100%; padding:10px 14px; border-radius:10px; border:1px solid #ddd; font-size:13.5px; outline:none; box-sizing:border-box;">
+        </div>
+        <div id="ha-province-grid" style="padding:16px 20px; overflow-y:auto; display:grid; grid-template-columns:repeat(auto-fill, minmax(135px, 1fr)); gap:10px; max-height:55vh;">
+            <!-- Rendered by JS -->
+        </div>
+    </div>
+</div>
+
+<script>
+    const VIETNAM_PROVINCES = [
+        "Hồ Chí Minh", "Hà Nội", "Đà Nẵng", "Hải Phòng", "Cần Thơ", "An Giang", "Bà Rịa - Vũng Tàu",
+        "Bắc Giang", "Bắc Kạn", "Bạc Liêu", "Bắc Ninh", "Bến Tre", "Bình Định", "Bình Dương",
+        "Bình Phước", "Bình Thuận", "Cà Mau", "Cao Bằng", "Đắc Lắk", "Đắc Nông", "Điện Biên",
+        "Đồng Nai", "Đồng Tháp", "Gia Lai", "Hà Giang", "Hà Nam", "Hà Tĩnh", "Hải Dương",
+        "Hậu Giang", "Hòa Bình", "Hưng Yên", "Khánh Hòa", "Kiên Giang", "Kon Tum", "Lai Châu",
+        "Lâm Đồng", "Lạng Sơn", "Lào Cai", "Long An", "Nam Định", "Nghệ An", "Ninh Bình",
+        "Ninh Thuận", "Phú Thọ", "Phú Yên", "Quảng Bình", "Quảng Nam", "Quảng Ngãi", "Quảng Ninh",
+        "Quảng Trị", "Sóc Trăng", "Sơn La", "Tây Ninh", "Thái Bình", "Thái Nguyên", "Thanh Hóa",
+        "Thừa Thiên Huế", "Tiền Giang", "Trà Vinh", "Tuyên Quang", "Vĩnh Long", "Vĩnh Phúc", "Yên Bái"
+    ];
+
+    function initProvinceSelector() {
+        const saved = localStorage.getItem('selected_province');
+        if (saved) {
+            const el = document.getElementById('ha-current-province');
+            if (el) el.textContent = saved;
+        }
+    }
+
+    function openProvinceSelectModal() {
+        const modal = document.getElementById('ha-province-modal');
+        if (modal) {
+            modal.classList.add('show');
+            renderProvinceGrid(VIETNAM_PROVINCES);
+            const searchInput = document.getElementById('ha-province-search');
+            if (searchInput) { searchInput.value = ''; searchInput.focus(); }
+        }
+    }
+
+    function closeProvinceSelectModal() {
+        const modal = document.getElementById('ha-province-modal');
+        if (modal) modal.classList.remove('show');
+    }
+
+    function renderProvinceGrid(list) {
+        const grid = document.getElementById('ha-province-grid');
+        if (!grid) return;
+        const current = localStorage.getItem('selected_province') || 'Hồ Chí Minh';
+        grid.innerHTML = list.map(p => `
+            <div onclick="selectProvince('${p}')" style="padding:10px 12px; background:${p === current ? '#fff7cc' : '#fff'}; border:1px solid ${p === current ? '#ffd400' : '#e2e8f0'}; border-radius:10px; font-size:13px; font-weight:${p === current ? '800' : '600'}; color:${p === current ? '#ed6c02' : '#333'}; cursor:pointer; text-align:center; transition:all 0.15s ease;" onmouseover="this.style.borderColor='#ffd400'" onmouseout="if('${p}'!=='${current}')this.style.borderColor='#e2e8f0'">
+                ${p}
+            </div>
+        `).join('');
+    }
+
+    function filterProvinceList() {
+        const kw = (document.getElementById('ha-province-search').value || '').toLowerCase().trim();
+        const filtered = VIETNAM_PROVINCES.filter(p => p.toLowerCase().includes(kw));
+        renderProvinceGrid(filtered);
+    }
+
+    function selectProvince(pName) {
+        localStorage.setItem('selected_province', pName);
+        const el = document.getElementById('ha-current-province');
+        if (el) el.textContent = pName;
+        closeProvinceSelectModal();
+        if (typeof showToast === 'function') {
+            showToast('📍 Đã đổi vị trí giao hàng: ' + pName);
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', initProvinceSelector);
 </script>
-<!-- ============ END TÌM KIẾM GIỌNG NÓI + HÌNH ẢNH ============ -->
+<!-- ============ END PROVINCE SELECTION MODAL ============ -->
