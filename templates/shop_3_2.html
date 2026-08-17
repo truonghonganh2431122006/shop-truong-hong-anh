@@ -24424,6 +24424,7 @@
                     if (selQo) selQo.innerHTML = '<option value="">-- Lỗi tải mã giảm giá --</option>';
                 }
             }
+            window.loadCartVouchers = loadCartVouchers;
 
             async function applyVoucher() {
                 var sel = document.getElementById('voucherInput');
@@ -26470,51 +26471,74 @@
             async function ask() {
                 isBusy = true;
                 var dot = showDots();
-                try {
-                    // Gộp system prompt ĐỘNG (có sản phẩm thực tế) + lịch sử hội thoại
-                    var messages = [{ role: 'system', content: getSYS() }].concat(hist);
+                var candidateModels = [MODEL, 'llama-3.1-8b-instant', 'llama-3.3-70b-versatile', 'llama3-8b-8192', 'mixtral-8x7b-32768'];
+                var messages = [{ role: 'system', content: getSYS() }].concat(hist);
+                var lastErr = null;
+                var res = null, d = null;
 
-                    var res = await fetch(GROQ_URL, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': 'Bearer ' + GROQ_KEY
-                        },
-                        body: JSON.stringify({
-                            model: MODEL,
-                            messages: messages,
-                            max_tokens: 400,
-                            temperature: 0.7
-                        })
-                    });
-
-                    var d = await res.json();
-                    dot.remove();
-
-                    if (res.status === 429) {
-                        errMsg('⏳ AI đang bận quá, vui lòng thử lại sau 10 giây nhé!');
-                        hist.pop();
-                        isBusy = false; return;
+                for (var i = 0; i < candidateModels.length; i++) {
+                    var currentModel = candidateModels[i];
+                    try {
+                        res = await fetch(GROQ_URL, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': 'Bearer ' + GROQ_KEY
+                            },
+                            body: JSON.stringify({
+                                model: currentModel,
+                                messages: messages,
+                                max_tokens: 450,
+                                temperature: 0.7
+                            })
+                        });
+                        d = await res.json();
+                        if (res.ok) {
+                            MODEL = currentModel;
+                            break;
+                        }
+                        lastErr = (d.error && d.error.message) || ('HTTP ' + res.status);
+                        if (res.status === 404 || (lastErr && lastErr.toLowerCase().includes('model'))) {
+                            continue;
+                        } else {
+                            break;
+                        }
+                    } catch (err) {
+                        lastErr = err.message;
                     }
-                    if (!res.ok) {
-                        var errTxt = (d.error && d.error.message) || 'Lỗi không xác định';
-                        errMsg('⚠️ ' + errTxt);
-                        hist.pop();
-                        isBusy = false; return;
-                    }
-
-                    var reply = d.choices && d.choices[0] && d.choices[0].message
-                        ? d.choices[0].message.content
-                        : 'Xin lỗi, mình chưa hiểu câu hỏi. Bạn thử hỏi lại nhé!';
-
-                    hist.push({ role: 'assistant', content: reply });
-                    botMsg(md(reply));
-
-                } catch (e) {
-                    dot.remove();
-                    errMsg('⚠️ Lỗi kết nối. Kiểm tra internet rồi thử lại nhé!');
-                    if (hist.length && hist[hist.length - 1].role === 'user') hist.pop();
                 }
+
+                dot.remove();
+
+                if (!res || !res.ok) {
+                    if (res && res.status === 429) {
+                        errMsg('⏳ AI đang bận quá, vui lòng thử lại sau 10 giây nhé!');
+                    } else {
+                        errMsg('⚠️ ' + (lastErr || 'Lỗi kết nối Groq API. Vui lòng kiểm tra lại GROQ_KEY.'));
+                    }
+                    if (hist.length && hist[hist.length - 1].role === 'user') hist.pop();
+                    isBusy = false;
+                    return;
+                }
+
+                var reply = d.choices && d.choices[0] && d.choices[0].message
+                    ? d.choices[0].message.content
+                    : 'Xin lỗi, mình chưa hiểu câu hỏi. Bạn thử hỏi lại nhé!';
+
+                hist.push({ role: 'assistant', content: reply });
+
+                var searchKw = null;
+                var cleanReply = reply.replace(/SEARCH:\s*([^\n\r]+)/gi, function (_, kw) {
+                    if (!searchKw) searchKw = kw.trim().toLowerCase();
+                    return '';
+                }).replace(/\n{2,}/g, '\n').trim();
+
+                botMsg(md(cleanReply));
+
+                if (searchKw) {
+                    setTimeout(function () { haShowProducts(searchKw); }, 200);
+                }
+
                 isBusy = false;
             }
 
