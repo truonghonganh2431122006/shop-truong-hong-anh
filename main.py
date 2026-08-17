@@ -1681,6 +1681,11 @@ async def search_by_image(file: UploadFile = File(...), top_k: int = 12, db: Ses
         import httpx as _httpx
         async with _httpx.AsyncClient(timeout=20.0) as client:
             resp = await client.post(gemini_url, json=gemini_payload)
+            if resp.status_code in (401, 403, 404):
+                raise HTTPException(
+                    status_code=502,
+                    detail="GEMINI_API_KEY chưa đúng hoặc đã hết hạn. Vui lòng tạo key mới miễn phí tại aistudio.google.com và thêm biến GEMINI_API_KEY trên Render."
+                )
             if resp.status_code != 200:
                 raise HTTPException(status_code=502, detail=f"Gemini API lỗi (HTTP {resp.status_code}). Vui lòng thử lại.")
             data = resp.json()
