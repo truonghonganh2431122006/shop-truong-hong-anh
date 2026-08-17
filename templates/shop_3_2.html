@@ -21330,7 +21330,32 @@
     </div>
 </div>
 
-<div class="tgd            <div id="haSearchExtraBtns" style="display:flex;align-items:center;gap:6px;margin-left:8px;flex-shrink:0;">
+<div class="tgdd-top-bar">
+    <span>🎓 LAPTOP TỰU TRƯỜNG - Học Gì Cũng Mượt</span>
+    <span style="color:#ea580c">•</span>
+    <span>TÂN SINH VIÊN ĐỔI ĐIỂM GIẢM THÊM ĐẾN 3 TRIỆU</span>
+    <span class="badge-btn">MUA NGAY</span>
+</div>
+
+<header class="header v2024 hasbanner" data-sub="0">
+    <div class="header__top">
+        <div>
+            <a href="/" class="header__logo" aria-label="logo" style="text-decoration:none;">
+                <div class="tgdd-logo-box">
+                    <div class="tgdd-logo-circle">●</div>
+                    ShopTruongHongAnh<span style="color:#000;font-weight:400;font-size:15px;margin-left:2px;">.com</span>
+                </div>
+            </a>
+            <form action="/tim-kiem" onsubmit="return false;" class="header__search">
+                <input id="skw" type="text" class="input-search"
+                    placeholder="Cuối tuần khuyến mãi khủng..." name="key" autocomplete="off" maxlength="100">
+                <input type="file" id="haImageSearchFile" accept="image/*" style="display:none;">
+                <button type="submit" aria-label="button suggest search">
+                    <i class="icon-search"></i>
+                </button>
+                <div id="search-result"></div>
+            </form>
+            <div id="haSearchExtraBtns" style="display:flex;align-items:center;gap:6px;margin-left:8px;flex-shrink:0;">
                 <button type="button" id="haVoiceSearchBtn" onclick="startVoiceSearch()" title="Tìm bằng giọng nói" aria-label="Tìm bằng giọng nói"
                     style="background:#fff;border:1px solid rgba(0,0,0,0.12);border-radius:50%;width:34px;height:34px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#555" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -21436,38 +21461,10 @@
                         flex-shrink: 0;
                     ">Đăng xuất</button>
                 </div>
-            </div>                    cursor: pointer;
-                        transition: 0.2s;
-                    ">Đăng nhập</button>
-
-                    <button onclick="window.location.href='/register'" style="
-                        background: #111111; 
-                        color: #ffd400; 
-                        border: none; 
-                        padding: 6px 14px; 
-                        border-radius: 20px; 
-                        font-size: 13px; 
-                        font-weight: 700; 
-                        cursor: pointer;
-                        transition: 0.2s;
-                    ">Đăng ký</button>
-                </div>
-
-                <div id="group-user" style="display: none; align-items: center; gap: 8px;">
-                    <span id="user-account-name" style="font-size: 13px; font-weight: 700; color: #111;">Thành viên</span>
-                    <button onclick="handleLogout()" style="
-                        background: #d0021c; 
-                        color: white; 
-                        border: none; 
-                        padding: 6px 14px; 
-                        border-radius: 20px; 
-                        font-size: 13px; 
-                        font-weight: 700; 
-                        cursor: pointer;
-                    ">Đăng xuất</button>
-                </div>
             </div>
         </div>
+    </div>
+</header>
         <script>
             // 1. Hàm điều khiển hiện hộp thông báo hình chữ nhật
             function showCustomModal(title, message, onConfirm) {
