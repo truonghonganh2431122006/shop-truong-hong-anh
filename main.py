@@ -1444,14 +1444,19 @@ def create_coupon(data: CouponCreateSchema, admin: User = Depends(require_admin)
     code = data_dict['code'].strip().upper()
     data_dict['code'] = code
     
-    existing = db.query(Coupon).filter(Coupon.code == code).first()
-    if existing:
-        raise HTTPException(status_code=400, detail="Mã giảm giá đã tồn tại")
-
     if data_dict.get("user_id"):
         target_u = db.query(User).filter(User.id == data_dict["user_id"]).first()
         if not target_u:
             raise HTTPException(status_code=404, detail="Không tìm thấy người dùng")
+
+    existing = db.query(Coupon).filter(Coupon.code == code).first()
+    if existing:
+        for k, v in data_dict.items():
+            setattr(existing, k, v)
+        db.commit()
+        db.refresh(existing)
+        return existing
+
     c = Coupon(**data_dict)
     db.add(c)
     db.commit()
