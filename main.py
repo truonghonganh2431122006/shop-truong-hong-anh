@@ -1644,25 +1644,31 @@ async def search_by_image(file: UploadFile = File(...), top_k: int = 12, db: Ses
     if not products:
         return {"results": [], "message": "Chưa có sản phẩm nào trong cửa hàng."}
 
+    # Gửi ảnh tới Gemini Vision API
+    img_b64 = base64.b64encode(img_bytes).decode("utf-8")
+    mime_type = file.content_type or "image/jpeg"
+
     # Chuẩn bị payload cho Gemini Vision (gửi kèm ảnh sản phẩm thực tế để Gemini so sánh trực quan)
     parts = [
         {"inlineData": {"mimeType": mime_type, "data": img_b64}},
-        {"text": "ĐÂY LÀ ẢNH KHÁCH HÀNG TẢI LÊN. Dưới đây là danh sách sản phẩm trong shop kèm hình ảnh mẫu thực tế để so sánh:\n"}
+        {"text": "ĐÂY LÀ ẢNH KHÁCH HÀNG TẢI LÊN. Dưới đây là danh sách sản phẩm trong shop để so sánh:\n"}
     ]
 
     for p in products:
-        p_img_bytes = _fetch_image_bytes(p.image_url) if p.image_url else None
+        p_img_bytes = None
+        if p.image_url and not (p.image_url.startswith("http://") or p.image_url.startswith("https://")):
+            p_img_bytes = _fetch_image_bytes(p.image_url)
+
         if p_img_bytes:
             p_mime = "image/png" if p.image_url.lower().endswith(".png") else "image/jpeg"
-            parts.append({"text": f"\nSản phẩm ID {p.id}: {p.name}"})
+            parts.append({"text": f"\nSản phẩm ID {p.id}: {p.name} ({p.price:,}đ)"})
             parts.append({"inlineData": {"mimeType": p_mime, "data": base64.b64encode(p_img_bytes).decode("utf-8")}})
         else:
-            parts.append({"text": f"\nSản phẩm ID {p.id}: {p.name}"})
+            parts.append({"text": f"\nSản phẩm ID {p.id}: {p.name} ({p.price:,}đ)"})
 
     parts.append({"text": (
-        "\n\nNHIỆM VỤ: Hãy so sánh TRỰC QUAN hình ảnh khách tải lên với từng ảnh sản phẩm thực tế của shop ở trên "
-        "(về thiết kế, thương hiệu, loại thiết bị, cụm camera, màu sắc).\n"
-        "Hãy chọn ra tối đa 6 sản phẩm GIỐNG NHẤT.\n"
+        "\n\nNHIỆM VỤ: Hãy phân tích hình ảnh khách hàng tải lên (về thiết kế, thương hiệu, loại thiết bị, cụm camera, màu sắc...). "
+        "Đối chiếu trực quan với danh sách sản phẩm của shop ở trên và chọn ra tối đa 6 sản phẩm GIỐNG NHẤT hoặc PHÙ HỢP NHẤT.\n"
         "Trả lời ĐÚNG FORMAT, mỗi dòng một sản phẩm: ID,điểm_giống(0-100)\n"
         "Ví dụ:\n5,95\n12,80\n3,60\n"
         "CHỈ trả lời theo format trên, KHÔNG viết gì thêm.\n"
