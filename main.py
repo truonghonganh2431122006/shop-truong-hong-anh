@@ -1637,7 +1637,8 @@ async def search_by_image(file: UploadFile = File(...), top_k: int = 12, db: Ses
     if not gemini_key:
         raise HTTPException(status_code=503, detail="Chưa cấu hình GEMINI_API_KEY. Vui lòng liên hệ admin.")
 
-    gemini_url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={gemini_key}"
+    gemini_model = os.getenv("GEMINI_MODEL", "gemini-3.5-flash-lite")
+    gemini_url = f"https://generativelanguage.googleapis.com/v1beta/models/{gemini_model}:generateContent?key={gemini_key}"
 
     # Lấy danh sách sản phẩm đang bán
     products = db.query(Product).filter(Product.is_active == True).all()
@@ -2722,8 +2723,8 @@ import asyncio
 # Lưu ý: Bạn nên dán Key vào mục Environment trên Render như tớ hướng dẫn ở trên
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "AIzaSyAJKjMcv0vhlG-KDfeOZGNxtppZ6lyN3B4")
 
-# 2. Sửa lại URL: Dùng bản 1.5-flash để ổn định nhất và sửa lỗi 404
-GEMINI_URL = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={GEMINI_API_KEY}"
+GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-3.5-flash-lite")
+GEMINI_URL = f"https://generativelanguage.googleapis.com/v1beta/models/{GEMINI_MODEL}:generateContent?key={GEMINI_API_KEY}"
 
 # 3. Giữ nguyên System Prompt của bạn (Rất tốt)
 CHATBOT_SYSTEM_BASE = (
