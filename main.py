@@ -1410,20 +1410,33 @@ def validate_coupon(code: str, user: Optional[User] = Depends(get_current_user_o
     return {"code": c.code, "label": c.label, "discount_type": c.discount_type, "discount_value": c.discount_value}
 
 @app.get("/coupons/mine")
-def get_my_coupons(user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+def get_my_coupons(user: Optional[User] = Depends(get_current_user_optional), db: Session = Depends(get_db)):
     now = now_vn()
-    coupons = db.query(Coupon).filter(
-        Coupon.is_active == True,
-        (Coupon.expires_at == None) | (Coupon.expires_at >= now),
-        (Coupon.user_id == None) | (Coupon.user_id == user.id)
-    ).order_by(Coupon.id.desc()).all()
-    return [{
-        "code": c.code,
-        "label": c.label,
-        "discount_type": c.discount_type,
-        "discount_value": c.discount_value,
-        "personal": c.user_id is not None
-    } for c in coupons]
+    all_coupons = db.query(Coupon).filter(Coupon.is_active == True).order_by(Coupon.id.desc()).all()
+    result = []
+    
+    for c in all_coupons:
+        # Kiểm tra ngày hết hạn (xử lý múi giờ linh hoạt)
+        if c.expires_at:
+            exp = c.expires_at
+            if exp.tzinfo is None and now.tzinfo is not None:
+                exp = exp.replace(tzinfo=now.tzinfo)
+            if exp < now:
+                continue
+        
+        # Kiểm tra người sở hữu
+        if c.user_id is not None:
+            if not user or user.id != c.user_id:
+                continue
+        
+        result.append({
+            "code": c.code,
+            "label": c.label,
+            "discount_type": c.discount_type,
+            "discount_value": c.discount_value,
+            "personal": c.user_id is not None
+        })
+    return result
 
 @app.post("/admin/coupons")
 def create_coupon(data: CouponCreateSchema, admin: User = Depends(require_admin), db: Session = Depends(get_db)):
