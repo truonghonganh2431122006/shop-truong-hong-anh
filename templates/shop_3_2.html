@@ -22285,7 +22285,8 @@
         // 3. Hàm đăng xuất dùng Modal
         function handleLogout() {
             showCustomModal("Xác nhận", "Bạn có chắc chắn muốn đăng xuất không?", function () {
-                localStorage.clear();
+                const authKeys = ['access_token', 'user_email', 'email', 'username', 'currentUser', 'token', 'role', 'admin_key'];
+                authKeys.forEach(k => localStorage.removeItem(k));
                 window.location.href = "/login";
             });
         }
@@ -24232,6 +24233,8 @@
                             let optionsCart = '<option value="">-- Chọn mã giảm giá --</option>';
                             let optionsQo = '<option value="">-- Chọn mã giảm giá (nếu có) --</option>';
 
+                            const personalCoupon = coupons.find(c => c.personal);
+
                             coupons.forEach(c => {
                                 const valStr = c.discount_type === 'percent' ? `${c.discount_value}%` : `${cleanPrice(c.discount_value)}đ`;
                                 const prefix = c.personal ? '🎁 [Dành riêng cho bạn] ' : '🌐 ';
@@ -24241,15 +24244,32 @@
 
                             if (sel) sel.innerHTML = optionsCart;
                             if (selQo) selQo.innerHTML = optionsQo;
+
+                            // 1. Giỏ hàng: Khôi phục mã đã áp dụng hoặc tự động áp dụng mã dành riêng cho bạn
+                            if (sel) {
+                                if (appliedVoucher) {
+                                    sel.value = appliedVoucher.code;
+                                } else if (personalCoupon) {
+                                    sel.value = personalCoupon.code;
+                                    if (typeof window._applyVoucher === 'function') {
+                                        window._applyVoucher();
+                                    }
+                                }
+                            }
+
+                            // 2. Form Mua ngay: Tự động chọn & áp dụng ngay mã dành riêng (hoặc mã đã áp dụng)
+                            if (selQo) {
+                                const targetQoCode = (typeof _voucherCode !== 'undefined' && _voucherCode) ? _voucherCode : (appliedVoucher ? appliedVoucher.code : (personalCoupon ? personalCoupon.code : ''));
+                                if (targetQoCode) {
+                                    selQo.value = targetQoCode;
+                                    if (typeof window.haQoApplyVoucher === 'function') {
+                                        window.haQoApplyVoucher();
+                                    }
+                                }
+                            }
                         } else {
                             if (sel) sel.innerHTML = '<option value="">-- Không có mã giảm giá khả dụng --</option>';
                             if (selQo) selQo.innerHTML = '<option value="">-- Không có mã giảm giá khả dụng --</option>';
-                        }
-                        if (appliedVoucher && sel) {
-                            sel.value = appliedVoucher.code;
-                        }
-                        if (typeof _voucherCode !== 'undefined' && _voucherCode && selQo) {
-                            selQo.value = _voucherCode;
                         }
                     } else {
                         if (sel) sel.innerHTML = '<option value="">-- Không thể tải mã giảm giá --</option>';

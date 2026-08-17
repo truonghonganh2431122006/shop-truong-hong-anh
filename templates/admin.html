@@ -1488,7 +1488,8 @@ async function loadProducts() {
 
     // Hàm Đăng xuất
     function logout() {
-        localStorage.clear();
+        const authKeys = ['access_token', 'user_email', 'email', 'username', 'currentUser', 'token', 'role', 'admin_key'];
+        authKeys.forEach(k => localStorage.removeItem(k));
         window.location.href = "/login";
     }
 

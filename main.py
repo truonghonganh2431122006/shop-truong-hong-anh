@@ -1950,11 +1950,11 @@ def delete_product(product_id: int, admin: User = Depends(require_admin), db: Se
 # 2. API: USER XEM ĐƠN HÀNG CỦA CHÍNH MÌNH (Sửa lỗi 405 & Phân quyền)
 @app.get("/orders")
 def get_orders_list(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
-    # Nếu là Admin -> Cho xem hết (tùy chọn)
-    if current_user.email == "honganh@gmail.com":
+    # Cho phép Admin, Staff hoặc Email Admin cấu hình trong system lấy toàn bộ đơn hàng
+    if (current_user.role and current_user.role.upper() in (ROLE_ADMIN, ROLE_STAFF)) or current_user.email == ADMIN_EMAIL:
         return db.query(Order).order_by(Order.id.desc()).all()
     
-    # Nếu là User -> Chỉ trả về đơn hàng của chính User đó
+    # Người dùng thông thường chỉ lấy đơn hàng của chính họ
     orders = db.query(Order).filter(Order.user_id == current_user.id).order_by(Order.id.desc()).all()
     return orders
 
@@ -1976,7 +1976,7 @@ def create_order(data: OrderCreateSchema, user: Optional[User] = Depends(get_cur
     try:
         # Tạo đơn hàng mới (Trạng thái mặc định là Chờ xác nhận)
         order = Order(
-            user_id=user.id,
+            user_id=user.id if user else None,
             status="Chờ xác nhận",
             shipping_address=getattr(data, 'shipping_address', '') or '',
             phone_number=getattr(data, 'phone_number', '') or '',
@@ -2028,9 +2028,10 @@ def create_order(data: OrderCreateSchema, user: Optional[User] = Depends(get_cur
 
         db.commit() 
         try:
-            email_items = [{"name": product_map[it.product_id].name, "quantity": it.quantity, "unit_price": oi.unit_price} for it, oi in zip(data.items, order.items)]
-            total_val = sum(it["unit_price"] * it["quantity"] for it in email_items)
-            send_order_confirmation_email(user.email, order.id, email_items, total_val)
+            if user and getattr(user, 'email', None):
+                email_items = [{"name": product_map[it.product_id].name, "quantity": it.quantity, "unit_price": oi.unit_price} for it, oi in zip(data.items, order.items)]
+                total_val = sum(it["unit_price"] * it["quantity"] for it in email_items)
+                send_order_confirmation_email(user.email, order.id, email_items, total_val)
         except Exception:
             pass  # tuyệt đối không để lỗi email làm hỏng response tạo đơn
         return {"message": "Tạo đơn hàng thành công", "order_id": order.id, "id": order.id, "status": "Chờ xác nhận"}

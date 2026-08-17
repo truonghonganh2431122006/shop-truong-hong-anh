@@ -755,8 +755,9 @@ const submitBtn = document.getElementById('submitBtn');
 const btnContent = document.getElementById('btnContent');
 const darkToggle = document.getElementById('darkToggle');
 
-// Xóa sạch phiên đăng nhập cũ mỗi khi quay lại trang login
-localStorage.clear();
+// Xóa sạch phiên đăng nhập cũ mỗi khi quay lại trang login (bảo lưu giỏ hàng)
+const authKeys = ['access_token', 'user_email', 'email', 'username', 'currentUser', 'token', 'role', 'admin_key'];
+authKeys.forEach(k => localStorage.removeItem(k));
 
 // 2. Hiệu ứng hiện/ẩn mật khẩu (Giữ nguyên tính năng của bạn)
 togglePass.addEventListener('click', () => {
