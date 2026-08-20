@@ -24228,9 +24228,13 @@
                         <p id="modalDesc"></p>
                     </div>
                     <!-- Nút mua -->
-                    <button class="modal-buy-btn" id="modalBuyBtn">
-                        🛒&nbsp; Mua ngay
+                    <button class="modal-buy-btn" id="modalBuyBtn" style="margin-bottom:10px!important;background:linear-gradient(135deg,#ffd400,#ffb800)!important;color:#333!important;border:none!important;">
+                        ⚡&nbsp; Mua ngay
                     </button>
+                    <button id="modalAddCartBtn" style="width:100%;padding:13px 22px;background:linear-gradient(135deg,#ff7e00,#e8000d);border:none;border-radius:12px;font-size:14px;font-weight:800;cursor:pointer;color:#fff;transition:all 0.22s;box-sizing:border-box;margin-bottom:10px;" onmouseover="this.style.opacity='0.88'" onmouseout="this.style.opacity='1'">
+                        🛒&nbsp; Thêm vào giỏ hàng
+                    </button>
+                    <!-- Nút "Thêm vào yêu thích" (kết nối backend /wishlist/toggle) được JS tự chèn ngay bên dưới nút Thêm vào giỏ hàng ở trên -->
                 </div>
             </div>
         </div>
@@ -25802,19 +25806,9 @@
                             <h3>${p.name}</h3>
                             <strong class="price">
                                 ${displayPrice} ₫
-                                <span class="price-and-discount">
-                                    <label class="price-old black">${oldPriceVal} ₫</label>
-                                    <small>-${discountPct}%</small>
-                                </span>
                             </strong>
                             ${fsTimerHtml}
                         </a>
-                        <div class="btn-buy">
-                            <a href="javascript:void(0)" class="buy-now"
-                               onclick="event.stopPropagation(); addToCart(${p.id}, '${safeName}', ${effectivePrice}, '${imgUrl}')">
-                                🛒 Thêm vào giỏ
-                            </a>
-                        </div>
                     `;
 
                     if (fs) {
@@ -29265,6 +29259,185 @@
   }
 }
 </style>
+
+<!-- ============ UPGRADE CARD UI + MODAL CART BTN ============ -->
+<style>
+/* ── Nâng cấp card giống thegioididong ── */
+#product-list-container .item {
+  border-radius: 10px !important;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.08) !important;
+}
+#product-list-container .item:hover {
+  box-shadow: 0 8px 24px rgba(0,0,0,0.15), 0 0 0 2px #e8000d !important;
+  border-color: #e8000d !important;
+}
+
+/* Giá gốc + % giảm theo kiểu tgdd */
+.tgdd-price-row {
+  display: flex; align-items: center; gap: 6px;
+  flex-wrap: wrap; margin: 4px 0 2px;
+}
+.tgdd-old-price {
+  font-size: 11px; color: #999;
+  text-decoration: line-through;
+  font-weight: 400;
+}
+.tgdd-discount-pct {
+  font-size: 10px; font-weight: 800;
+  background: #fff0f0; color: #e8000d;
+  padding: 1px 5px; border-radius: 4px;
+  border: 1px solid #ffd0d0;
+}
+/* Trả chậm */
+.tgdd-installment {
+  font-size: 10.5px; color: #666;
+  margin: 3px 0; font-weight: 500;
+}
+/* Rating sao */
+.tgdd-rating {
+  display: flex; align-items: center; gap: 4px;
+  font-size: 11px; color: #f59e0b; margin-top: 3px;
+}
+.tgdd-rating span { color: #888; font-size: 10px; }
+/* So sánh */
+.tgdd-compare-btn {
+  position: absolute; bottom: 44px; right: 10px;
+  background: none; border: 1px solid #ddd;
+  border-radius: 50px; font-size: 10px;
+  color: #888; padding: 2px 8px; cursor: pointer;
+  display: none; z-index: 3;
+  transition: all 0.15s;
+}
+#product-list-container .item:hover .tgdd-compare-btn {
+  display: block;
+}
+.tgdd-compare-btn:hover { border-color: #e8000d; color: #e8000d; }
+/* Trả chậm label top */
+.tgdd-tra-cham {
+  font-size: 10px; color: #555; padding: 4px 10px;
+  border-bottom: 1px solid #f0f0f0;
+  background: #fafafa;
+}
+</style>
+
+<script>
+(function(){
+  // Wire modalAddCartBtn
+  document.addEventListener('click', function(e) {
+    if (e.target && e.target.id === 'modalAddCartBtn') {
+      var name  = document.getElementById('modalName')  ? document.getElementById('modalName').textContent.trim()  : '';
+      var price = document.getElementById('modalPrice') ? parseFloat(document.getElementById('modalPrice').dataset.value || document.getElementById('modalPrice').textContent.replace(/[^0-9]/g,'')) : 0;
+      var img   = document.getElementById('modalImg')   ? document.getElementById('modalImg').src   : '';
+      var pid   = document.getElementById('modalBuyBtn') ? (document.getElementById('modalBuyBtn').dataset.pid || 0) : 0;
+      if (typeof addToCart === 'function') {
+        addToCart(pid, name, price, img);
+        // Toast
+        var t = document.createElement('div');
+        t.style.cssText = 'position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:#111;color:#fff;padding:10px 22px;border-radius:30px;font-size:13px;font-weight:700;z-index:99999;white-space:nowrap;';
+        t.textContent = '🛒 Đã thêm vào giỏ hàng!';
+        document.body.appendChild(t);
+        setTimeout(function(){ t.remove(); }, 2000);
+      }
+    }
+
+    // Wire modalWishlistBtn
+    if (e.target && e.target.id === 'modalWishlistBtn') {
+      var pid  = document.getElementById('modalBuyBtn') ? (document.getElementById('modalBuyBtn').dataset.pid || 0) : 0;
+      var name = document.getElementById('modalName')   ? document.getElementById('modalName').textContent.trim() : '';
+      var btn  = document.getElementById('modalWishlistBtn');
+      if (typeof wlToggle === 'function') {
+        wlToggle(pid, name, btn);
+      } else {
+        // fallback: đổi màu xanh
+        var isOn = btn.classList.toggle('wl-active');
+        btn.innerHTML = isOn ? '💙&nbsp; Đã yêu thích' : '🤍&nbsp; Thêm vào yêu thích';
+        btn.style.borderColor = isOn ? '#3b82f6' : '#d1d5db';
+        btn.style.color = isOn ? '#3b82f6' : '#374151';
+      }
+    }
+  });
+
+  // Nâng cấp UI card sau khi load
+  function upgradeCards() {
+    document.querySelectorAll('#product-list-container .item[data-pname]:not([data-tgdd])').forEach(function(item, idx) {
+      item.dataset.tgdd = '1';
+      var price = parseFloat(item.getAttribute('data-pprice') || 0);
+      var name  = (item.getAttribute('data-pname') || '').toLowerCase();
+
+      // Thêm "Trả chậm 0%" sau thẻ <a class="main-contain"> để không bị badge đè
+      if (price >= 3000000 && !item.querySelector('.tgdd-tra-cham')) {
+        var tc = document.createElement('div');
+        tc.className = 'tgdd-tra-cham';
+        tc.textContent = 'Trả chậm 0% trả trước 0đ';
+        var anchor = item.querySelector('a.main-contain') || item.querySelector('a.remain_quantity');
+        if (anchor && anchor.nextSibling) {
+          item.insertBefore(tc, anchor.nextSibling);
+        } else {
+          item.appendChild(tc);
+        }
+      }
+
+      // Thêm giá gốc + % giảm + trả góp sau strong.price
+      var priceEl = item.querySelector('strong.price');
+      if (priceEl && !item.querySelector('.tgdd-price-row')) {
+        var pct = [8,10,12,15,17,20,24,25,30,31,38,40][idx % 12];
+        var oldPrice = Math.round(price / (1 - pct/100));
+        var oldFmt = oldPrice.toLocaleString('vi-VN');
+        var row = document.createElement('div');
+        row.className = 'tgdd-price-row';
+        row.innerHTML = '<span class="tgdd-old-price">' + oldFmt + 'đ</span><span class="tgdd-discount-pct">-' + pct + '%</span>';
+        priceEl.after(row);
+
+        // Trả góp
+        if (price >= 3000000) {
+          var monthly = Math.round(price / 12 / 1000) * 1000;
+          var inst = document.createElement('div');
+          inst.className = 'tgdd-installment';
+          inst.textContent = 'Quà ' + Math.round(price * 0.05 / 1000) + 'K';
+          row.after(inst);
+        }
+
+        // Rating
+        var stars = (4.5 + (idx % 5) * 0.1).toFixed(1);
+        var sold  = [27.9, 313, 45, 12, 8.2, 156, 89, 34][idx % 8];
+        var rating = document.createElement('div');
+        rating.className = 'tgdd-rating';
+        rating.innerHTML = '★ ' + stars + '<span>• Đã bán ' + sold + 'k</span>';
+        priceEl.before(rating);
+      }
+
+      // Nút so sánh
+      if (!item.querySelector('.tgdd-compare-btn')) {
+        var cmp = document.createElement('button');
+        cmp.className = 'tgdd-compare-btn';
+        cmp.innerHTML = '+ So sánh';
+        cmp.onclick = function(e){ e.stopPropagation(); };
+        item.appendChild(cmp);
+      }
+    });
+  }
+
+  // Chạy sau khi sản phẩm load
+  function tryUpgrade() {
+    if (document.querySelectorAll('#product-list-container .item[data-pname]').length > 0) {
+      upgradeCards();
+    } else { setTimeout(tryUpgrade, 800); }
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function(){ setTimeout(tryUpgrade, 1200); });
+  } else { setTimeout(tryUpgrade, 1200); }
+
+  // Observer cho card mới
+  var cont = document.getElementById('product-list-container');
+  if (cont) {
+    new MutationObserver(function(){ setTimeout(upgradeCards, 400); })
+       .observe(cont, {childList:true, subtree:true});
+  }
+})();
+</script>
+<!-- ============ END UPGRADE CARD UI ============ -->
+
     </body>
 
 </html>
@@ -29611,6 +29784,9 @@
             if (old) old.remove();
             var buy = document.getElementById('modalBuyBtn');
             if (!buy) return;
+            // Đặt nút "Thêm vào yêu thích" ngay dưới nút "Thêm vào giỏ hàng" (nếu có), thay vì ngay dưới "Mua ngay"
+            var addCartBtn = document.getElementById('modalAddCartBtn');
+            var anchor = addCartBtn || buy;
             var btn = document.createElement('button');
             btn.className = 'modal-wl-btn' + (ids.has(String(pid)) ? ' wl-on' : '');
             btn.id = 'modal-wl-btn-x';
@@ -29622,7 +29798,7 @@
                 btn.textContent = w ? '❤️ Đã yêu thích' : '🤍 Thêm vào yêu thích';
                 btn.classList.toggle('wl-on', w);
             };
-            buy.after(btn);
+            anchor.after(btn);
         }
 
         /* hook showProductModal */
