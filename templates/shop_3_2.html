@@ -24317,9 +24317,9 @@
                 showToast('Đã thêm "' + name.substring(0, 40) + (name.length > 40 ? '...' : '') + '" vào giỏ hàng!');
             }
 
-            function removeFromCart(idx) { cart.splice(idx, 1); updateCartCount(); renderCart(); }
-            function changeQty(idx, delta) { if (!cart[idx]) return; cart[idx].qty += delta; if (cart[idx].qty < 1) cart[idx].qty = 1; updateCartCount(); renderCart(); }
-            function clearCart() { cart = []; updateCartCount(); renderCart(); }
+            function removeFromCart(idx) { cart.splice(idx, 1); localStorage.setItem('cart', JSON.stringify(cart)); updateCartCount(); renderCart(); }
+            function changeQty(idx, delta) { if (!cart[idx]) return; cart[idx].qty += delta; if (cart[idx].qty < 1) cart[idx].qty = 1; localStorage.setItem('cart', JSON.stringify(cart)); updateCartCount(); renderCart(); }
+            function clearCart() { cart = []; localStorage.removeItem('cart'); updateCartCount(); renderCart(); }
 
             // ===== GLOBAL FLASH SALE & PRICE SYNC =====
             window.flashSalesMap = window.flashSalesMap || {};
