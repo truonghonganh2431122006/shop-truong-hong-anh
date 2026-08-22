@@ -24505,7 +24505,7 @@
 
             function renderCart() {
                 var el = document.getElementById('cartContent'); if (!el) return;
-                if (cart.length === 0) { el.innerHTML = '<h2>🛒 Giỏ hàng</h2><div class="empty-cart" style="padding:40px 20px;text-align:center;color:#64748b;font-size:15px">Giỏ hàng của bạn đang trống.<br><a href="/shop" style="display:inline-block;margin-top:12px;padding:8px 20px;background:#3b82f6;color:#fff;border-radius:8px;text-decoration:none;font-weight:600">Khám phá sản phẩm</a></div>'; return; }
+                if (cart.length === 0) { el.innerHTML = '<h2>🛒 Giỏ hàng</h2><div class="empty-cart" style="padding:40px 20px;text-align:center;color:#64748b;font-size:15px">Giỏ hàng của bạn đang trống.<br><a href="/" id="haGoShopBtn" style="display:inline-block;margin-top:12px;padding:8px 20px;background:#3b82f6;color:#fff;border-radius:8px;text-decoration:none;font-weight:600">Khám phá sản phẩm</a></div>'; return; }
 
                 var html = '<h2>🛒 Giỏ hàng (' + getTotalQty() + ' sản phẩm)</h2>';
 
@@ -24952,6 +24952,14 @@
 
                 if (link) {
                     var href = (link.getAttribute('href') || '').trim();
+
+                    // Nút "Khám phá sản phẩm" (giỏ hàng trống) -> về trang chủ shop
+                    if (link.id === 'haGoShopBtn') {
+                        e.preventDefault(); e.stopImmediatePropagation();
+                        if (typeof closeCartModal === 'function') closeCartModal();
+                        window.location.href = '/';
+                        return false;
+                    }
 
                     // Order History link -> Force direct navigation to order-history.html
                     if (link.closest('.ha-btn-orders') || href.indexOf('order-history') > -1) {
