@@ -24287,11 +24287,18 @@
             }
             document.addEventListener('DOMContentLoaded', updateCartCount);
             setTimeout(updateCartCount, 300);
+            window.addToCart = addToCart; // Cho phép nút "Thêm vào giỏ hàng" trong modal (script khác) gọi được hàm giỏ hàng thật này
+            window.updateCartCount = updateCartCount;
             function showToast(msg) { var t = document.getElementById('toastMsg'); if (!t) return; t.textContent = msg; t.style.display = 'block'; clearTimeout(t._timer); t._timer = setTimeout(function () { t.style.display = 'none'; }, 2500); }
             function parsePrice(str) { if (!str) return 0; return parseInt(str.replace(/[^\d]/g, '')) || 0; }
             function formatPrice(n) { return n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.') + ' ₫'; }
 
             function addToCart(id, name, price, img) {
+                if (!localStorage.getItem('access_token')) {
+                    alert('⚠️ Vui lòng đăng nhập để thêm vào giỏ hàng!');
+                    window.location.href = '/login';
+                    return;
+                }
                 var found = false;
                 for (var i = 0; i < cart.length; i++) {
                     if (cart[i].name === name) {
@@ -24927,9 +24934,10 @@
 
                 // Handle "add to cart"/"buy now" buttons
                 if (btn && !link) {
-                    // Bỏ qua nút thuộc Quick Order hoặc modal buy btn
+                    // Bỏ qua nút thuộc Quick Order hoặc modal chi tiết sản phẩm (đã có handler riêng cho các nút này)
                     if (btn.closest('#haQoOverlay') || btn.closest('#qo-overlay') ||
-                        btn.id === 'modalBuyBtn' || btn.classList.contains('sa-prod-card-btn')) {
+                        btn.id === 'modalBuyBtn' || btn.id === 'modalAddCartBtn' || btn.id === 'modalWishlistBtn' || btn.id === 'modal-wl-btn-x' ||
+                        btn.closest('.modal-content') || btn.classList.contains('sa-prod-card-btn')) {
                         return;
                     }
                     var btnText = (btn.textContent || '').toLowerCase();
@@ -25960,6 +25968,8 @@
             document.getElementById('modalImg').src = img;
             document.getElementById('modalName').innerText = name;
             document.getElementById('modalPrice').innerText = new Intl.NumberFormat('vi-VN').format(price) + " ₫";
+            document.getElementById('modalPrice').dataset.value = price; // Lưu giá số nguyên để các nút Thêm giỏ hàng/Yêu thích đọc lại chính xác
+            document.getElementById('modalBuyBtn').dataset.pid = id; // Lưu ID sản phẩm để nút Thêm giỏ hàng/Yêu thích lấy đúng sản phẩm đang xem
 
             const moTaChung = "Sản phẩm chính hãng tại hệ thống Hồng Anh. Bảo hành 12 tháng, lỗi 1 đổi 1 trong 30 ngày. Cam kết chất lượng và giá tốt nhất thị trường.";
             document.getElementById('modalDesc').innerText = desc || moTaChung;
@@ -27701,12 +27711,18 @@
 
             /* ── Mở form với dữ liệu sản phẩm ── */
             window.openQuickOrder = function (idOrObj, name, price, img) {
-                /* ══ Mở Form Mua Nhanh / Thanh Toán trực tiếp không bị chặn ══ */
+                /* ══ Mở Form Mua Nhanh / Thanh Toán trực tiếp ══ */
                 var userToken = localStorage.getItem('access_token') || localStorage.getItem('token') || (function () {
                     try { return JSON.parse(localStorage.getItem('user') || '{}').token || JSON.parse(localStorage.getItem('user') || '{}').access_token; } catch (e) { return null; }
                 })() || (function () {
                     try { return JSON.parse(localStorage.getItem('currentUser') || '{}').token || JSON.parse(localStorage.getItem('currentUser') || '{}').access_token; } catch (e) { return null; }
                 })();
+
+                if (!userToken) {
+                    alert('⚠️ Vui lòng đăng nhập để mua hàng!');
+                    window.location.href = '/login';
+                    return;
+                }
 
                 if (arguments.length === 1) {
                     var pid = parseInt(idOrObj) || 0;
@@ -29322,9 +29338,21 @@
 
 <script>
 (function(){
-  // Wire modalAddCartBtn
-  document.addEventListener('click', function(e) {
-    if (e.target && e.target.id === 'modalAddCartBtn') {
+  // LƯU Ý: .modal-content có onclick="event.stopPropagation()" nên lắng nghe click theo kiểu
+  // "delegate lên document" (document.addEventListener) sẽ KHÔNG BAO GIỜ nhận được sự kiện click
+  // bên trong modal (đây là lý do nút "Thêm vào giỏ hàng" trước đây bấm không phản ứng gì).
+  // => Gắn thẳng listener vào từng nút để không phụ thuộc vào việc nổi bọt (bubbling) lên document.
+  function wireModalAddCartBtn() {
+    var addCartBtn = document.getElementById('modalAddCartBtn');
+    if (!addCartBtn || addCartBtn.dataset.wired) return;
+    addCartBtn.dataset.wired = '1';
+    addCartBtn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      if (!localStorage.getItem('access_token')) {
+        alert('⚠️ Vui lòng đăng nhập để thêm vào giỏ hàng!');
+        window.location.href = '/login';
+        return;
+      }
       var name  = document.getElementById('modalName')  ? document.getElementById('modalName').textContent.trim()  : '';
       var price = document.getElementById('modalPrice') ? parseFloat(document.getElementById('modalPrice').dataset.value || document.getElementById('modalPrice').textContent.replace(/[^0-9]/g,'')) : 0;
       var img   = document.getElementById('modalImg')   ? document.getElementById('modalImg').src   : '';
@@ -29338,8 +29366,19 @@
         document.body.appendChild(t);
         setTimeout(function(){ t.remove(); }, 2000);
       }
-    }
+    });
+  }
+  // Nút #modalAddCartBtn nằm sẵn trong HTML tĩnh nên gắn ngay khi DOM sẵn sàng,
+  // đồng thời gắn lại mỗi lần mở modal (phòng trường hợp nút bị thay thế/clone).
+  document.addEventListener('DOMContentLoaded', wireModalAddCartBtn);
+  setTimeout(wireModalAddCartBtn, 300);
+  var _origShowModalForCart = window.showProductModal;
+  window.showProductModal = function(name, price, img, desc, id) {
+    if (_origShowModalForCart) _origShowModalForCart(name, price, img, desc, id);
+    setTimeout(wireModalAddCartBtn, 50);
+  };
 
+  document.addEventListener('click', function(e) {
     // Wire modalWishlistBtn
     if (e.target && e.target.id === 'modalWishlistBtn') {
       var pid  = document.getElementById('modalBuyBtn') ? (document.getElementById('modalBuyBtn').dataset.pid || 0) : 0;
