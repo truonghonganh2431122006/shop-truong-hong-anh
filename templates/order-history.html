@@ -9,6 +9,23 @@
     <style>
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+        :root {
+            --navy: #1a1a2e;
+            --navy-2: #16213e;
+            --gold: #f0c040;
+            --red: #e53935;
+            --green: #2e7d32;
+            --blue: #1565c0;
+            --orange: #e65100;
+            --gray-900: #1a1a2e;
+            --gray-600: #5a6478;
+            --gray-500: #8892a4;
+            --gray-400: #a0a8b8;
+            --gray-100: #f5f5f7;
+            --gray-50: #fafbfc;
+            --border: #eef0f4;
+        }
+
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
             background: linear-gradient(135deg, #f5f7fa 0%, #e8ecf1 100%);
@@ -26,9 +43,10 @@
             z-index: 100;
             backdrop-filter: blur(20px);
             box-shadow: 0 4px 30px rgba(0,0,0,0.15);
+            border-bottom: 2px solid rgba(240,192,64,0.35);
         }
         .top-bar-inner {
-            max-width: 720px;
+            max-width: 760px;
             margin: auto;
             display: flex;
             align-items: center;
@@ -43,8 +61,14 @@
         .top-bar h1 span {
             color: #f0c040;
         }
+        .top-bar-tag {
+            font-size: 11px;
+            font-weight: 600;
+            color: rgba(255,255,255,0.55);
+            letter-spacing: 0.3px;
+        }
 
-        .container { max-width: 720px; margin: auto; padding: 24px 16px 80px; }
+        .container { max-width: 760px; margin: auto; padding: 24px 16px 80px; }
 
         /* --- Back Button --- */
         .btn-back {
@@ -71,19 +95,117 @@
         }
         .btn-back i { font-style: normal; font-size: 16px; }
 
+        /* --- Page Title Row --- */
+        .page-title-row {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
         .page-title {
             font-size: 28px;
             font-weight: 800;
             color: #1a1a2e;
-            margin-bottom: 8px;
+            margin-bottom: 6px;
             letter-spacing: -0.5px;
         }
         .page-subtitle {
             font-size: 14px;
             color: #8892a4;
-            margin-bottom: 28px;
             font-weight: 400;
         }
+        .btn-refresh {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            border: 1px solid rgba(0,0,0,0.06);
+            background: #fff;
+            color: #1a1a2e;
+            font-size: 18px;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            transition: all 0.25s cubic-bezier(.4,0,.2,1);
+            flex-shrink: 0;
+        }
+        .btn-refresh:hover { background: #1a1a2e; color: #f0c040; transform: rotate(180deg); }
+
+        /* --- Order Summary --- */
+        .order-summary {
+            font-size: 13px;
+            color: #8892a4;
+            margin-bottom: 16px;
+        }
+        .order-summary strong { color: #1a1a2e; font-weight: 700; }
+
+        /* --- Toolbar: search + tabs --- */
+        .order-toolbar {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 22px;
+        }
+        .search-wrap { position: relative; }
+        .search-icon {
+            position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
+            font-size: 14px; color: #a0a8b8; pointer-events: none;
+        }
+        .search-input {
+            width: 100%;
+            padding: 12px 16px 12px 38px;
+            border-radius: 12px;
+            border: 1px solid #e2e5ea;
+            font-family: inherit;
+            font-size: 13.5px;
+            background: #fff;
+            outline: none;
+            transition: all 0.2s;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+            color: #1a1a2e;
+        }
+        .search-input::placeholder { color: #b7bdc8; }
+        .search-input:focus { border-color: #1a1a2e; box-shadow: 0 0 0 3px rgba(26,26,46,0.08); }
+
+        .tab-scroll {
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            padding-bottom: 2px;
+            scrollbar-width: none;
+        }
+        .tab-scroll::-webkit-scrollbar { display: none; }
+        .tab-chip {
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 16px;
+            border-radius: 20px;
+            border: 1px solid #e2e5ea;
+            background: #fff;
+            font-size: 12.5px;
+            font-weight: 600;
+            color: #5a6478;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: inherit;
+            white-space: nowrap;
+        }
+        .tab-chip:hover { border-color: #1a1a2e; color: #1a1a2e; }
+        .tab-chip.active {
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            color: #fff;
+            border-color: #1a1a2e;
+            box-shadow: 0 4px 12px rgba(26,26,46,0.22);
+        }
+        .tab-count {
+            background: rgba(0,0,0,0.07);
+            padding: 1px 7px;
+            border-radius: 10px;
+            font-size: 11px;
+            font-weight: 700;
+        }
+        .tab-chip.active .tab-count { background: rgba(255,255,255,0.22); }
 
         /* --- Order Card --- */
         .order-card {
@@ -102,21 +224,57 @@
             box-shadow: 0 12px 40px rgba(0,0,0,0.08), 0 2px 8px rgba(0,0,0,0.04);
         }
 
+        /* --- Shop line (head of card) --- */
+        .order-card-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 24px 0;
+        }
+        .shop-line { display: flex; align-items: center; gap: 8px; }
+        .shop-badge {
+            width: 26px; height: 26px; border-radius: 8px;
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            color: #f0c040; display: flex; align-items: center; justify-content: center;
+            font-size: 13px; flex-shrink: 0;
+        }
+        .shop-name { font-size: 13px; font-weight: 700; color: #1a1a2e; }
+
         /* --- Order Header --- */
         .order-header {
             display: flex;
             justify-content: space-between;
             align-items: flex-start;
-            padding: 20px 24px 16px;
+            padding: 10px 24px 14px;
             background: linear-gradient(180deg, #fafbfc 0%, #fff 100%);
             border-bottom: 1px solid #f0f1f3;
+            margin-top: 6px;
+            flex-wrap: wrap;
+            gap: 6px;
         }
+        .order-id-row { display: flex; align-items: center; gap: 8px; }
         .order-id {
-            font-size: 16px;
+            font-size: 15px;
             font-weight: 700;
             color: #1a1a2e;
-            letter-spacing: -0.3px;
+            letter-spacing: -0.2px;
         }
+        .copy-btn {
+            border: none;
+            background: #f0f1f3;
+            color: #5a6478;
+            width: 22px;
+            height: 22px;
+            border-radius: 6px;
+            font-size: 11px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+        .copy-btn:hover { background: #1a1a2e; color: #fff; }
         .order-date {
             font-size: 12px;
             color: #a0a8b8;
@@ -129,9 +287,11 @@
             border-radius: 24px;
             font-size: 11px;
             font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.8px;
+            letter-spacing: 0.4px;
             white-space: nowrap;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
         }
         /* Chờ xác nhận - Vàng */
         .status-wait {
@@ -164,10 +324,82 @@
             border: 1px solid #ef9a9a;
         }
 
+        /* --- Status Tracker (stepper) --- */
+        .status-tracker {
+            display: flex;
+            align-items: flex-start;
+            padding: 18px 24px 8px;
+        }
+        .tracker-step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            min-width: 54px;
+        }
+        .tracker-dot {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #f0f1f3;
+            color: #b7bdc8;
+            font-size: 13px;
+            border: 2px solid #eef0f4;
+            transition: all 0.3s;
+        }
+        .tracker-step.done .tracker-dot {
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            color: #f0c040;
+            border-color: #1a1a2e;
+        }
+        .tracker-step.current .tracker-dot {
+            box-shadow: 0 0 0 4px rgba(240,192,64,0.28);
+            animation: pulseDot 1.6s infinite;
+        }
+        .tracker-label {
+            font-size: 10px;
+            color: #a0a8b8;
+            font-weight: 600;
+            text-align: center;
+            line-height: 1.3;
+            max-width: 62px;
+        }
+        .tracker-step.done .tracker-label { color: #1a1a2e; }
+        .tracker-line {
+            flex: 1;
+            height: 2px;
+            background: #eef0f4;
+            margin-top: 15px;
+            min-width: 12px;
+        }
+        .tracker-line.filled { background: linear-gradient(90deg, #1a1a2e, #16213e); }
+        @keyframes pulseDot {
+            0%, 100% { box-shadow: 0 0 0 4px rgba(240,192,64,0.28); }
+            50% { box-shadow: 0 0 0 8px rgba(240,192,64,0.12); }
+        }
+
+        /* --- Cancel banner --- */
+        .cancel-banner {
+            margin: 16px 24px 4px;
+            padding: 12px 16px;
+            background: linear-gradient(135deg, #fff5f5, #ffe3e3);
+            border: 1px solid #ffc9c9;
+            color: #c62828;
+            font-weight: 700;
+            font-size: 13px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
         /* --- Product List --- */
         .product-list {
             margin: 0;
-            padding: 12px 24px;
+            padding: 10px 24px;
             list-style: none;
         }
         .product-item {
@@ -175,7 +407,7 @@
             align-items: center;
             gap: 14px;
             padding: 12px 0;
-            border-bottom: 1px solid #f5f5f7;
+            border-bottom: 1px dashed #eef0f4;
         }
         .product-item:last-child { border-bottom: none; }
 
@@ -199,11 +431,20 @@
             -webkit-box-orient: vertical;
             overflow: hidden;
         }
-        .product-qty {
-            font-size: 12px;
-            color: #8892a4;
-            font-weight: 500;
-            margin-top: 2px;
+        .product-meta {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 4px;
+        }
+        .product-unit-price { font-size: 12px; color: #a0a8b8; }
+        .product-qty-badge {
+            font-size: 11px;
+            background: #f5f5f7;
+            color: #5a6478;
+            padding: 1px 7px;
+            border-radius: 8px;
+            font-weight: 700;
         }
         .product-price {
             font-size: 15px;
@@ -215,7 +456,7 @@
 
         /* --- Shipping Info --- */
         .shipping-info {
-            margin: 0 24px 4px;
+            margin: 4px 24px 4px;
             padding: 14px 16px;
             background: #f8f9fb;
             border-radius: 12px;
@@ -246,7 +487,16 @@
             align-items: center;
             border-top: 1px solid #f0f1f3;
             margin-top: 8px;
+            flex-wrap: wrap;
+            gap: 12px;
         }
+        .footer-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .item-count { font-size: 12px; color: #8892a4; font-weight: 500; }
         .total-label {
             font-size: 13px;
             color: #8892a4;
@@ -257,6 +507,17 @@
             color: #e53935;
             font-weight: 800;
             letter-spacing: -0.5px;
+        }
+        .discount-tag {
+            font-size: 11px;
+            color: #276749;
+            font-weight: 600;
+            margin-left: 6px;
+            background: #f0fff4;
+            padding: 2px 8px;
+            border-radius: 10px;
+            border: 1px solid #9ae6b4;
+            white-space: nowrap;
         }
 
         /* --- Cancel Button --- */
@@ -309,19 +570,70 @@
             transform: translateY(-2px);
         }
 
+        /* --- Skeleton loading --- */
+        .skeleton-card {
+            background: #fff;
+            border-radius: 16px;
+            padding: 20px 24px;
+            margin-bottom: 16px;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.04);
+        }
+        .sk-row { display: flex; justify-content: space-between; margin-bottom: 16px; }
+        .sk {
+            background: linear-gradient(90deg, #f0f1f3 25%, #e4e6ea 37%, #f0f1f3 63%);
+            background-size: 400% 100%;
+            animation: skShimmer 1.4s ease infinite;
+            border-radius: 8px;
+        }
+        .sk-badge { width: 90px; height: 22px; border-radius: 20px; }
+        .sk-pill { width: 70px; height: 14px; margin-top: 4px; }
+        .sk-line { height: 12px; }
+        .sk-item { display: flex; gap: 14px; align-items: center; margin-top: 16px; }
+        .sk-img { width: 56px; height: 56px; border-radius: 12px; flex-shrink: 0; }
+        .sk-lines { flex: 1; display: flex; flex-direction: column; gap: 8px; }
+        @keyframes skShimmer {
+            0% { background-position: 100% 0; }
+            100% { background-position: 0 0; }
+        }
+
+        /* --- Mini toast (copy feedback) --- */
+        .mini-toast {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%) translateY(20px);
+            background: #1a1a2e;
+            color: #fff;
+            padding: 10px 20px;
+            border-radius: 30px;
+            font-size: 13px;
+            font-weight: 600;
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.3s cubic-bezier(.4,0,.2,1);
+            z-index: 999;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+            white-space: nowrap;
+        }
+        .mini-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
         /* --- Responsive --- */
         @media (max-width: 480px) {
             .container { padding: 16px 12px 60px; }
             .page-title { font-size: 22px; }
-            .order-header { padding: 16px 16px 12px; flex-wrap: wrap; gap: 8px; }
+            .order-card-head { padding: 14px 16px 0; }
+            .order-header { padding: 8px 16px 12px; }
+            .status-tracker { padding: 14px 16px 6px; }
+            .tracker-label { font-size: 9px; max-width: 48px; }
             .product-list { padding: 8px 16px; }
             .product-img { width: 48px; height: 48px; border-radius: 10px; }
             .product-name { font-size: 13px; }
             .product-price { font-size: 14px; }
-            .order-footer { padding: 12px 16px 16px; flex-direction: column; gap: 12px; align-items: stretch; }
+            .order-footer { padding: 12px 16px 16px; flex-direction: column; align-items: stretch; }
             .order-footer > div:last-child { text-align: right; }
             .total-amount { font-size: 20px; }
-            .shipping-info { margin: 0 16px 4px; }
+            .shipping-info { margin: 4px 16px 4px; }
+            .cancel-banner { margin: 14px 16px 4px; }
         }
 
         /* --- Scrollbar --- */
@@ -342,7 +654,7 @@
 
         /* ─── REVIEW BOX ─── */
         .review-box {
-            margin: 0 16px 16px;
+            margin: 4px 16px 16px;
             padding: 16px;
             background: linear-gradient(135deg, #fffbeb, #fefce8);
             border: 1.5px solid #fde68a;
@@ -352,11 +664,18 @@
             background: linear-gradient(135deg, #f0fdf4, #dcfce7);
             border-color: #86efac;
         }
+        .review-head { margin-bottom: 10px; }
         .review-title {
             font-size: 13px; font-weight: 700; color: #92400e;
-            margin-bottom: 10px; display: flex; align-items: center; gap: 6px;
+            display: flex; align-items: center; gap: 6px;
         }
         .review-box.done .review-title { color: #166534; }
+        .review-sub {
+            font-size: 11.5px;
+            color: #a16207;
+            margin-top: 3px;
+            font-weight: 400;
+        }
         .stars-row {
             display: flex; gap: 6px; margin-bottom: 12px;
         }
@@ -398,25 +717,53 @@
     <div class="top-bar">
         <div class="top-bar-inner">
             <h1><span>✦</span> Trương Hồng Anh Shop</h1>
+            <span class="top-bar-tag">Quản lý đơn hàng</span>
         </div>
     </div>
 
     <div class="container">
         <a href="/shop" class="btn-back"><i>←</i>Quay lại mua sắm</a>
 
-        <div class="page-title">Đơn hàng của tôi</div>
-        <p class="page-subtitle">Theo dõi và quản lý tất cả đơn hàng của bạn</p>
+        <div class="page-title-row">
+            <div>
+                <div class="page-title">Đơn hàng của tôi</div>
+                <p class="page-subtitle">Theo dõi và quản lý tất cả đơn hàng của bạn</p>
+            </div>
+            <button class="btn-refresh" onclick="displayOrders()" title="Làm mới">⟳</button>
+        </div>
+
+        <div id="orderSummary" class="order-summary" style="display:none;"></div>
+
+        <div class="order-toolbar" id="orderToolbar" style="display:none;">
+            <div class="search-wrap">
+                <span class="search-icon">🔍</span>
+                <input type="text" id="searchInput" class="search-input" placeholder="Tìm theo mã đơn hoặc tên sản phẩm..." oninput="onSearchInput(this.value)">
+            </div>
+            <div class="tab-scroll" id="statusTabs"></div>
+        </div>
 
         <div id="orderList"></div>
     </div>
 
     <script>
+        // Ảnh đại diện mặc định khi sản phẩm không có ảnh / ảnh lỗi
+        const FALLBACK_IMG = 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 56 56%22%3E%3Crect fill=%22%23f0f1f3%22 width=%2256%22 height=%2256%22/%3E%3Ctext x=%2228%22 y=%2233%22 text-anchor=%22middle%22 font-size=%2222%22%3E📦%3C/text%3E%3C/svg%3E';
+
+        // ─── STATE (chỉ phục vụ hiển thị / lọc phía client, không gọi thêm API) ───
+        let allOrdersData = [];
+        let activeFilter = 'all';
+        let searchKeyword = '';
+
         async function displayOrders() {
             const container = document.getElementById('orderList');
+            const toolbar = document.getElementById('orderToolbar');
+            const summary = document.getElementById('orderSummary');
             if (!container) return;
 
             const token = localStorage.getItem('access_token');
             if (!token) {
+                if (toolbar) toolbar.style.display = 'none';
+                if (summary) summary.style.display = 'none';
                 container.innerHTML = `
                     <div class="state-box">
                         <span class="state-icon">🔐</span>
@@ -426,7 +773,7 @@
                 return;
             }
 
-            container.innerHTML = `<div class="state-box"><span class="state-icon">⏳</span><p>Đang tải đơn hàng...</p></div>`;
+            renderSkeleton(container);
 
             try {
                 const res = await fetch('/orders/me', {
@@ -434,6 +781,8 @@
                 });
 
                 if (res.status === 401) {
+                    if (toolbar) toolbar.style.display = 'none';
+                    if (summary) summary.style.display = 'none';
                     container.innerHTML = `
                         <div class="state-box">
                             <span class="state-icon">⚠️</span>
@@ -444,8 +793,11 @@
                 }
 
                 const orders = await res.json();
+                allOrdersData = Array.isArray(orders) ? orders : [];
 
-                if (!orders || orders.length === 0) {
+                if (allOrdersData.length === 0) {
+                    if (toolbar) toolbar.style.display = 'none';
+                    if (summary) summary.style.display = 'none';
                     container.innerHTML = `
                         <div class="state-box">
                             <span class="state-icon">📦</span>
@@ -455,86 +807,15 @@
                     return;
                 }
 
-                let html = '';
-                orders.forEach(order => {
-                    // Màu sắc trạng thái
-                    let statusClass = 'status-wait';
-                    if (order.status === 'Đã xác nhận') statusClass = 'status-confirmed';
-                    if (order.status === 'Đang giao') statusClass = 'status-ship';
-                    if (order.status === 'Đã giao' || order.status === 'Hoàn thành') statusClass = 'status-done';
-                    if (order.status === 'Đã hủy') statusClass = 'status-cancel';
-
-                    // Danh sách sản phẩm — ưu tiên unit_price (giá sau giảm), fallback về price
-                    const itemsHtml = (order.items || []).map(item => {
-                        const displayItemPrice = item.unit_price || item.price || 0;
-                        return `
-                        <li class="product-item">
-                            <img class="product-img" src="${item.image || 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 56 56%22%3E%3Crect fill=%22%23f0f1f3%22 width=%2256%22 height=%2256%22/%3E%3Ctext x=%2228%22 y=%2232%22 text-anchor=%22middle%22 font-size=%2220%22%3E✅%3C/text%3E%3C/svg%3E'}" alt="${item.name}" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 56 56%22%3E%3Crect fill=%22%23f0f1f3%22 width=%2256%22 height=%2256%22/%3E%3Ctext x=%2228%22 y=%2232%22 text-anchor=%22middle%22 font-size=%2220%22%3E✅%3C/text%3E%3C/svg%3E'" />
-                            <div class="product-info">
-                                <div class="product-name">${item.name}</div>
-                                <div class="product-qty">Số lượng: ${item.qty || item.quantity || 1}</div>
-                            </div>
-                            <span class="product-price">${displayItemPrice.toLocaleString()}đ</span>
-                        </li>`;
-                    }).join('');
-
-                    // Địa chỉ giao hàng
-                    const addrHtml = order.shipping_address ? `
-                        <div class="shipping-info">
-                            <div class="ship-icon">📍 Thông tin giao hàng</div>
-                            <div class="ship-detail">
-                                <strong>${order.customer_name || ''}</strong>${order.customer_name && order.phone_number ? ' · ' : ''}${order.phone_number || ''}
-                                ${order.shipping_address ? `<br>${order.shipping_address}` : ''}
-                            </div>
-                        </div>` : '';
-
-                    // Chỉ cho hủy khi đang "Chờ xác nhận"
-                    const canCancel = order.status === 'Chờ xác nhận';
-                    const cancelBtn = canCancel ? `
-                        <button class="btn-cancel" onclick="cancelOrder(${order.id})">✕ Hủy đơn</button>` : '<div></div>';
-
-                    // Review box (chỉ hiện khi Đã giao)
-                    const isDone = order.status === 'Đã giao' || order.status === 'Hoàn thành';
-                    const reviewHtml = isDone ? `<div class="review-box" id="review-box-${order.id}">
-                        <div class="review-title">⭐ Đánh giá đơn hàng này</div>
-                        <div class="stars-row" id="stars-${order.id}">
-                            ${[1,2,3,4,5].map(s => `<button class="star-btn" data-val="${s}" onclick="setStar(${order.id},${s})">★</button>`).join('')}
-                        </div>
-                        <textarea class="review-textarea" id="comment-${order.id}" placeholder="Nhận xét của bạn về đơn hàng này (tùy chọn)..." rows="3"></textarea>
-                        <button class="review-submit" id="submit-review-${order.id}" onclick="submitReview(${order.id})">Gửi đánh giá ⭐</button>
-                    </div>` : '';
-
-                    html += `
-                        <div class="order-card">
-                            <div class="order-header">
-                                <div>
-                                    <div class="order-id">Đơn #${order.id}</div>
-                                    <div class="order-date">${order.date || 'N/A'}</div>
-                                </div>
-                                <span class="status-badge ${statusClass}">${order.status || 'Chờ xác nhận'}</span>
-                            </div>
-                            <ul class="product-list">${itemsHtml}</ul>
-                            ${addrHtml}
-                            <div class="order-footer">
-                                <div>${cancelBtn}</div>
-                                <div style="text-align:right;">
-                                    <div class="total-label">Tổng thanh toán${(order.discount_amount||order.discountAmount) ? '<span style="font-size:11px;color:#276749;font-weight:600;margin-left:6px;background:#f0fff4;padding:2px 8px;border-radius:10px;border:1px solid #9ae6b4">🏷️ Đã giảm ' + (order.discount_amount||order.discountAmount||0).toLocaleString() + 'đ</span>' : ''}</div>
-                                    <div class="total-amount">${(order.final_total || order.total || 0).toLocaleString()}đ</div>
-                                </div>
-                            </div>
-                            ${reviewHtml}
-                        </div>
-                    `;
-                });
-
-                // Load trạng thái review cho đơn đã giao
-                orders.filter(o => o.status === 'Đã giao' || o.status === 'Hoàn thành')
-                      .forEach(o => loadReviewStatus(o.id));
-
-                container.innerHTML = html;
+                if (toolbar) toolbar.style.display = 'flex';
+                renderSummary();
+                renderTabs();
+                renderOrderList();
 
             } catch (err) {
                 console.error('Lỗi tải đơn hàng:', err);
+                if (toolbar) toolbar.style.display = 'none';
+                if (summary) summary.style.display = 'none';
                 container.innerHTML = `
                     <div class="state-box">
                         <span class="state-icon">❌</span>
@@ -542,6 +823,298 @@
                         <button onclick="displayOrders()">Thử lại</button>
                     </div>`;
             }
+        }
+
+        // ─── SKELETON LOADING ───
+        function renderSkeleton(container) {
+            let sk = '';
+            for (let i = 0; i < 2; i++) {
+                sk += `
+                <div class="skeleton-card">
+                    <div class="sk-row">
+                        <div class="sk sk-badge"></div>
+                        <div class="sk sk-pill"></div>
+                    </div>
+                    <div class="sk-item">
+                        <div class="sk sk-img"></div>
+                        <div class="sk-lines">
+                            <div class="sk sk-line" style="width:70%"></div>
+                            <div class="sk sk-line" style="width:40%"></div>
+                        </div>
+                    </div>
+                    <div class="sk-item">
+                        <div class="sk sk-img"></div>
+                        <div class="sk-lines">
+                            <div class="sk sk-line" style="width:55%"></div>
+                            <div class="sk sk-line" style="width:30%"></div>
+                        </div>
+                    </div>
+                </div>`;
+            }
+            container.innerHTML = sk;
+        }
+
+        // ─── SUMMARY & TABS (lọc trên dữ liệu đã tải, không gọi thêm API) ───
+        function renderSummary() {
+            const el = document.getElementById('orderSummary');
+            if (!el) return;
+            el.style.display = 'block';
+            el.innerHTML = `Bạn có <strong>${allOrdersData.length}</strong> đơn hàng`;
+        }
+
+        function countOrders() {
+            const c = { all: allOrdersData.length, wait: 0, confirmed: 0, ship: 0, done: 0, cancel: 0 };
+            allOrdersData.forEach(o => {
+                const s = o.status || 'Chờ xác nhận';
+                if (s === 'Chờ xác nhận') c.wait++;
+                else if (s === 'Đã xác nhận') c.confirmed++;
+                else if (s === 'Đang giao') c.ship++;
+                else if (s === 'Đã giao' || s === 'Hoàn thành') c.done++;
+                else if (s === 'Đã hủy') c.cancel++;
+            });
+            return c;
+        }
+
+        function renderTabs() {
+            const tabBar = document.getElementById('statusTabs');
+            if (!tabBar) return;
+            const c = countOrders();
+            const tabs = [
+                { key: 'all', label: 'Tất cả', count: c.all },
+                { key: 'wait', label: 'Chờ xác nhận', count: c.wait },
+                { key: 'confirmed', label: 'Đã xác nhận', count: c.confirmed },
+                { key: 'ship', label: 'Đang giao', count: c.ship },
+                { key: 'done', label: 'Đã giao', count: c.done },
+                { key: 'cancel', label: 'Đã hủy', count: c.cancel }
+            ];
+            tabBar.innerHTML = tabs.map(t => `
+                <button class="tab-chip ${activeFilter === t.key ? 'active' : ''}" onclick="setFilter('${t.key}')">
+                    ${t.label}${t.count > 0 ? `<span class="tab-count">${t.count}</span>` : ''}
+                </button>
+            `).join('');
+        }
+
+        function setFilter(key) {
+            activeFilter = key;
+            renderTabs();
+            renderOrderList();
+        }
+
+        function matchFilter(order, key) {
+            const s = order.status || 'Chờ xác nhận';
+            switch (key) {
+                case 'all': return true;
+                case 'wait': return s === 'Chờ xác nhận';
+                case 'confirmed': return s === 'Đã xác nhận';
+                case 'ship': return s === 'Đang giao';
+                case 'done': return s === 'Đã giao' || s === 'Hoàn thành';
+                case 'cancel': return s === 'Đã hủy';
+                default: return true;
+            }
+        }
+
+        function onSearchInput(val) {
+            searchKeyword = (val || '').trim().toLowerCase();
+            renderOrderList();
+        }
+
+        function matchSearch(order) {
+            if (!searchKeyword) return true;
+            if (String(order.id).toLowerCase().includes(searchKeyword)) return true;
+            return (order.items || []).some(it => (it.name || '').toLowerCase().includes(searchKeyword));
+        }
+
+        // ─── STATUS META & TRACKER (chỉ tính toán hiển thị, không đổi dữ liệu) ───
+        function getStatusMeta(status) {
+            switch (status) {
+                case 'Đã xác nhận': return { cls: 'status-confirmed', icon: '✅', step: 1 };
+                case 'Đang giao': return { cls: 'status-ship', icon: '🚚', step: 2 };
+                case 'Đã giao':
+                case 'Hoàn thành': return { cls: 'status-done', icon: '🎉', step: 3 };
+                case 'Đã hủy': return { cls: 'status-cancel', icon: '✕', step: -1 };
+                default: return { cls: 'status-wait', icon: '⏳', step: 0 };
+            }
+        }
+
+        function buildTracker(step) {
+            const stages = [
+                { label: 'Đặt hàng', icon: '🧾' },
+                { label: 'Xác nhận', icon: '✅' },
+                { label: 'Vận chuyển', icon: '🚚' },
+                { label: 'Hoàn thành', icon: '🎉' }
+            ];
+            let html = '<div class="status-tracker">';
+            stages.forEach((s, i) => {
+                const doneCls = i <= step ? 'done' : '';
+                const curCls = i === step ? 'current' : '';
+                html += `<div class="tracker-step ${doneCls} ${curCls}">
+                            <div class="tracker-dot">${s.icon}</div>
+                            <div class="tracker-label">${s.label}</div>
+                        </div>`;
+                if (i < stages.length - 1) {
+                    html += `<div class="tracker-line ${i < step ? 'filled' : ''}"></div>`;
+                }
+            });
+            html += '</div>';
+            return html;
+        }
+
+        // ─── RENDER ORDER LIST (chỉ dựng lại giao diện từ dữ liệu đã có, giữ nguyên API/luồng gốc) ───
+        function renderOrderList() {
+            const container = document.getElementById('orderList');
+            if (!container) return;
+
+            const filtered = allOrdersData.filter(o => matchFilter(o, activeFilter) && matchSearch(o));
+
+            if (filtered.length === 0) {
+                container.innerHTML = `
+                    <div class="state-box">
+                        <span class="state-icon">🔍</span>
+                        <p>Không tìm thấy đơn hàng phù hợp</p>
+                    </div>`;
+                return;
+            }
+
+            let html = '';
+            filtered.forEach(order => {
+                const meta = getStatusMeta(order.status || 'Chờ xác nhận');
+
+                // Danh sách sản phẩm — ưu tiên unit_price (giá sau giảm), fallback về price
+                let totalQty = 0;
+                const itemsHtml = (order.items || []).map(item => {
+                    const displayItemPrice = item.unit_price || item.price || 0;
+                    const qty = item.qty || item.quantity || 1;
+                    totalQty += qty;
+                    const subtotal = displayItemPrice * qty;
+                    return `
+                    <li class="product-item">
+                        <img class="product-img" src="${item.image || FALLBACK_IMG}" alt="${item.name}" onerror="this.src='${FALLBACK_IMG}'" />
+                        <div class="product-info">
+                            <div class="product-name">${item.name}</div>
+                            <div class="product-meta">
+                                <span class="product-unit-price">${displayItemPrice.toLocaleString()}đ</span>
+                                <span class="product-qty-badge">x${qty}</span>
+                            </div>
+                        </div>
+                        <span class="product-price">${subtotal.toLocaleString()}đ</span>
+                    </li>`;
+                }).join('');
+
+                // Địa chỉ giao hàng
+                const addrHtml = order.shipping_address ? `
+                    <div class="shipping-info">
+                        <div class="ship-icon">📍 Thông tin giao hàng</div>
+                        <div class="ship-detail">
+                            <strong>${order.customer_name || ''}</strong>${order.customer_name && order.phone_number ? ' · ' : ''}${order.phone_number || ''}
+                            ${order.shipping_address ? `<br>${order.shipping_address}` : ''}
+                        </div>
+                    </div>` : '';
+
+                // Chỉ cho hủy khi đang "Chờ xác nhận"
+                const canCancel = order.status === 'Chờ xác nhận';
+                const cancelBtn = canCancel ? `<button class="btn-cancel" onclick="cancelOrder(${order.id})">✕ Hủy đơn</button>` : '';
+
+                // Nhãn giảm giá
+                const discountVal = order.discount_amount || order.discountAmount;
+                const discountTag = discountVal ? `<span class="discount-tag">🏷️ Đã giảm ${discountVal.toLocaleString()}đ</span>` : '';
+
+                // Review box (chỉ hiện khi Đã giao)
+                const isDone = order.status === 'Đã giao' || order.status === 'Hoàn thành';
+                const reviewHtml = isDone ? `<div class="review-box" id="review-box-${order.id}">
+                    <div class="review-head">
+                        <div class="review-title">🌟 Đánh giá đơn hàng này</div>
+                        <div class="review-sub">Chia sẻ trải nghiệm của bạn để giúp người mua khác</div>
+                    </div>
+                    <div class="stars-row" id="stars-${order.id}">
+                        ${[1,2,3,4,5].map(s => `<button class="star-btn" data-val="${s}" onclick="setStar(${order.id},${s})">★</button>`).join('')}
+                    </div>
+                    <textarea class="review-textarea" id="comment-${order.id}" placeholder="Nhận xét của bạn về đơn hàng này (tùy chọn)..." rows="3"></textarea>
+                    <button class="review-submit" id="submit-review-${order.id}" onclick="submitReview(${order.id})">Gửi đánh giá ⭐</button>
+                </div>` : '';
+
+                // Trạng thái: hủy -> banner đỏ; còn lại -> thanh tiến trình
+                const progressHtml = meta.step === -1
+                    ? `<div class="cancel-banner">✕ Đơn hàng đã bị hủy</div>`
+                    : buildTracker(meta.step);
+
+                html += `
+                    <div class="order-card">
+                        <div class="order-card-head">
+                            <div class="shop-line">
+                                <span class="shop-badge">🏪</span>
+                                <span class="shop-name">Trương Hồng Anh Shop</span>
+                            </div>
+                            <span class="status-badge ${meta.cls}">${meta.icon} ${order.status || 'Chờ xác nhận'}</span>
+                        </div>
+                        <div class="order-header">
+                            <div>
+                                <div class="order-id-row">
+                                    <span class="order-id">Mã đơn #${order.id}</span>
+                                    <button class="copy-btn" onclick="copyOrderId(${order.id})" title="Sao chép mã đơn">⧉</button>
+                                </div>
+                                <div class="order-date">🕒 ${order.date || 'N/A'}</div>
+                            </div>
+                        </div>
+                        ${progressHtml}
+                        <ul class="product-list">${itemsHtml}</ul>
+                        ${addrHtml}
+                        <div class="order-footer">
+                            <div class="footer-left">
+                                <span class="item-count">📦 ${totalQty} sản phẩm</span>
+                                ${cancelBtn}
+                            </div>
+                            <div style="text-align:right;">
+                                <div class="total-label">Tổng thanh toán${discountTag}</div>
+                                <div class="total-amount">${(order.final_total || order.total || 0).toLocaleString()}đ</div>
+                            </div>
+                        </div>
+                        ${reviewHtml}
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+
+            // Load trạng thái review cho các đơn đã giao đang hiển thị
+            filtered.filter(o => o.status === 'Đã giao' || o.status === 'Hoàn thành')
+                    .forEach(o => loadReviewStatus(o.id));
+        }
+
+        // ─── SAO CHÉP MÃ ĐƠN (tiện ích giao diện, không gọi API) ───
+        function copyOrderId(id) {
+            const text = '#' + id;
+            const done = () => showMiniToast('Đã sao chép mã đơn ' + text);
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(text).then(done).catch(() => fallbackCopy(text, done));
+            } else {
+                fallbackCopy(text, done);
+            }
+        }
+        function fallbackCopy(text, cb) {
+            try {
+                const ta = document.createElement('textarea');
+                ta.value = text;
+                ta.style.position = 'fixed';
+                ta.style.opacity = '0';
+                document.body.appendChild(ta);
+                ta.select();
+                document.execCommand('copy');
+                document.body.removeChild(ta);
+                if (cb) cb();
+            } catch (e) {}
+        }
+        function showMiniToast(msg) {
+            let t = document.getElementById('miniToast');
+            if (!t) {
+                t = document.createElement('div');
+                t.id = 'miniToast';
+                t.className = 'mini-toast';
+                document.body.appendChild(t);
+            }
+            t.textContent = msg;
+            t.classList.add('show');
+            clearTimeout(t._timer);
+            t._timer = setTimeout(() => t.classList.remove('show'), 2000);
         }
 
         async function cancelOrder(orderId) {
@@ -634,7 +1207,7 @@
                 btn.textContent = 'Gửi đánh giá ⭐';
             }
         }
-        // Tự động tải khi mở trang + cứ 10 giây tự cập nhật trạng thái
+        // Tự động tải khi mở trang + cứ 30 giây tự cập nhật trạng thái
         document.addEventListener('DOMContentLoaded', () => {
             displayOrders();
             setInterval(displayOrders, 30000);
