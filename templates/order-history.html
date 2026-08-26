@@ -925,23 +925,33 @@
         }
 
         // ─── STATUS META & TRACKER (chỉ tính toán hiển thị, không đổi dữ liệu) ───
+        // Bộ icon SVG (nét mảnh, tự nhận màu theo trạng thái) — thay cho emoji cho đồng bộ & sắc nét trên mọi thiết bị
+        const ICONS = {
+            order: '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>',
+            confirmed: '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>',
+            ship: '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 17h4V5H2v12h3"/><path d="M20 17h2v-3.34a4 4 0 0 0-1.17-2.83L18 8h-4v9h1"/><circle cx="7.5" cy="17.5" r="2.5"/><circle cx="17.5" cy="17.5" r="2.5"/></svg>',
+            done: '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m16 16 2 2 4-4"/><path d="M21 10V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l1.5-.857"/><path d="m7.5 4.27 9 5.15"/><polyline points="3.29 7 12 12 20.71 7"/><line x1="12" x2="12" y1="22" y2="12"/></svg>',
+            wait: '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>',
+            cancel: '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/></svg>'
+        };
+
         function getStatusMeta(status) {
             switch (status) {
-                case 'Đã xác nhận': return { cls: 'status-confirmed', icon: '✅', step: 1 };
-                case 'Đang giao': return { cls: 'status-ship', icon: '🚚', step: 2 };
+                case 'Đã xác nhận': return { cls: 'status-confirmed', icon: ICONS.confirmed, step: 1 };
+                case 'Đang giao': return { cls: 'status-ship', icon: ICONS.ship, step: 2 };
                 case 'Đã giao':
-                case 'Hoàn thành': return { cls: 'status-done', icon: '🎉', step: 3 };
-                case 'Đã hủy': return { cls: 'status-cancel', icon: '✕', step: -1 };
-                default: return { cls: 'status-wait', icon: '⏳', step: 0 };
+                case 'Hoàn thành': return { cls: 'status-done', icon: ICONS.done, step: 3 };
+                case 'Đã hủy': return { cls: 'status-cancel', icon: ICONS.cancel, step: -1 };
+                default: return { cls: 'status-wait', icon: ICONS.wait, step: 0 };
             }
         }
 
         function buildTracker(step) {
             const stages = [
-                { label: 'Đặt hàng', icon: '🧾' },
-                { label: 'Xác nhận', icon: '✅' },
-                { label: 'Vận chuyển', icon: '🚚' },
-                { label: 'Hoàn thành', icon: '🎉' }
+                { label: 'Đặt hàng', icon: ICONS.order },
+                { label: 'Xác nhận', icon: ICONS.confirmed },
+                { label: 'Vận chuyển', icon: ICONS.ship },
+                { label: 'Hoàn thành', icon: ICONS.done }
             ];
             let html = '<div class="status-tracker">';
             stages.forEach((s, i) => {
