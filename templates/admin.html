@@ -137,8 +137,9 @@
     }
 
     .nav-tabs button .nav-icon {
-      font-size: 18px;
-      width: 24px; text-align: center;
+      width: 22px; height: 20px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
     }
 
     .sidebar-footer {
@@ -345,10 +346,9 @@
     .status-cho { background: var(--warning-bg); color: var(--warning); }
     .status-giao { background: var(--info-bg); color: var(--info); }
     .status-xong { background: var(--success-bg); color: var(--success); }
+    .status-huy { background: var(--danger-bg); color: var(--danger); }
 
-    .status-cho::before { content: '⏳'; font-size: 11px; }
-    .status-giao::before { content: '🚚'; font-size: 11px; }
-    .status-xong::before { content: '✅'; font-size: 11px; }
+    .order-status .icon { width: 12px; height: 12px; }
 
     /* ============ BUTTONS ============ */
     .btn {
@@ -452,6 +452,59 @@
       }
     }
 
+    /* ============ ICONS & ICON BUTTONS ============ */
+    .icon { display: inline-block; vertical-align: middle; }
+
+    .icon-btn {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 34px; height: 34px;
+      border-radius: 9px;
+      border: 1px solid var(--border);
+      background: var(--card-bg);
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: var(--transition);
+      margin-right: 6px;
+      font-family: inherit;
+    }
+    .icon-btn:last-child { margin-right: 0; }
+    .icon-btn:hover { transform: translateY(-2px); box-shadow: var(--shadow-sm); color: var(--text); }
+    .icon-btn.primary { color: #fff; background: linear-gradient(135deg,#3b82f6,#2563eb); border-color: transparent; box-shadow: 0 2px 8px rgba(59,130,246,.3); }
+    .icon-btn.primary:hover { color: #fff; }
+    .icon-btn.success { color: #fff; background: linear-gradient(135deg,#10b981,#059669); border-color: transparent; box-shadow: 0 2px 8px rgba(16,185,129,.3); }
+    .icon-btn.success:hover { color: #fff; }
+    .icon-btn.warning { color: #fff; background: linear-gradient(135deg,#f59e0b,#d97706); border-color: transparent; box-shadow: 0 2px 8px rgba(245,158,11,.3); }
+    .icon-btn.warning:hover { color: #fff; }
+    .icon-btn.danger { color: #fff; background: linear-gradient(135deg,#ef4444,#dc2626); border-color: transparent; box-shadow: 0 2px 8px rgba(239,68,68,.3); }
+    .icon-btn.danger:hover { color: #fff; }
+
+    .rank-badge {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 24px; height: 24px; border-radius: 50%;
+      font-size: 11px; font-weight: 800; color: #fff;
+      flex-shrink: 0;
+    }
+    .rank-badge.gold { background: linear-gradient(135deg,#fbbf24,#d97706); }
+    .rank-badge.silver { background: linear-gradient(135deg,#cbd5e1,#94a3b8); }
+    .rank-badge.bronze { background: linear-gradient(135deg,#fb923c,#c2410c); }
+    .rank-badge.plain { background: var(--bg); color: var(--text-muted); border: 1px solid var(--border); font-weight: 700; }
+
+    @keyframes icon-spin { to { transform: rotate(360deg); } }
+    .icon-spin { animation: icon-spin 0.85s linear infinite; }
+    .loading-row { display: flex; align-items: center; justify-content: center; gap: 8px; color: var(--text-muted); }
+
+    .nav-section-label {
+      font-size: 10px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase;
+      color: #475569; padding: 16px 18px 6px;
+    }
+    .nav-tabs .nav-section-label:first-child { padding-top: 2px; }
+
+    .icon-btn:focus-visible, .btn:focus-visible, .nav-tabs button:focus-visible,
+    .dark-toggle:focus-visible, .mobile-menu-btn:focus-visible {
+      outline: 2px solid var(--primary);
+      outline-offset: 2px;
+    }
+
     /* ============ SCROLLBAR ============ */
     ::-webkit-scrollbar { width: 6px; height: 6px; }
     ::-webkit-scrollbar-track { background: transparent; }
@@ -460,6 +513,51 @@
   </style>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
+    // ── SHARED LINE-ICON LIBRARY (SVG, feather-style, tự đổi màu theo currentColor) ──
+    const ICON_PATHS = {
+      package: '<path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/>',
+      bag: '<path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/>',
+      users: '<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
+      wallet: '<path d="M21 12V7a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-3"/><path d="M16 12h4a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1h-4a2 2 0 0 1 0-4Z"/>',
+      heart: '<path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8Z"/>',
+      zap: '<polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>',
+      tag: '<path d="M20.59 13.41 13.42 20.58a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82Z"/><line x1="7" y1="7" x2="7.01" y2="7"/>',
+      user: '<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>',
+      globe: '<circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10Z"/>',
+      refresh: '<polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>',
+      download: '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>',
+      plus: '<line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>',
+      x: '<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>',
+      checkCircle: '<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>',
+      truck: '<rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/>',
+      clock: '<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>',
+      xCircle: '<circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/>',
+      edit: '<path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/>',
+      trash: '<polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/>',
+      eye: '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8Z"/><circle cx="12" cy="12" r="3"/>',
+      eyeOff: '<path d="M17.94 17.94A10.94 10.94 0 0 1 12 20c-7 0-11-8-11-8a21.62 21.62 0 0 1 5.06-6.94M9.9 4.24A10.94 10.94 0 0 1 12 4c7 0 11 8 11 8a21.6 21.6 0 0 1-2.16 3.19M14.12 14.12a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/>',
+      alertTriangle: '<path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>',
+      calendar: '<rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>',
+      barChart: '<line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>',
+      ticket: '<path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"/><line x1="13" y1="5" x2="13" y2="19"/>',
+      arrowDown: '<line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/>',
+      arrowUp: '<line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/>',
+      loader: '<line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="4.93" y1="4.93" x2="7.76" y2="7.76"/><line x1="16.24" y1="16.24" x2="19.07" y2="19.07"/><line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/><line x1="4.93" y1="19.07" x2="7.76" y2="16.24"/><line x1="16.24" y1="7.76" x2="19.07" y2="4.93"/>',
+      save: '<path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2Z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/>',
+      logOut: '<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>',
+      sun: '<circle cx="12" cy="12" r="4"/><line x1="12" y1="2" x2="12" y2="4"/><line x1="12" y1="20" x2="12" y2="22"/><line x1="4.93" y1="4.93" x2="6.34" y2="6.34"/><line x1="17.66" y1="17.66" x2="19.07" y2="19.07"/><line x1="2" y1="12" x2="4" y2="12"/><line x1="20" y1="12" x2="22" y2="12"/><line x1="4.93" y1="19.07" x2="6.34" y2="17.66"/><line x1="17.66" y1="6.34" x2="19.07" y2="4.93"/>',
+      moon: '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79Z"/>',
+      menu: '<line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>'
+    };
+    function ICON(name, size, extraClass) {
+        size = size || 18;
+        var cls = 'icon' + (extraClass ? ' ' + extraClass : '');
+        var d = ICON_PATHS[name] || '';
+        return '<svg class="' + cls + '" width="' + size + '" height="' + size +
+            '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" ' +
+            'stroke-linecap="round" stroke-linejoin="round">' + d + '</svg>';
+    }
+
     // ── PHASE 5 FUNCTIONS ──
     function exportOrdersToCSV() {
         const list = window._lastOrders || [];
@@ -519,33 +617,37 @@
 
     <nav class="sidebar-nav">
       <div class="nav-tabs">
+        <div class="nav-section-label">Vận hành</div>
         <button id="btn-orders" class="active" onclick="showTab('orders')">
-          <span class="nav-icon">📦</span> Đơn hàng
+          <span class="nav-icon"><svg class="icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg></span> Đơn hàng
         </button>
         <button id="btn-products" onclick="showTab('products')">
-          <span class="nav-icon">🛍️</span> Sản phẩm
+          <span class="nav-icon"><svg class="icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg></span> Sản phẩm
         </button>
+        <div class="nav-section-label">Khách hàng</div>
         <button id="btn-users" onclick="showTab('users')">
-          <span class="nav-icon">👥</span> Tài khoản
-        </button>
-        <button id="btn-revenue" onclick="showTab('revenue')">
-          <span class="nav-icon">💰</span> Doanh thu
+          <span class="nav-icon"><svg class="icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span> Tài khoản
         </button>
         <button id="btn-wishlist" onclick="showTab('wishlist')">
-          <span class="nav-icon">❤️</span> Yêu thích
+          <span class="nav-icon"><svg class="icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8Z"/></svg></span> Yêu thích
         </button>
+        <div class="nav-section-label">Marketing</div>
         <button id="btn-flashsale" onclick="showTab('flashsale')">
-          <span class="nav-icon">⚡</span> Flash Sale
+          <span class="nav-icon"><svg class="icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></span> Flash Sale
         </button>
         <button id="btn-coupon" onclick="showTab('coupon')">
-          <span class="nav-icon">🏷️</span> Mã giảm giá
+          <span class="nav-icon"><svg class="icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41 13.42 20.58a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82Z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg></span> Mã giảm giá
+        </button>
+        <div class="nav-section-label">Báo cáo</div>
+        <button id="btn-revenue" onclick="showTab('revenue')">
+          <span class="nav-icon"><svg class="icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12V7a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-3"/><path d="M16 12h4a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1h-4a2 2 0 0 1 0-4Z"/></svg></span> Doanh thu
         </button>
       </div>
     </nav>
 
     <div class="sidebar-footer">
       <div class="sidebar-user">
-        <div class="user-avatar">👤</div>
+        <div class="user-avatar"><svg class="icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
         <div class="user-info">
           <div class="user-name" id="sidebarEmail"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="a6c7c2cbcfc8e6d5cec9d688c5c9cb">[email&#160;protected]</a></div>
           <div class="user-role">Super Admin</div>
@@ -558,13 +660,13 @@
   <div class="main-wrap">
     <header>
       <div style="display:flex;align-items:center;gap:12px;">
-        <button class="mobile-menu-btn" onclick="openSidebar()">☰</button>
-        <h1 id="pageTitle">📦 Đơn hàng</h1>
+        <button class="mobile-menu-btn" onclick="openSidebar()" title="Mở menu" aria-label="Mở menu"><svg class="icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
+        <h1 id="pageTitle" style="display:flex;align-items:center;gap:10px;"><svg class="icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg> Đơn hàng</h1>
       </div>
       <div class="header-right">
-        <button class="dark-toggle" onclick="toggleDark()" title="Dark Mode">🌙</button>
-        <div class="header-avatar">👤</div>
-        <button class="btn btn-logout" onclick="logout()">🚪 Đăng xuất</button>
+        <button class="dark-toggle" onclick="toggleDark()" title="Chuyển giao diện sáng/tối" aria-label="Đổi giao diện"><svg class="icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79Z"/></svg></button>
+        <div class="header-avatar"><svg class="icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
+        <button class="btn btn-logout" onclick="logout()"><svg class="icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg> Đăng xuất</button>
       </div>
     </header>
 
@@ -572,9 +674,9 @@
       <div id="tab-orders" class="card">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; flex-wrap:wrap; gap:10px;">
           <h2 style="margin:0;">Danh sách đơn đặt hàng <span id="orderCount" style="font-size:13px;color:var(--text-muted);font-weight:400;"></span></h2>
-          <button class="btn" onclick="exportOrdersToCSV()" style="background:#10b981;color:#fff;display:flex;align-items:center;gap:6px;border:none;padding:8px 14px;border-radius:8px;cursor:pointer;font-weight:600;">📥 Xuất Excel</button>
+          <button class="btn" onclick="exportOrdersToCSV()" style="background:#10b981;color:#fff;display:flex;align-items:center;gap:6px;border:none;padding:8px 14px;border-radius:8px;cursor:pointer;font-weight:600;"><svg class="icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Xuất Excel</button>
           <button class="btn btn-ship" onclick="loadOrders(true)" id="btnRefreshOrders" style="display:flex;align-items:center;gap:6px;">
-            🔄 Làm mới
+            <svg class="icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg> Làm mới
           </button>
         </div>
         <div style="overflow-x:auto;">
@@ -589,7 +691,7 @@
               <th>Tổng tiền</th>
               <th>Ngày đặt</th>
               <th>Trạng thái</th>
-              <th>⭐ Đánh giá</th>
+              <th>Đánh giá</th>
               <th>Thao tác</th>
             </tr>
           </thead>
@@ -603,12 +705,12 @@
       <div id="tab-products" class="card" style="display:none;">
         <!-- Low Stock Alert Block -->
         <div id="lowStockAlert" style="display:none;background:#fef2f2;border:1px solid #fca5a5;padding:12px 16px;border-radius:10px;margin-bottom:16px;">
-          <strong style="color:#ef4444;font-size:14px;">⚠️ Cảnh báo sản phẩm tồn kho thấp (< 10):</strong>
+          <strong style="color:#ef4444;font-size:14px;display:inline-flex;align-items:center;gap:6px;"><svg class="icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> Cảnh báo sản phẩm tồn kho thấp (&lt; 10):</strong>
           <div id="lowStockList" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;"></div>
         </div>
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
           <h2>Danh sách sản phẩm kho</h2>
-          <button class="btn btn-done" onclick="openAddProductModal()">+ Thêm sản phẩm mới</button>
+          <button class="btn btn-done" onclick="openAddProductModal()" style="display:flex;align-items:center;gap:6px;"><svg class="icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Thêm sản phẩm mới</button>
         </div>
         <table>
           <thead>
@@ -622,7 +724,7 @@
             </tr>
           </thead>
           <tbody id="productTableBody">
-            <tr><td colspan="5" style="text-align:center;padding:40px;color:var(--text-muted)">🔄 Đang đồng bộ sản phẩm từ shop...</td></tr>
+            <tr><td colspan="5" style="text-align:center;padding:40px;color:var(--text-muted)"><span class="loading-row"><svg class="icon-spin" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="4.93" y1="4.93" x2="7.76" y2="7.76"/><line x1="16.24" y1="16.24" x2="19.07" y2="19.07"/><line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/><line x1="4.93" y1="19.07" x2="7.76" y2="16.24"/><line x1="16.24" y1="7.76" x2="19.07" y2="4.93"/></svg> Đang đồng bộ sản phẩm từ shop...</span></td></tr>
           </tbody>
         </table>
       </div>
@@ -647,11 +749,11 @@
       <!-- TAB DOANH THU -->
       <div id="tab-revenue" class="card" style="display:none;">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:10px;">
-          <h2 style="margin:0;">💰 Báo cáo Doanh thu</h2>
-          <button class="btn btn-done" onclick="loadRevenue()" style="display:flex;align-items:center;gap:6px;">🔄 Làm mới</button>
+          <h2 style="margin:0;display:flex;align-items:center;gap:10px;"><svg class="icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12V7a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-3"/><path d="M16 12h4a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1h-4a2 2 0 0 1 0-4Z"/></svg> Báo cáo Doanh thu</h2>
+          <button class="btn btn-done" onclick="loadRevenue()" style="display:flex;align-items:center;gap:6px;"><svg class="icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg> Làm mới</button>
         </div>
-        <div style="background:var(--warning-bg);border:1px solid var(--warning);border-radius:10px;padding:12px 16px;margin-bottom:20px;font-size:13px;color:var(--warning);">
-          ⚠️ Chỉ tổng hợp tiền từ các đơn hàng có trạng thái <b>"Đã giao"</b>
+        <div style="background:var(--warning-bg);border:1px solid var(--warning);border-radius:10px;padding:12px 16px;margin-bottom:20px;font-size:13px;color:var(--warning);display:flex;align-items:center;gap:8px;">
+          <svg class="icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> Chỉ tổng hợp tiền từ các đơn hàng có trạng thái <b>"Đã giao"</b>
         </div>
         <div id="revenueContent">
           <p style="color:var(--text-muted);text-align:center;padding:40px;">Nhấn "Làm mới" hoặc chọn tab để tải dữ liệu...</p>
@@ -661,13 +763,13 @@
       <!-- TAB MÃ GIẢM GIÁ -->
       <div id="tab-coupon" class="card" style="display:none;">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px;">
-          <h2 style="margin:0;">🏷️ Quản lý Mã giảm giá</h2>
-          <button class="btn btn-ship" onclick="loadCoupons()">🔄 Làm mới</button>
+          <h2 style="margin:0;display:flex;align-items:center;gap:10px;"><svg class="icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41 13.42 20.58a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82Z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg> Quản lý Mã giảm giá</h2>
+          <button class="btn btn-ship" onclick="loadCoupons()" style="display:flex;align-items:center;gap:6px;"><svg class="icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg> Làm mới</button>
         </div>
         
         <!-- Form Tạo Coupon -->
         <div style="background:var(--bg);padding:16px;border-radius:12px;border:1px solid var(--border);margin-bottom:20px;">
-          <h3 style="margin-top:0;margin-bottom:12px;font-size:15px;color:var(--text)">➕ Tạo Mã giảm giá mới</h3>
+          <h3 style="margin-top:0;margin-bottom:12px;font-size:15px;color:var(--text);display:flex;align-items:center;gap:8px;"><svg class="icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Tạo Mã giảm giá mới</h3>
           <div style="display:flex;flex-wrap:wrap;gap:12px;align-items:center;">
             <input id="cpCode" type="text" placeholder="Mã giảm giá (ví dụ: WELCOME10)" style="padding:8px 12px;border:1px solid var(--border);border-radius:8px;background:var(--card-bg);color:var(--text);font-weight:700;text-transform:uppercase;">
             <input id="cpLabel" type="text" placeholder="Mô tả / Tiêu đề" style="padding:8px 12px;border:1px solid var(--border);border-radius:8px;background:var(--card-bg);color:var(--text);flex:1;min-width:180px;">
@@ -680,9 +782,9 @@
             <input id="cpExpiresAt" type="datetime-local" style="padding:8px 12px;border:1px solid var(--border);border-radius:8px;background:var(--card-bg);color:var(--text);">
             <label style="font-size:12px;color:var(--text-muted)">Dành riêng cho:</label>
             <select id="cpUserId" style="padding:8px 12px;border:1px solid var(--border);border-radius:8px;background:var(--card-bg);color:var(--text);">
-              <option value="">🌐 Công khai (mọi khách hàng)</option>
+              <option value="">Công khai (mọi khách hàng)</option>
             </select>
-            <button onclick="createCouponSubmit()" class="btn" style="background:#10b981;color:#fff;padding:8px 16px;border-radius:8px;font-weight:600;border:none;cursor:pointer;">💾 Cập nhật</button>
+            <button onclick="createCouponSubmit()" class="btn" style="background:#10b981;color:#fff;padding:8px 16px;border-radius:8px;font-weight:600;border:none;cursor:pointer;display:flex;align-items:center;gap:6px;"><svg class="icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2Z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg> Cập nhật</button>
           </div>
         </div>
 
@@ -710,13 +812,13 @@
             <!-- TAB FLASH SALE -->
       <div id="tab-flashsale" class="card" style="display:none;">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px;">
-          <h2 style="margin:0;">⚡ Quản lý Flash Sale</h2>
-          <button class="btn btn-ship" onclick="loadFlashSales()">🔄 Làm mới</button>
+          <h2 style="margin:0;display:flex;align-items:center;gap:10px;"><svg class="icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg> Quản lý Flash Sale</h2>
+          <button class="btn btn-ship" onclick="loadFlashSales()" style="display:flex;align-items:center;gap:6px;"><svg class="icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg> Làm mới</button>
         </div>
         
         <!-- Form Tạo Flash Sale -->
         <div style="background:var(--bg);padding:16px;border-radius:12px;border:1px solid var(--border);margin-bottom:20px;">
-          <h3 style="margin-top:0;margin-bottom:12px;font-size:15px;color:var(--text)">➕ Tạo Flash Sale mới</h3>
+          <h3 style="margin-top:0;margin-bottom:12px;font-size:15px;color:var(--text);display:flex;align-items:center;gap:8px;"><svg class="icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Tạo Flash Sale mới</h3>
           <div style="display:flex;flex-wrap:wrap;gap:12px;align-items:center;">
             <select id="fsProductId" style="padding:8px 12px;border:1px solid var(--border);border-radius:8px;background:var(--card-bg);color:var(--text);flex:1;min-width:200px;">
               <option value="">-- Chọn sản phẩm --</option>
@@ -726,7 +828,7 @@
             <input id="fsStartTime" type="datetime-local" style="padding:8px 12px;border:1px solid var(--border);border-radius:8px;background:var(--card-bg);color:var(--text);">
             <label style="font-size:12px;color:var(--text-muted)">Kết thúc:</label>
             <input id="fsEndTime" type="datetime-local" style="padding:8px 12px;border:1px solid var(--border);border-radius:8px;background:var(--card-bg);color:var(--text);">
-            <button onclick="createFlashSaleSubmit()" class="btn" style="background:#ef4444;color:#fff;padding:8px 16px;border-radius:8px;font-weight:600;border:none;cursor:pointer;">⚡ Tạo Flash Sale</button>
+            <button onclick="createFlashSaleSubmit()" class="btn" style="background:#ef4444;color:#fff;padding:8px 16px;border-radius:8px;font-weight:600;border:none;cursor:pointer;display:flex;align-items:center;gap:6px;"><svg class="icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg> Tạo Flash Sale</button>
           </div>
         </div>
 
@@ -753,15 +855,15 @@
       <!-- TAB YÊU THÍCH -->
       <div id="tab-wishlist" class="card" style="display:none;">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px;">
-          <h2 style="margin:0;">❤️ Sản phẩm được yêu thích <span id="wishlistCount" style="font-size:13px;color:var(--text-muted);font-weight:400;"></span></h2>
-          <button class="btn btn-ship" onclick="loadWishlistStats()">🔄 Làm mới</button>
+          <h2 style="margin:0;display:flex;align-items:center;gap:10px;"><svg class="icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8Z"/></svg> Sản phẩm được yêu thích <span id="wishlistCount" style="font-size:13px;color:var(--text-muted);font-weight:400;"></span></h2>
+          <button class="btn btn-ship" onclick="loadWishlistStats()" style="display:flex;align-items:center;gap:6px;"><svg class="icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg> Làm mới</button>
         </div>
         <div style="overflow-x:auto;">
           <table style="width:100%;border-collapse:collapse;">
             <thead><tr>
               <th style="text-align:left;padding:10px 14px;font-size:12px;color:var(--text-muted);border-bottom:2px solid var(--border);">Ảnh</th>
               <th style="text-align:left;padding:10px 14px;font-size:12px;color:var(--text-muted);border-bottom:2px solid var(--border);">Tên sản phẩm</th>
-              <th style="text-align:center;padding:10px 14px;font-size:12px;color:var(--text-muted);border-bottom:2px solid var(--border);">❤️ Lượt thích</th>
+              <th style="text-align:center;padding:10px 14px;font-size:12px;color:var(--text-muted);border-bottom:2px solid var(--border);">Lượt thích</th>
               <th style="text-align:right;padding:10px 14px;font-size:12px;color:var(--text-muted);border-bottom:2px solid var(--border);">Giá</th>
               <th style="text-align:center;padding:10px 14px;font-size:12px;color:var(--text-muted);border-bottom:2px solid var(--border);">Tồn kho</th>
             </tr></thead>
@@ -782,8 +884,8 @@
   <!-- Modal THÊM sản phẩm -->
   <div id="addProductModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:9999; align-items:center; justify-content:center;">
     <div style="background:var(--card-bg); border-radius:16px; padding:32px; width:440px; max-width:95vw; box-shadow:0 20px 60px rgba(0,0,0,0.2); position:relative;">
-      <button onclick="closeAddProductModal()" style="position:absolute;top:14px;right:18px;background:none;border:none;font-size:22px;cursor:pointer;color:var(--text-muted)">✕</button>
-      <h2 style="margin-bottom:20px; border:none;">➕ Thêm sản phẩm mới</h2>
+      <button onclick="closeAddProductModal()" style="position:absolute;top:14px;right:18px;background:none;border:none;cursor:pointer;color:var(--text-muted);display:flex;" title="Đóng" aria-label="Đóng"><svg class="icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+      <h2 style="margin-bottom:20px; border:none;display:flex;align-items:center;gap:8px;"><svg class="icon" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Thêm sản phẩm mới</h2>
       <div style="display:flex;flex-direction:column;gap:12px;">
         <input id="newProdName" type="text" placeholder="Tên sản phẩm *" style="padding:10px 14px;border:1px solid var(--border);border-radius:8px;font-size:14px;background:var(--bg);color:var(--text);font-family:inherit;">
         <input id="newProdPrice" type="number" placeholder="Giá (VNĐ) *" style="padding:10px 14px;border:1px solid var(--border);border-radius:8px;font-size:14px;background:var(--bg);color:var(--text);font-family:inherit;">
@@ -792,7 +894,7 @@
         <textarea id="newProdDesc" placeholder="Mô tả sản phẩm" rows="3" style="padding:10px 14px;border:1px solid var(--border);border-radius:8px;font-size:14px;background:var(--bg);color:var(--text);font-family:inherit;resize:vertical;"></textarea>
         <div style="display:flex;gap:10px;margin-top:4px;">
           <button onclick="closeAddProductModal()" style="flex:1;padding:11px;border:1px solid var(--border);border-radius:8px;background:transparent;color:var(--text);cursor:pointer;font-size:14px;font-weight:600;font-family:inherit;">Hủy</button>
-          <button onclick="submitAddProduct()" style="flex:2;padding:11px;border:none;border-radius:8px;background:linear-gradient(135deg,#10b981,#059669);color:#fff;cursor:pointer;font-size:14px;font-weight:700;font-family:inherit;">✅ Lưu sản phẩm</button>
+          <button onclick="submitAddProduct()" style="flex:2;padding:11px;border:none;border-radius:8px;background:linear-gradient(135deg,#10b981,#059669);color:#fff;cursor:pointer;font-size:14px;font-weight:700;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:6px;"><svg class="icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2Z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg> Lưu sản phẩm</button>
         </div>
       </div>
     </div>
@@ -801,18 +903,18 @@
   <!-- Modal SỬA sản phẩm -->
   <div id="editProductModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:9999; align-items:center; justify-content:center;">
     <div style="background:var(--card-bg); border-radius:16px; padding:32px; width:440px; max-width:95vw; box-shadow:0 20px 60px rgba(0,0,0,0.2); position:relative;">
-      <button onclick="closeEditProductModal()" style="position:absolute;top:14px;right:18px;background:none;border:none;font-size:22px;cursor:pointer;color:var(--text-muted)">✕</button>
-      <h2 style="margin-bottom:20px; border:none;">✏️ Sửa sản phẩm</h2>
+      <button onclick="closeEditProductModal()" style="position:absolute;top:14px;right:18px;background:none;border:none;cursor:pointer;color:var(--text-muted);display:flex;" title="Đóng" aria-label="Đóng"><svg class="icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+      <h2 style="margin-bottom:20px; border:none;display:flex;align-items:center;gap:8px;"><svg class="icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg> Sửa sản phẩm</h2>
       <div style="display:flex;flex-direction:column;gap:12px;">
         <input id="editProdId" type="hidden">
         <input id="editProdName" type="text" placeholder="Tên sản phẩm *" style="padding:10px 14px;border:1px solid var(--border);border-radius:8px;font-size:14px;background:var(--bg);color:var(--text);font-family:inherit;">
         <input id="editProdPrice" type="number" placeholder="Giá (VNĐ) *" style="padding:10px 14px;border:1px solid var(--border);border-radius:8px;font-size:14px;background:var(--bg);color:var(--text);font-family:inherit;">
         <input id="editProdImg" type="text" placeholder="URL ảnh sản phẩm" style="padding:10px 14px;border:1px solid var(--border);border-radius:8px;font-size:14px;background:var(--bg);color:var(--text);font-family:inherit;">
         <textarea id="editProdDesc" placeholder="Mô tả sản phẩm" rows="3" style="padding:10px 14px;border:1px solid var(--border);border-radius:8px;font-size:14px;background:var(--bg);color:var(--text);font-family:inherit;resize:vertical;"></textarea>
-        <input id="editProdStock" type="number" min="0" placeholder="📦 Số lượng tồn kho" style="padding:10px 14px;border:1px solid var(--border);border-radius:8px;font-size:14px;background:var(--bg);color:var(--text);font-family:inherit;">
+        <input id="editProdStock" type="number" min="0" placeholder="Số lượng tồn kho" style="padding:10px 14px;border:1px solid var(--border);border-radius:8px;font-size:14px;background:var(--bg);color:var(--text);font-family:inherit;">
         <div style="display:flex;gap:10px;margin-top:4px;">
           <button onclick="closeEditProductModal()" style="flex:1;padding:11px;border:1px solid var(--border);border-radius:8px;background:transparent;color:var(--text);cursor:pointer;font-size:14px;font-weight:600;font-family:inherit;">Hủy</button>
-          <button onclick="submitEditProduct()" style="flex:2;padding:11px;border:none;border-radius:8px;background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff;cursor:pointer;font-size:14px;font-weight:700;font-family:inherit;">💾 Lưu thay đổi</button>
+          <button onclick="submitEditProduct()" style="flex:2;padding:11px;border:none;border-radius:8px;background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff;cursor:pointer;font-size:14px;font-weight:700;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:6px;"><svg class="icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2Z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg> Lưu thay đổi</button>
         </div>
       </div>
     </div>
@@ -831,8 +933,8 @@
             if (res.ok) {
                 const users = await res.json();
                 const curVal = sel.value;
-                sel.innerHTML = '<option value="">🌐 Công khai (mọi khách hàng)</option>' +
-                    users.map(u => `<option value="${u.id}">👤 ${u.email}</option>`).join('');
+                sel.innerHTML = '<option value="">Công khai (mọi khách hàng)</option>' +
+                    users.map(u => `<option value="${u.id}">${u.email}</option>`).join('');
                 sel.value = curVal;
             }
         } catch(e) {}
@@ -842,7 +944,7 @@
         loadCouponUserOptions();
         const tbody = document.getElementById('couponTableBody');
         if (!tbody) return;
-        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:30px;color:var(--text-muted);">⏳ Đang tải...</td></tr>';
+        tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:30px;color:var(--text-muted);"><span class="loading-row">${ICON('loader',16,'icon-spin')} Đang tải...</span></td></tr>`;
         const tk = localStorage.getItem('access_token');
         try {
             const res = await fetch('/admin/coupons', { headers: { 'Authorization': 'Bearer ' + tk } });
@@ -855,7 +957,9 @@
             tbody.innerHTML = coupons.map(c => {
                 const valStr = c.discount_type === 'percent' ? `${c.discount_value}%` : `${cleanPrice(c.discount_value)}đ`;
                 const expStr = c.expires_at ? new Date(c.expires_at).toLocaleString('vi-VN') : 'Không giới hạn';
-                const userStr = c.user_email ? `👤 ${c.user_email}` : '🌐 Công khai';
+                const userStr = c.user_email
+                    ? `<span style="display:inline-flex;align-items:center;gap:5px;">${ICON('user',13)} ${c.user_email}</span>`
+                    : `<span style="display:inline-flex;align-items:center;gap:5px;">${ICON('globe',13)} Công khai</span>`;
                 return `<tr style="border-bottom:1px solid var(--border);">
                     <td style="padding:10px;">${c.id}</td>
                     <td style="padding:10px;font-weight:700;color:var(--ha-blue,#0071e3);">${c.code}</td>
@@ -864,12 +968,12 @@
                     <td style="padding:10px;text-align:center;font-size:12px;">${expStr}</td>
                     <td style="padding:10px;text-align:center;font-size:12px;font-weight:600;">${userStr}</td>
                     <td style="padding:10px;text-align:center;">
-                        <button onclick="deleteCouponSubmit(${c.id})" style="background:#ef4444;color:#fff;border:none;padding:4px 10px;border-radius:6px;cursor:pointer;font-size:12px;">🗑️ Xoá</button>
+                        <button class="icon-btn danger" onclick="deleteCouponSubmit(${c.id})" title="Xoá mã giảm giá" aria-label="Xoá">${ICON('trash',15)}</button>
                     </td>
                 </tr>`;
             }).join('');
         } catch(e) {
-            tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:30px;color:#ef4444;">❌ ${e.message}</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:30px;color:#ef4444;"><span class="loading-row">${ICON('xCircle',16)} ${e.message}</span></td></tr>`;
         }
     }
 
@@ -938,7 +1042,7 @@
     async function loadFlashSales() {
         const tbody = document.getElementById('flashSaleTableBody');
         if (!tbody) return;
-        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:30px;color:var(--text-muted);">⏳ Đang tải danh sách Flash Sale...</td></tr>';
+        tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:30px;color:var(--text-muted);"><span class="loading-row">${ICON('loader',16,'icon-spin')} Đang tải danh sách Flash Sale...</span></td></tr>`;
         const tk = localStorage.getItem('access_token');
         
         // Always rebuild product dropdown
@@ -979,12 +1083,12 @@
                     <td style="padding:10px;text-align:center;font-size:12px;">${st}</td>
                     <td style="padding:10px;text-align:center;font-size:12px;">${et}</td>
                     <td style="padding:10px;text-align:center;">
-                        <button onclick="deleteFlashSaleSubmit(${s.id})" style="background:#ef4444;color:#fff;border:none;padding:4px 10px;border-radius:6px;cursor:pointer;font-size:12px;">🗑️ Xóa</button>
+                        <button class="icon-btn danger" onclick="deleteFlashSaleSubmit(${s.id})" title="Xoá Flash Sale" aria-label="Xoá">${ICON('trash',15)}</button>
                     </td>
                 </tr>`;
             }).join('');
         } catch(e) {
-            tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:30px;color:#ef4444;">❌ ${e.message}</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:30px;color:#ef4444;"><span class="loading-row">${ICON('xCircle',16)} ${e.message}</span></td></tr>`;
         }
     }
 
@@ -1081,16 +1185,18 @@
         if (activeBtn) activeBtn.classList.add('active');
 
         const titles = {
-            orders: '📦 Đơn hàng',
-            products: '🛍️ Sản phẩm',
-            users: '👥 Tài khoản',
-            revenue: '💰 Doanh thu',
-            wishlist: '❤️ Yêu thích',
-            flashsale: '⚡ Flash Sale',
-            coupon: '🏷️ Mã giảm giá'
+            orders: { icon: 'package', label: 'Đơn hàng' },
+            products: { icon: 'bag', label: 'Sản phẩm' },
+            users: { icon: 'users', label: 'Tài khoản' },
+            revenue: { icon: 'wallet', label: 'Doanh thu' },
+            wishlist: { icon: 'heart', label: 'Yêu thích' },
+            flashsale: { icon: 'zap', label: 'Flash Sale' },
+            coupon: { icon: 'tag', label: 'Mã giảm giá' }
         };
-        if (document.getElementById('pageTitle')) {
-            document.getElementById('pageTitle').textContent = titles[tabName] || 'Quản lý';
+        const pageTitleEl = document.getElementById('pageTitle');
+        if (pageTitleEl) {
+            const t = titles[tabName] || { icon: 'package', label: 'Quản lý' };
+            pageTitleEl.innerHTML = ICON(t.icon, 20) + ' ' + t.label;
         }
 
         if (tabName === 'orders') loadOrders();
@@ -1109,7 +1215,7 @@
     async function loadWishlistStats() {
         const tbody = document.getElementById('wishlistTableBody');
         if (!tbody) return;
-        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:30px;color:var(--text-muted);">⏳ Đang tải...</td></tr>';
+        tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:30px;color:var(--text-muted);"><span class="loading-row">${ICON('loader',16,'icon-spin')} Đang tải...</span></td></tr>`;
         const tk = localStorage.getItem('access_token');
         try {
             const res = await fetch('/admin/wishlist/stats', { headers: { 'Authorization': 'Bearer ' + tk } });
@@ -1124,11 +1230,12 @@
             const max = data[0].wish_count || 1;
             tbody.innerHTML = data.map((p,i) => {
                 const pct = Math.round(p.wish_count / max * 100);
-                const medal = i===0?'🥇':i===1?'🥈':i===2?'🥉':(i+1)+'.';
+                const rankCls = i===0?'gold':i===1?'silver':i===2?'bronze':'plain';
+                const medal = '<span class="rank-badge '+rankCls+'">'+(i+1)+'</span>';
                 const sc = p.stock<10?'color:#ef4444;font-weight:700':p.stock<30?'color:#f59e0b':'color:#10b981';
                 return '<tr style="border-bottom:1px solid var(--border);">'
                     +'<td style="padding:10px 14px;"><img src="'+(p.image_url||'')+'" style="width:44px;height:44px;object-fit:contain;border-radius:8px;background:#f5f5f7;" onerror="this.src=\'https://placehold.co/44?text=SP\'"></td>'
-                    +'<td style="padding:10px 14px;font-weight:600;font-size:13px;">'+medal+' '+p.name+'</td>'
+                    +'<td style="padding:10px 14px;font-weight:600;font-size:13px;"><span style="display:inline-flex;align-items:center;gap:8px;">'+medal+' '+p.name+'</span></td>'
                     +'<td style="padding:10px 14px;text-align:center;">'
                         +'<div style="font-size:20px;font-weight:800;color:#e11d48;">'+p.wish_count+'</div>'
                         +'<div style="background:#f0f0f4;border-radius:10px;height:5px;margin-top:4px;overflow:hidden;">'
@@ -1138,7 +1245,7 @@
                     +'</tr>';
             }).join('');
         } catch(e) {
-            tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:red;padding:20px;">Lỗi: '+e.message+'</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:red;padding:20px;"><span class="loading-row">'+ICON('xCircle',16)+' Lỗi: '+e.message+'</span></td></tr>';
         }
     }
 
@@ -1148,7 +1255,7 @@
         if (!tbody) return;
 
         const btn = document.getElementById('btnRefreshOrders');
-        if (btn) { btn.disabled = true; btn.textContent = '⏳ Đang tải...'; }
+        if (btn) { btn.disabled = true; btn.innerHTML = ICON('loader',15,'icon-spin') + ' Đang tải...'; }
 
         const currentToken = localStorage.getItem("access_token");
 
@@ -1177,6 +1284,12 @@
                 return;
             }
 
+            const statusIcon = (st) => {
+                if (st === 'Đang giao') return ICON('truck',12);
+                if (st === 'Đã giao') return ICON('checkCircle',12);
+                if (st === 'Đã hủy') return ICON('xCircle',12);
+                return ICON('clock',12);
+            };
             orders.forEach(ord => {
                 let sClass = "status-cho"; 
                 if (ord.status === "Đang giao") sClass = "status-giao";
@@ -1203,7 +1316,7 @@
                         <td>${itemsHtml}</td>
                         <td><b style="color:var(--danger)">${totalStr}</b></td>
                         <td><small>${dateStr}</small></td>
-                        <td><span class="order-status ${sClass}">${ord.status || 'Chờ xác nhận'}</span></td>
+                        <td><span class="order-status ${sClass}">${statusIcon(ord.status)}${ord.status || 'Chờ xác nhận'}</span></td>
                         <td>
                             <select onchange="updateOrderStatus(${ord.id}, this.value); this.blur();" 
                                 style="
@@ -1224,10 +1337,10 @@
                                         '#854d0e'
                                     };">
                                 <option value="" disabled selected>${ord.status || 'Chờ xác nhận'}</option>
-                                <option value="Đã xác nhận"  ${ord.status === 'Đã xác nhận'  ? 'selected' : ''}>✅ Đã xác nhận</option>
-                                <option value="Đang giao"    ${ord.status === 'Đang giao'    ? 'selected' : ''}>🚚 Đang giao</option>
-                                <option value="Đã giao"      ${ord.status === 'Đã giao'      ? 'selected' : ''}>📦 Đã giao</option>
-                                <option value="Đã hủy"       ${ord.status === 'Đã hủy'       ? 'selected' : ''}>✕ Đã hủy</option>
+                                <option value="Đã xác nhận"  ${ord.status === 'Đã xác nhận'  ? 'selected' : ''}>Đã xác nhận</option>
+                                <option value="Đang giao"    ${ord.status === 'Đang giao'    ? 'selected' : ''}>Đang giao</option>
+                                <option value="Đã giao"      ${ord.status === 'Đã giao'      ? 'selected' : ''}>Đã giao</option>
+                                <option value="Đã hủy"       ${ord.status === 'Đã hủy'       ? 'selected' : ''}>Đã hủy</option>
                             </select>
                         </td>
                         <td id="admin-review-${ord.id}" style="font-size:12px;min-width:110px;vertical-align:middle">
@@ -1245,7 +1358,7 @@
             console.error("Lỗi:", err);
             tbody.innerHTML = `<tr><td colspan="10" style="text-align:center;color:red;padding:20px">Lỗi kết nối: ${err.message}</td></tr>`; 
         } finally {
-            if (btn) { btn.disabled = false; btn.textContent = '🔄 Làm mới'; }
+            if (btn) { btn.disabled = false; btn.innerHTML = ICON('refresh',15) + ' Làm mới'; }
         }
     }
 
@@ -1332,7 +1445,7 @@
                 const emailStyle = isBanned ? "style='color:gray; text-decoration:line-through'" : "";
 
                 const safeEmail = (u.email || '').replace(/'/g, "\\\'").replace(/"/g, '&quot;');
-                const setVoucherBtn = `<button class="btn" style="background:#0071e3;color:white;margin-right:4px;" onclick="setVoucherForUser(${u.id}, '${safeEmail}')">🎟️ Set voucher</button>`;
+                const setVoucherBtn = `<button class="btn" style="background:#0071e3;color:white;margin-right:4px;display:inline-flex;align-items:center;gap:6px;" onclick="setVoucherForUser(${u.id}, '${safeEmail}')">${ICON('ticket',14)} Set voucher</button>`;
                 tbody.innerHTML += `
                     <tr>
                         <td>${u.id}</td>
@@ -1342,7 +1455,7 @@
                             ${setVoucherBtn}
                             ${!isMe && !isAdmin ? `
                                 <button class="btn ${btnBanClass}" onclick="toggleBan(${u.id})">${btnBanText}</button>
-                                <button class="btn" style="background:${u.role==='STAFF'?'#f59e0b':'#6366f1'}; color:white" onclick="appointStaff(${u.id},'${u.role}')">${u.role==='STAFF'?'⬇️ Hạ chức':'⭐ Nhân viên'}</button>
+                                <button class="btn" style="background:${u.role==='STAFF'?'#f59e0b':'#6366f1'}; color:white;display:inline-flex;align-items:center;gap:6px;" onclick="appointStaff(${u.id},'${u.role}')">${u.role==='STAFF'?(ICON('arrowDown',14)+' Hạ chức'):(ICON('users',14)+' Nhân viên')}</button>
                                 <button class="btn" style="background:#64748b; color:white" onclick="deleteUser(${u.id})">Xóa</button>
                             ` : ''}
                         </td>
@@ -1401,7 +1514,7 @@ async function loadProducts() {
         checkLowStock();
         const tbody = document.getElementById('productTableBody');
         if (!tbody) return;
-        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:20px">🔄 Đang tải sản phẩm...</td></tr>';
+        tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:20px"><span class="loading-row">${ICON('loader',16,'icon-spin')} Đang tải sản phẩm...</span></td></tr>`;
         
         try {
             // 1. Thêm dòng lấy token để không bị lỗi
@@ -1423,7 +1536,7 @@ async function loadProducts() {
                 const isHidden = p.is_active === false;
                 const statusText = !isHidden ? "Đang bán" : "Đã ẩn";
                 const statusClass = !isHidden ? "status-xong" : "status-cho";
-                const toggleIcon = !isHidden ? "🚫 Ẩn" : "👁️ Hiện";
+                const toggleIcon = !isHidden ? ICON('eyeOff',15) : ICON('eye',15);
                 const toggleAction = !isHidden ? "hide" : "show";
                 const rowBg = isHidden ? 'background:rgba(245,158,11,0.08);' : '';
 
@@ -1444,9 +1557,9 @@ async function loadProducts() {
                         <td><b style="color:${p.stock < 10 ? '#ef4444' : p.stock < 30 ? '#f59e0b' : '#10b981'}">${p.stock ?? 100}</b></td>
                         <td><span class="order-status ${statusClass}">${statusText}</span></td>
                         <td>
-                            <button class="btn ${isHidden ? 'btn-done' : 'btn-ship'}" onclick="toggleProduct(${p.id}, '${toggleAction}')" title="${isHidden ? 'Hiện lại trên shop' : 'Ẩn khỏi shop'}">${toggleIcon}</button>
-                            <button class="btn" style="background:#f59e0b; color:white" onclick="openEditProductModal(${p.id}, '${p.name.replace(/'/g,"\\'")}', ${p.price}, '${(p.image_url||'').replace(/'/g,"\\'")}', '${(p.description||'').replace(/'/g,"\\'")}', ${p.stock ?? 100})">✏️</button>
-                            <button class="btn" style="background:#64748b; color:white" onclick="deleteProduct(${p.id})">🗑️</button>
+                            <button class="icon-btn ${isHidden ? 'success' : 'primary'}" onclick="toggleProduct(${p.id}, '${toggleAction}')" title="${isHidden ? 'Hiện lại trên shop' : 'Ẩn khỏi shop'}" aria-label="${isHidden ? 'Hiện' : 'Ẩn'}">${toggleIcon}</button>
+                            <button class="icon-btn warning" onclick="openEditProductModal(${p.id}, '${p.name.replace(/'/g,"\\'")}', ${p.price}, '${(p.image_url||'').replace(/'/g,"\\'")}', '${(p.description||'').replace(/'/g,"\\'")}', ${p.stock ?? 100})" title="Sửa sản phẩm" aria-label="Sửa">${ICON('edit',15)}</button>
+                            <button class="icon-btn danger" onclick="deleteProduct(${p.id})" title="Xoá sản phẩm" aria-label="Xoá">${ICON('trash',15)}</button>
                         </td>
                     </tr>`;
             });
@@ -1477,11 +1590,17 @@ async function loadProducts() {
         } catch (err) { alert("Lỗi kết nối!"); }
     }
 
-        // Hàm hiện thông báo nhỏ (toast)
+        // Hàm hiện thông báo nhỏ (toast) — tự nhận icon SVG từ tiền tố ✅ / ❌ / ⚠️ trong chuỗi msg
     function showToast(msg) {
         const t = document.getElementById('toast');
         if (!t) return;
-        t.textContent = msg;
+        msg = String(msg == null ? '' : msg);
+        let iconName = 'checkCircle', color = 'var(--success)';
+        if (/^\s*❌/.test(msg)) { iconName = 'xCircle'; color = 'var(--danger)'; }
+        else if (/^\s*⚠️/.test(msg)) { iconName = 'alertTriangle'; color = 'var(--warning)'; }
+        else if (!/^\s*✅/.test(msg)) { iconName = 'checkCircle'; color = 'var(--success)'; }
+        const cleanMsg = msg.replace(/^\s*(✅|❌|⚠️)\s*/, '');
+        t.innerHTML = '<span style="color:' + color + ';display:flex;">' + ICON(iconName, 18) + '</span><span>' + cleanMsg + '</span>';
         t.classList.add('show');
         setTimeout(() => t.classList.remove('show'), 2500);
     }
@@ -1505,7 +1624,7 @@ async function loadProducts() {
     function toggleDark() {
         document.documentElement.classList.toggle('dark');
         const btn = document.querySelector('.dark-toggle');
-        if (btn) btn.textContent = document.documentElement.classList.contains('dark') ? '☀️' : '🌙';
+        if (btn) btn.innerHTML = ICON(document.documentElement.classList.contains('dark') ? 'sun' : 'moon', 18);
     }
 
     // ==== SẢN PHẨM: THÊM & SỬA ====
@@ -1569,10 +1688,10 @@ async function loadProducts() {
     async function loadRevenue() {
         const el = document.getElementById('revenueContent');
         if (!el) return;
-        el.innerHTML = '<p style="text-align:center;padding:40px;color:var(--text-muted)">⏳ Đang tải dữ liệu doanh thu...</p>';
+        el.innerHTML = `<p style="text-align:center;padding:40px;color:var(--text-muted)"><span class="loading-row" style="justify-content:center;">${ICON('loader',16,'icon-spin')} Đang tải dữ liệu doanh thu...</span></p>`;
         try {
             const res = await fetch('/admin/revenue', { headers: { 'Authorization': 'Bearer ' + token } });
-            if (!res.ok) { el.innerHTML = '<p style="color:red;text-align:center">❌ Lỗi tải dữ liệu. Vui lòng thử lại.</p>'; return; }
+            if (!res.ok) { el.innerHTML = `<p style="color:#ef4444;text-align:center;display:flex;align-items:center;justify-content:center;gap:8px;">${ICON('xCircle',16)} Lỗi tải dữ liệu. Vui lòng thử lại.</p>`; return; }
             const data = await res.json();
             const fmt = n => new Intl.NumberFormat('vi-VN').format(n) + ' ₫';
 
@@ -1595,7 +1714,7 @@ async function loadProducts() {
                         ${monthEntries.map(([m, v]) => {
                             const pct = data.total_revenue > 0 ? ((v / data.total_revenue) * 100).toFixed(1) : 0;
                             return `<tr>
-                                <td style="padding:12px 14px;border-bottom:1px solid var(--border);font-size:14px;">📅 ${m}</td>
+                                <td style="padding:12px 14px;border-bottom:1px solid var(--border);font-size:14px;display:flex;align-items:center;gap:6px;">${ICON('calendar',14)} ${m}</td>
                                 <td style="padding:12px 14px;border-bottom:1px solid var(--border);text-align:right;font-weight:700;color:var(--success);font-size:14px;">${fmt(v)}</td>
                                 <td style="padding:12px 14px;border-bottom:1px solid var(--border);text-align:right;">
                                     <div style="display:flex;align-items:center;justify-content:flex-end;gap:8px;">
@@ -1614,20 +1733,20 @@ async function loadProducts() {
             el.innerHTML = `
                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:28px;">
                     <div style="background:var(--success-bg);border-radius:14px;padding:28px;text-align:center;border:1px solid rgba(16,185,129,0.2);">
-                        <div style="font-size:12px;font-weight:700;letter-spacing:1px;color:var(--success);margin-bottom:10px;">💵 TỔNG DOANH THU</div>
+                        <div style="font-size:12px;font-weight:700;letter-spacing:1px;color:var(--success);margin-bottom:10px;display:flex;align-items:center;justify-content:center;gap:6px;">${ICON('wallet',14)} TỔNG DOANH THU</div>
                         <div style="font-size:26px;font-weight:800;color:var(--success);">${fmt(data.total_revenue)}</div>
                         <div style="font-size:11px;color:var(--text-muted);margin-top:6px;">Tính từ đơn "Đã giao"</div>
                     </div>
                     <div style="background:var(--info-bg);border-radius:14px;padding:28px;text-align:center;border:1px solid rgba(59,130,246,0.2);">
-                        <div style="font-size:12px;font-weight:700;letter-spacing:1px;color:var(--info);margin-bottom:10px;">📦 ĐƠN ĐÃ GIAO</div>
+                        <div style="font-size:12px;font-weight:700;letter-spacing:1px;color:var(--info);margin-bottom:10px;display:flex;align-items:center;justify-content:center;gap:6px;">${ICON('package',14)} ĐƠN ĐÃ GIAO</div>
                         <div style="font-size:26px;font-weight:800;color:var(--info);">${data.total_orders_done}</div>
                         <div style="font-size:11px;color:var(--text-muted);margin-top:6px;">Đơn hàng thành công</div>
                     </div>
                 </div>
-                <h3 style="margin-bottom:4px;font-size:15px;color:var(--text);">📊 Doanh thu theo tháng</h3>
+                <h3 style="margin-bottom:4px;font-size:15px;color:var(--text);display:flex;align-items:center;gap:8px;">${ICON('barChart',15)} Doanh thu theo tháng</h3>
                 ${monthlyHtml}`;
         } catch(e) {
-            el.innerHTML = '<p style="color:red;text-align:center;padding:20px;">❌ Lỗi tải dữ liệu doanh thu</p>';
+            el.innerHTML = `<p style="color:#ef4444;text-align:center;padding:20px;display:flex;align-items:center;justify-content:center;gap:8px;">${ICON('xCircle',16)} Lỗi tải dữ liệu doanh thu</p>`;
         }
     }
 
