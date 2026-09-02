@@ -2984,7 +2984,7 @@ import math
 RAG_VECTOR_STORE_PATH = Path(__file__).parent / "vector_store.json"
 RAG_KB_DIR             = Path(__file__).parent / "knowledge-base"
 RAG_EMBEDDING_MODEL    = "gemini-embedding-001"
-RAG_GEN_MODELS         = ["gemini-1.5-flash", "gemini-2.0-flash"]
+RAG_GEN_MODELS         = ["gemini-3.5-flash", "gemini-3.1-flash-lite"]
 
 RAG_TOP_K              = 5       # số chunk lấy ra khi tìm kiếm
 RAG_CHUNK_TARGET_WORDS = 400
