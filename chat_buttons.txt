@@ -1,0 +1,32 @@
+3825: #easychatgpt-widget {
+5567: #notifychatmsg .notifyChat2 {
+8897: .icon-sticky-chat {
+10447: background-image: url(https://cdnv2.tgdd.vn/webmwg/2024/ContentMwg/images/homev2/desk/chat.webp);
+10473: .zalo-chat-widget {
+17312: .sticky-bar-chat {
+23854: <a rel="nofollow" href="/chat-luong-phuc-vu">Chất lượng phục vụ</a>
+26037: <!-- ============ HỒNG ANH AI CHATBOT ============ -->
+26396: <button id="ha-fab" onclick="haChatToggle()" title="Chat với Hồng Anh AI">
+26424: <button id="ha-x" onclick="haChatToggle()">✕</button>
+26452: var GROQ_URL = 'https://api.groq.com/openai/v1/chat/completions';
+26492: window.haChatToggle = function () {
+26520: var backendRes = await fetch('/api/chatbot/chat', {
+26622: // 🛒 Hàm hiển thị sản phẩm với nút ⚡ MUA NGAY trực tiếp trong Chatbot
+26682: // Đóng chatbot rồi mở form mua ngay có sẵn
+26706: // 🛒 Hàm Toggle Form Thanh Toán Trực Tiếp Nhỏ ngay TRONG khung chat
+26780: // 🚀 Hàm xử lý Đặt hàng qua API POST /orders ngay trong Chatbot
+26911: <!-- ============ END CHATBOT ============ -->
+28036: <!-- ============ HỒNG ANH AI CHATBOT (UNIFIED ALL-IN-ONE) ============ -->
+28377: /* ── PRODUCT CARDS TRONG KHUNG CHAT (TỪ SHOPPING AI) ── */
+28494: <!-- Nút Chat Floating FAB -->
+28495: <button id="ha-fab" onclick="haChatToggle()" title="🤖 Chat với Hồng Anh AI — Smart Shopping & CSKH">
+28506: <!-- Cửa sổ Chatbot AI -->
+28522: <button id="ha-x" onclick="haChatToggle()">✕</button>
+28545: var GROQ_URL = 'https://api.groq.com/openai/v1/chat/completions';
+28579: '• 🛍️ <b>Gợi ý & hiển thị sản phẩm hot</b> ngay trong khung chat (có nút Mua Ngay)<br>' +
+28667: /* ── Lục kho & render Product Cards trong chat ── */
+30326: Floating chat button + panel ở góc dưới phải màn hình.
+30602: <!-- Icon: chat bubble with sparkle -->
+30611: <!-- Chat Panel -->
+30654: - Hoàn toàn độc lập, không đụng chatbot cũ
+30815: // Ẩn suggestions sau lần chat đầu tiên

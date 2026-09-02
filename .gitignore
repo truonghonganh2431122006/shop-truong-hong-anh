@@ -1,2 +1,7 @@
 app.db 
 __pycache__/ 
+.env
+vector_store.json
+*.pyc
+.venv/
+venv/

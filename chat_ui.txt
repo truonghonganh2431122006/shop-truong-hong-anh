@@ -1,0 +1,92 @@
+            document.querySelector('header').append(rightImage);
+                showToast('Đã thêm "' + name.substring(0, 40) + (name.length > 40 ? '...' : '') + '" vào giỏ hàng!');
+                    const res = await fetch('/flash-sales/active');
+                    const res = await fetch('/coupons/mine', { headers: { 'Authorization': 'Bearer ' + tk } });
+                    const res = await fetch('/coupons/validate?code=' + encodeURIComponent(code), { headers: headers });
+                    const pRes = await fetch('/products', {
+                    const res = await fetch('/orders', {
+                                ('0' + now.getHours()).slice(-2) + ':' + ('0' + now.getMinutes()).slice(-2);
+                    const response = await fetch('/api/orders/create', {
+                    if (plc) plc.appendChild(noRes);
+                var displayName = nameKeyword.charAt(0).toUpperCase() + nameKeyword.slice(1);
+                container.appendChild(itemDiv);
+                    fetch('/products' + (kw ? '?q=' + encodeURIComponent(kw) : ''))
+            fetch(apiUrl)
+                container.appendChild(item); // reorder
+                container.appendChild(noRes);
+                const response = await fetch('/orders', {
+                const response = await fetch('/products').catch(() => fetch('https://shop-truong-hong-anh.onrender.com/products'));
+                    container.appendChild(itemDiv);
+                if (viewed.length > 10) viewed = viewed.slice(0, 10);
+                    btnBuyDiv.appendChild(shareBox);
+                        modalContent.appendChild(relBox);
+                    }).slice(0, 5);
+                    if (!related.length) related = all.filter(p => p.id !== id).slice(0, 4);
+                if (viewed.length > 10) viewed = viewed.slice(0, 10);
+                    var backendRes = await fetch('/api/chatbot/chat', {
+                            var res = await fetch(GROQ_URL, {
+                    matched = prods.slice(0, 4);
+                    matched = matched.slice(0, 6);
+                    card.appendChild(imgEl);
+                    card.appendChild(titleEl);
+                    card.appendChild(priceEl);
+                    card.appendChild(btn);
+                    scrollBox.appendChild(card);
+                cardWrap.appendChild(scrollBox);
+                el('ha-msgs').appendChild(cardWrap);
+                cardWrap.appendChild(formBox);
+                    var res = await fetch('/orders', {
+                el('ha-msgs').appendChild(d); scroll();
+                el('ha-msgs').appendChild(d); scroll();
+                el('ha-msgs').appendChild(d); scroll();
+                el('ha-msgs').appendChild(d); scroll(); return d;
+                    var opt = document.createElement('option'); opt.value = p; opt.textContent = p; sel.appendChild(opt);
+                    var opt = document.createElement('option'); opt.value = p; opt.textContent = p; sel.appendChild(opt);
+                        var opt = document.createElement('option'); opt.value = d; opt.textContent = d; dSel.appendChild(opt);
+                        var opt = document.createElement('option'); opt.value = w; opt.textContent = w; wSel.appendChild(opt);
+                    if (noteEl) noteEl.textContent = nameVal + ' - ' + _name.substring(0, 30);
+                        else if (rows) rows.appendChild(newW);
+                            var pRes = await fetch('/products', { headers: { 'Authorization': 'Bearer ' + token } });
+                        var res = await fetch('/orders', {
+                                    ('0' + now.getHours()).slice(-2) + ':' + ('0' + now.getMinutes()).slice(-2);
+                        ('0' + now.getHours()).slice(-2) + ':' + ('0' + now.getMinutes()).slice(-2);
+                var orderRef = orderId ? '#' + orderId : 'QO' + Date.now().toString().slice(-6);
+                    var res = await fetch(SA_URL, {
+                matched = matched.slice(0, 6);
+                wrapper.appendChild(title);
+                    list.appendChild(card);
+                wrapper.appendChild(list);
+                el('sa-msgs').appendChild(wrapper);
+                el('sa-msgs').appendChild(d); saScroll();
+                el('sa-msgs').appendChild(d); saScroll();
+                el('sa-msgs').appendChild(d); saScroll();
+                el('sa-msgs').appendChild(d); saScroll(); return d;
+                    if (container) container.appendChild(box);
+                document.body.appendChild(bar);
+                document.body.appendChild(modal);
+                document.body.appendChild(btn);
+                    document.body.appendChild(modal);
+                const res = await fetch('/flash-sales/active');
+        document.body.appendChild(t);
+          item.appendChild(tc);
+        item.appendChild(cmp);
+                var r = await fetch('/wishlist/ids', { headers: { 'Authorization': 'Bearer ' + tok() } });
+                var r = await fetch('/wishlist/toggle', {
+            box.appendChild(btn);
+                var r = await fetch('/wishlist', { headers: { 'Authorization': 'Bearer ' + tok() } });
+                    grid.appendChild(c);
+            document.body.appendChild(el);
+            formData.append('file', file);
+                var res = await fetch('/search-by-image', { method: 'POST', body: formData });
+     Gọi endpoint: POST /api/rag-chat
+   - Endpoint: POST /api/rag-chat
+        messagesEl.appendChild(welcome);
+    function appendMessage(role, text, sources) {
+        messagesEl.appendChild(wrapper);
+        messagesEl.appendChild(loadingEl);
+        appendMessage('user', text);
+        fetch('/api/rag-chat', {
+                history: history.slice(-8), // Giữ tối đa 8 lượt gần nhất
+            appendMessage('bot', answer, sources);
+            appendMessage('bot', errMsg, []);
+        div.appendChild(document.createTextNode(text));

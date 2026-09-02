@@ -1,0 +1,15 @@
+24317: showToast('Đã thêm "' + name.substring(0, 40) + (name.length > 40 ? '...' : '') + '" vào giỏ hàng!');
+24766: ('0' + now.getHours()).slice(-2) + ':' + ('0' + now.getMinutes()).slice(-2);
+25190: var displayName = nameKeyword.charAt(0).toUpperCase() + nameKeyword.slice(1);
+25884: if (viewed.length > 10) viewed = viewed.slice(0, 10);
+25945: }).slice(0, 5);
+25947: if (!related.length) related = all.filter(p => p.id !== id).slice(0, 4);
+25971: if (viewed.length > 10) viewed = viewed.slice(0, 10);
+26641: matched = prods.slice(0, 4);
+26643: matched = matched.slice(0, 6);
+27709: if (noteEl) noteEl.textContent = nameVal + ' - ' + _name.substring(0, 30);
+27923: ('0' + now.getHours()).slice(-2) + ':' + ('0' + now.getMinutes()).slice(-2);
+27967: ('0' + now.getHours()).slice(-2) + ':' + ('0' + now.getMinutes()).slice(-2);
+27998: var orderRef = orderId ? '#' + orderId : 'QO' + Date.now().toString().slice(-6);
+28701: matched = matched.slice(0, 6);
+30838: history: history.slice(-8), // Giữ tối đa 8 lượt gần nhất

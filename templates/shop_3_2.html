@@ -26443,15 +26443,6 @@
 
     <script>
         (function () {
-            // ============================================================
-            // HỒNG ANH AI — Dùng Groq API (Miễn phí, không cần thẻ)
-            // Lấy key tại: console.groq.com → API Keys → Create API Key
-            // Dán key vào dòng dưới đây (dạng gsk_...)
-            // ============================================================
-            var GROQ_KEY = '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'; // ← AI #1 — Điền Groq API key của bạn vào đây
-            var GROQ_URL = 'https://api.groq.com/openai/v1/chat/completions';
-            var MODEL = 'openai/gpt-oss-20b'; // Model Groq chính thức siêu nhanh & miễn phí
-
             /* ── System prompt CSKH — biết sản phẩm nhưng CHỈ tư vấn, không hiển thị card ── */
             function getSYS() {
                 var prods = window.allProducts || [];
@@ -26529,46 +26520,6 @@
                         }
                     }
                 } catch (e) { }
-
-                // 2. FALLBACK: Nếu Backend Gemini bận hoặc chưa hồi đáp → Thử Groq API trực tiếp
-                if (!reply) {
-                    var candidateModels = ['openai/gpt-oss-20b', 'groq/compound', 'qwen/qwen3.6-27b', 'openai/gpt-oss-120b'];
-                    var messages = [{ role: 'system', content: getSYS() }].concat(hist);
-                    var lastErr = null;
-
-                    for (var i = 0; i < candidateModels.length; i++) {
-                        var currentModel = candidateModels[i];
-                        try {
-                            var res = await fetch(GROQ_URL, {
-                                method: 'POST',
-                                headers: {
-                                    'Content-Type': 'application/json',
-                                    'Authorization': 'Bearer ' + GROQ_KEY
-                                },
-                                body: JSON.stringify({
-                                    model: currentModel,
-                                    messages: messages,
-                                    max_tokens: 450,
-                                    temperature: 0.7
-                                })
-                            });
-                            var d = await res.json();
-                            if (res.ok && d.choices && d.choices[0] && d.choices[0].message) {
-                                reply = d.choices[0].message.content;
-                                MODEL = currentModel;
-                                break;
-                            }
-                            lastErr = (d.error && d.error.message) || ('HTTP ' + res.status);
-                            if (res.status === 404 || (lastErr && lastErr.toLowerCase().includes('model'))) {
-                                continue;
-                            } else {
-                                break;
-                            }
-                        } catch (err) {
-                            lastErr = err.message;
-                        }
-                    }
-                }
 
                 dot.remove();
 
@@ -28491,7 +28442,8 @@
         }
     </style>
 
-    <!-- Nút Chat Floating FAB -->
+    <!-- Nút Chat Floating FAB cũ (Đã bị ẩn vì dùng nút RAG mới) -->
+    <!--
     <button id="ha-fab" onclick="haChatToggle()" title="🤖 Chat với Hồng Anh AI — Smart Shopping & CSKH">
         <svg viewBox="0 0 24 24" fill="none" stroke="#ffed00" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
             <rect x="3" y="3" width="18" height="14" rx="3" />
@@ -28502,6 +28454,7 @@
         </svg>
         <span id="ha-fab-badge"></span>
     </button>
+    -->
 
     <!-- Cửa sổ Chatbot AI -->
     <div id="ha-win">
@@ -28540,11 +28493,6 @@
 
     <script>
         (function () {
-            // Groq API Key (Miễn phí, tốc độ cao)
-            var GROQ_KEY = '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';
-            var GROQ_URL = 'https://api.groq.com/openai/v1/chat/completions';
-            var MODEL = 'llama-3.1-8b-instant';
-
             /* ── System Prompt GỘP TOÀN BỘ CHỨC NĂNG ── */
             function getSYS() {
                 var prods = window.allProducts || [];
@@ -28606,39 +28554,33 @@
                 saAsk();
             };
 
-            /* ── Gọi Groq API ── */
+            /* ── Gọi Backend Gemini API ── */
             async function saAsk() {
                 saBusy = true;
                 var dot = saMakeDots();
+                var reply = null;
                 try {
-                    var messages = [{ role: 'system', content: getSASystemPrompt() }].concat(saHist);
-                    var res = await fetch(SA_URL, {
+                    var backendRes = await fetch('/api/chatbot/chat', {
                         method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': 'Bearer ' + SA_KEY
-                        },
-                        body: JSON.stringify({
-                            model: SA_MODEL, messages: messages,
-                            max_tokens: 450, temperature: 0.75
-                        })
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(saHist)
                     });
-                    var d = await res.json();
-                    dot.remove();
-
-                    if (res.status === 429) {
-                        saErrMsg('⏳ AI đang bận, vui lòng thử lại sau 10 giây!');
-                        saHist.pop(); saBusy = false; return;
+                    if (backendRes.ok) {
+                        var backendData = await backendRes.json();
+                        if (backendData && backendData.reply) {
+                            reply = backendData.reply;
+                        }
                     }
-                    if (!res.ok) {
-                        var eMsg = (d.error && d.error.message) || 'Lỗi không xác định';
-                        saErrMsg('⚠️ ' + eMsg);
-                        saHist.pop(); saBusy = false; return;
-                    }
+                } catch (e) { }
 
-                    var reply = (d.choices && d.choices[0] && d.choices[0].message)
-                        ? d.choices[0].message.content
-                        : 'Xin lỗi, mình chưa hiểu. Bạn thử hỏi lại nhé!';
+                dot.remove();
+
+                if (!reply) {
+                    saErrMsg('⚠️ AI đang bận hoặc gián đoạn kết nối. Vui lòng thử lại sau vài giây!');
+                    if (saHist.length && saHist[saHist.length - 1].role === 'user') saHist.pop();
+                    saBusy = false;
+                    return;
+                }
 
                     saHist.push({ role: 'assistant', content: reply });
 
@@ -30320,3 +30262,588 @@
     document.addEventListener('DOMContentLoaded', initProvinceSelector);
 </script>
 <!-- ============ END PROVINCE SELECTION MODAL ============ -->
+
+<!-- ============================================================
+     RAG CHATBOT WIDGET - Hồng Anh AI (RAG)
+     Floating chat button + panel ở góc dưới phải màn hình.
+     Gọi endpoint: POST /api/rag-chat
+     ID prefix: rag-chat-* (không đụng chatbot cũ)
+     ============================================================ -->
+<style>
+/* ── RAG Chat: Floating Button ───────────────────────────────── */
+#rag-chat-btn {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    z-index: 99990;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #ffd400 0%, #f59e0b 100%);
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 4px 20px rgba(245,158,11,0.55), 0 2px 8px rgba(0,0,0,0.18);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.2s cubic-bezier(.34,1.56,.64,1), box-shadow 0.2s ease;
+    outline: none;
+}
+#rag-chat-btn:hover {
+    transform: scale(1.10);
+    box-shadow: 0 8px 30px rgba(245,158,11,0.65), 0 4px 12px rgba(0,0,0,0.22);
+}
+#rag-chat-btn:active { transform: scale(0.96); }
+#rag-chat-btn svg { width: 28px; height: 28px; fill: #111; }
+#rag-chat-btn .rag-btn-pulse {
+    position: absolute;
+    inset: -4px;
+    border-radius: 50%;
+    background: rgba(255,212,0,0.35);
+    animation: ragPulse 2.2s ease-out infinite;
+    pointer-events: none;
+}
+@keyframes ragPulse {
+    0%   { transform: scale(1);   opacity: 0.8; }
+    70%  { transform: scale(1.45);opacity: 0;   }
+    100% { transform: scale(1.45);opacity: 0;   }
+}
+
+/* ── RAG Chat: Panel ─────────────────────────────────────────── */
+#rag-chat-panel {
+    position: fixed;
+    bottom: 96px;
+    right: 24px;
+    z-index: 99989;
+    width: 370px;
+    max-width: calc(100vw - 32px);
+    height: 520px;
+    max-height: calc(100vh - 120px);
+    background: #ffffff;
+    border-radius: 20px;
+    box-shadow: 0 12px 48px rgba(0,0,0,0.18), 0 2px 8px rgba(0,0,0,0.10);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    transform: scale(0.85) translateY(24px);
+    opacity: 0;
+    pointer-events: none;
+    transition: transform 0.28s cubic-bezier(.34,1.56,.64,1),
+                opacity 0.22s ease;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+#rag-chat-panel.rag-open {
+    transform: scale(1) translateY(0);
+    opacity: 1;
+    pointer-events: all;
+}
+
+/* Header */
+#rag-chat-header {
+    background: linear-gradient(135deg, #ffd400 0%, #f59e0b 100%);
+    padding: 14px 16px 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+}
+#rag-chat-header .rag-avatar {
+    width: 38px; height: 38px; border-radius: 50%;
+    background: #111;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+}
+#rag-chat-header .rag-avatar svg { width: 22px; height: 22px; fill: #ffd400; }
+#rag-chat-header .rag-info { flex: 1; }
+#rag-chat-header .rag-name {
+    font-weight: 800; font-size: 14px; color: #111; line-height: 1.2;
+}
+#rag-chat-header .rag-status {
+    font-size: 11px; color: #555; display: flex; align-items: center; gap: 4px;
+}
+#rag-chat-header .rag-status .dot {
+    width: 7px; height: 7px; border-radius: 50%; background: #22c55e;
+    animation: ragBlink 1.6s ease-in-out infinite;
+}
+@keyframes ragBlink {
+    0%, 100% { opacity: 1; } 50% { opacity: 0.3; }
+}
+#rag-chat-close {
+    background: rgba(0,0,0,0.12);
+    border: none; cursor: pointer;
+    width: 30px; height: 30px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    transition: background 0.15s;
+    flex-shrink: 0;
+}
+#rag-chat-close:hover { background: rgba(0,0,0,0.22); }
+#rag-chat-close svg { width: 16px; height: 16px; fill: #111; }
+
+/* Messages area */
+#rag-chat-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    background: #f8f9fa;
+    scroll-behavior: smooth;
+}
+#rag-chat-messages::-webkit-scrollbar { width: 4px; }
+#rag-chat-messages::-webkit-scrollbar-thumb {
+    background: #ddd; border-radius: 4px;
+}
+
+/* Message bubbles */
+.rag-msg {
+    display: flex;
+    gap: 8px;
+    align-items: flex-end;
+    max-width: 100%;
+    animation: ragMsgIn 0.22s ease;
+}
+@keyframes ragMsgIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+.rag-msg.rag-user { flex-direction: row-reverse; }
+
+.rag-bubble {
+    max-width: 78%;
+    padding: 9px 13px;
+    border-radius: 16px;
+    font-size: 13.5px;
+    line-height: 1.55;
+    word-break: break-word;
+    white-space: pre-wrap;
+}
+.rag-msg.rag-bot .rag-bubble {
+    background: #ffffff;
+    color: #1a1a1a;
+    border-radius: 4px 16px 16px 16px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+}
+.rag-msg.rag-user .rag-bubble {
+    background: linear-gradient(135deg, #ffd400, #f59e0b);
+    color: #111;
+    font-weight: 500;
+    border-radius: 16px 4px 16px 16px;
+}
+
+/* Bot mini avatar in message */
+.rag-msg-avatar {
+    width: 28px; height: 28px; border-radius: 50%;
+    background: #111; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    margin-bottom: 2px;
+}
+.rag-msg-avatar svg { width: 16px; height: 16px; fill: #ffd400; }
+
+/* Loading indicator (3 dots) */
+.rag-loading-dots {
+    display: flex; gap: 4px; padding: 10px 4px; align-items: center;
+}
+.rag-loading-dots span {
+    width: 7px; height: 7px; border-radius: 50%; background: #aaa;
+    animation: ragDot 1.2s ease-in-out infinite;
+}
+.rag-loading-dots span:nth-child(1) { animation-delay: 0s; }
+.rag-loading-dots span:nth-child(2) { animation-delay: 0.18s; }
+.rag-loading-dots span:nth-child(3) { animation-delay: 0.36s; }
+@keyframes ragDot {
+    0%, 80%, 100% { transform: scale(0.7); opacity: 0.5; }
+    40%           { transform: scale(1.2); opacity: 1;   }
+}
+
+/* Sources badge */
+.rag-sources {
+    font-size: 10.5px; color: #888; margin-top: 4px; margin-left: 36px;
+    display: flex; gap: 4px; flex-wrap: wrap;
+}
+.rag-sources span {
+    background: #f0f0f0; padding: 1px 7px; border-radius: 10px;
+    font-family: monospace;
+}
+
+/* Input area */
+#rag-chat-input-area {
+    padding: 10px 12px 12px;
+    background: #fff;
+    border-top: 1px solid #ececec;
+    display: flex;
+    gap: 8px;
+    align-items: flex-end;
+    flex-shrink: 0;
+}
+#rag-chat-input {
+    flex: 1;
+    border: 1.5px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 9px 13px;
+    font-size: 13.5px;
+    outline: none;
+    resize: none;
+    max-height: 90px;
+    font-family: inherit;
+    line-height: 1.45;
+    transition: border-color 0.15s;
+    background: #f9fafb;
+    color: #111;
+}
+#rag-chat-input:focus {
+    border-color: #f59e0b;
+    background: #fff;
+}
+#rag-chat-input::placeholder { color: #aaa; }
+#rag-chat-send {
+    width: 40px; height: 40px; flex-shrink: 0;
+    border-radius: 50%;
+    background: #ffd400;
+    border: none; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: background 0.15s, transform 0.15s;
+    box-shadow: 0 2px 8px rgba(245,158,11,0.4);
+}
+#rag-chat-send:hover  { background: #f59e0b; transform: scale(1.08); }
+#rag-chat-send:active { transform: scale(0.94); }
+#rag-chat-send:disabled { background: #e5e7eb; cursor: not-allowed; transform: none; box-shadow: none; }
+#rag-chat-send svg { width: 18px; height: 18px; fill: #111; }
+
+/* Welcome chip suggestions */
+.rag-suggestions {
+    display: flex; flex-wrap: wrap; gap: 6px;
+    padding: 0 0 4px;
+}
+.rag-chip {
+    background: #fff;
+    border: 1.5px solid #f59e0b;
+    color: #92400e;
+    padding: 5px 11px;
+    border-radius: 20px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+    white-space: nowrap;
+}
+.rag-chip:hover { background: #ffd400; color: #111; border-color: #ffd400; }
+
+/* RAG badge ở footer input */
+.rag-footer-badge {
+    text-align: center;
+    font-size: 10px;
+    color: #bbb;
+    padding-bottom: 2px;
+    letter-spacing: 0.3px;
+}
+</style>
+
+<!-- Floating Button -->
+<button id="rag-chat-btn" title="Chat với Hồng Anh AI" aria-label="Mở chatbot hỗ trợ">
+    <span class="rag-btn-pulse"></span>
+    <!-- Icon: chat bubble with sparkle -->
+    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H5.17L4 17.17V4h16v12z"/>
+        <circle cx="9" cy="10" r="1.2"/>
+        <circle cx="12" cy="10" r="1.2"/>
+        <circle cx="15" cy="10" r="1.2"/>
+    </svg>
+</button>
+
+<!-- Chat Panel -->
+<div id="rag-chat-panel" role="dialog" aria-label="Hộp thoại Hồng Anh AI" aria-modal="true">
+    <!-- Header -->
+    <div id="rag-chat-header">
+        <div class="rag-avatar">
+            <svg viewBox="0 0 24 24"><path d="M12 2a5 5 0 1 1 0 10A5 5 0 0 1 12 2zm0 12c5.33 0 8 2.67 8 4v2H4v-2c0-1.33 2.67-4 8-4z"/></svg>
+        </div>
+        <div class="rag-info">
+            <div class="rag-name">Hồng Anh AI ✦ RAG</div>
+            <div class="rag-status">
+                <span class="dot"></span>
+                Trợ lý thông minh của Shop
+            </div>
+        </div>
+        <button id="rag-chat-close" title="Đóng" aria-label="Đóng chatbot">
+            <svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+    </div>
+
+    <!-- Messages -->
+    <div id="rag-chat-messages" role="log" aria-live="polite" aria-label="Lịch sử chat">
+        <!-- Welcome message + suggestions inserted by JS -->
+    </div>
+
+    <!-- Input Area -->
+    <div id="rag-chat-input-area">
+        <textarea
+            id="rag-chat-input"
+            placeholder="Nhập câu hỏi của bạn..."
+            rows="1"
+            maxlength="500"
+            aria-label="Nhập câu hỏi"
+        ></textarea>
+        <button id="rag-chat-send" title="Gửi" aria-label="Gửi tin nhắn">
+            <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+        </button>
+    </div>
+    <div class="rag-footer-badge">Được hỗ trợ bởi Gemini AI + RAG</div>
+</div>
+
+<script>
+/* ============================================================
+   RAG CHATBOT WIDGET SCRIPT
+   - Hoàn toàn độc lập, không đụng chatbot cũ
+   - Endpoint: POST /api/rag-chat
+   ============================================================ */
+(function () {
+    'use strict';
+
+    const btn        = document.getElementById('rag-chat-btn');
+    const panel      = document.getElementById('rag-chat-panel');
+    const closeBtn   = document.getElementById('rag-chat-close');
+    const messagesEl = document.getElementById('rag-chat-messages');
+    const inputEl    = document.getElementById('rag-chat-input');
+    const sendBtn    = document.getElementById('rag-chat-send');
+
+    if (!btn || !panel) return; // Safety guard
+
+    // ── State ─────────────────────────────────────────────────
+    let isOpen    = false;
+    let isLoading = false;
+    let history   = []; // [{role, content}, ...]
+
+    const SUGGESTIONS = [
+        '📋 Chính sách bảo hành?',
+        '🔄 Đổi trả hàng như thế nào?',
+        '🛒 Làm sao đặt hàng?',
+        '💳 Phương thức thanh toán?',
+        '🚚 Phí ship bao nhiêu?',
+    ];
+
+    // ── Open / Close ──────────────────────────────────────────
+    function openPanel() {
+        isOpen = true;
+        panel.classList.add('rag-open');
+        btn.setAttribute('aria-expanded', 'true');
+        // Chỉ render welcome lần đầu
+        if (messagesEl.children.length === 0) renderWelcome();
+        setTimeout(() => inputEl.focus(), 300);
+    }
+
+    function closePanel() {
+        isOpen = false;
+        panel.classList.remove('rag-open');
+        btn.setAttribute('aria-expanded', 'false');
+    }
+
+    btn.addEventListener('click', () => isOpen ? closePanel() : openPanel());
+    closeBtn.addEventListener('click', closePanel);
+
+    // Đóng khi click bên ngoài
+    document.addEventListener('click', function (e) {
+        if (isOpen && !panel.contains(e.target) && e.target !== btn && !btn.contains(e.target)) {
+            closePanel();
+        }
+    });
+
+    // Phím ESC đóng panel
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' && isOpen) closePanel();
+    });
+
+    // ── Welcome Message ───────────────────────────────────────
+    function renderWelcome() {
+        const welcome = document.createElement('div');
+        welcome.className = 'rag-msg rag-bot';
+        welcome.innerHTML = `
+            <div class="rag-msg-avatar">
+                <svg viewBox="0 0 24 24"><path d="M12 2a5 5 0 1 1 0 10A5 5 0 0 1 12 2zm0 12c5.33 0 8 2.67 8 4v2H4v-2c0-1.33 2.67-4 8-4z"/></svg>
+            </div>
+            <div>
+                <div class="rag-bubble">
+                    👋 Xin chào! Tôi là <strong>Hồng Anh AI</strong> — trợ lý thông minh của Shop Trương Hồng Anh.<br><br>
+                    Tôi có thể giúp bạn về <strong>chính sách bảo hành, đổi trả, hướng dẫn đặt hàng</strong> và nhiều hơn nữa. Hỏi tôi đi! 😊
+                </div>
+                <div class="rag-suggestions" id="rag-suggestions-area">
+                    ${SUGGESTIONS.map(s => `<button class="rag-chip" type="button">${s}</button>`).join('')}
+                </div>
+            </div>
+        `;
+        messagesEl.appendChild(welcome);
+
+        // Gắn sự kiện chip suggestions
+        welcome.querySelectorAll('.rag-chip').forEach(chip => {
+            chip.addEventListener('click', function () {
+                const text = this.textContent.replace(/^[^\s]+\s/, ''); // bỏ emoji
+                sendMessage(text);
+                // Ẩn suggestions sau khi click
+                const area = document.getElementById('rag-suggestions-area');
+                if (area) area.style.display = 'none';
+            });
+        });
+
+        scrollToBottom();
+    }
+
+    // ── Append message ────────────────────────────────────────
+    function appendMessage(role, text, sources) {
+        const isUser = (role === 'user');
+        const wrapper = document.createElement('div');
+        wrapper.className = `rag-msg ${isUser ? 'rag-user' : 'rag-bot'}`;
+
+        const avatarHTML = isUser ? '' : `
+            <div class="rag-msg-avatar">
+                <svg viewBox="0 0 24 24"><path d="M12 2a5 5 0 1 1 0 10A5 5 0 0 1 12 2zm0 12c5.33 0 8 2.67 8 4v2H4v-2c0-1.33 2.67-4 8-4z"/></svg>
+            </div>
+        `;
+
+        // Escape HTML an toàn
+        const escaped = escapeHtml(text)
+            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')  // **bold**
+            .replace(/\n/g, '<br>');
+
+        const sourcesHTML = (!isUser && sources && sources.length)
+            ? `<div class="rag-sources">📚 Nguồn: ${sources.map(s => `<span>${s}</span>`).join('')}</div>`
+            : '';
+
+        wrapper.innerHTML = `
+            ${avatarHTML}
+            <div>
+                <div class="rag-bubble">${escaped}</div>
+                ${sourcesHTML}
+            </div>
+        `;
+
+        messagesEl.appendChild(wrapper);
+        scrollToBottom();
+        return wrapper;
+    }
+
+    // ── Loading indicator ─────────────────────────────────────
+    let loadingEl = null;
+
+    function showLoading() {
+        if (loadingEl) return;
+        loadingEl = document.createElement('div');
+        loadingEl.className = 'rag-msg rag-bot';
+        loadingEl.id = 'rag-loading';
+        loadingEl.innerHTML = `
+            <div class="rag-msg-avatar">
+                <svg viewBox="0 0 24 24"><path d="M12 2a5 5 0 1 1 0 10A5 5 0 0 1 12 2zm0 12c5.33 0 8 2.67 8 4v2H4v-2c0-1.33 2.67-4 8-4z"/></svg>
+            </div>
+            <div class="rag-bubble">
+                <div class="rag-loading-dots">
+                    <span></span><span></span><span></span>
+                </div>
+            </div>
+        `;
+        messagesEl.appendChild(loadingEl);
+        scrollToBottom();
+    }
+
+    function hideLoading() {
+        if (loadingEl) {
+            loadingEl.remove();
+            loadingEl = null;
+        }
+    }
+
+    // ── Send message ──────────────────────────────────────────
+    function sendMessage(text) {
+        text = (text || '').trim();
+        if (!text || isLoading) return;
+
+        // Ẩn suggestions sau lần chat đầu tiên
+        const sugArea = document.getElementById('rag-suggestions-area');
+        if (sugArea) sugArea.style.display = 'none';
+
+        appendMessage('user', text);
+        history.push({ role: 'user', content: text });
+
+        isLoading = true;
+        sendBtn.disabled = true;
+        inputEl.disabled = true;
+        showLoading();
+
+        // Reset input
+        inputEl.value = '';
+        autoResizeInput();
+
+        fetch('/api/rag-chat', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                question: text,
+                history: history.slice(-8), // Giữ tối đa 8 lượt gần nhất
+            }),
+        })
+        .then(function (res) {
+            if (!res.ok) {
+                return res.json().then(function (err) {
+                    throw new Error(err.detail || `Lỗi HTTP ${res.status}`);
+                }).catch(function () {
+                    throw new Error(`Lỗi kết nối (HTTP ${res.status})`);
+                });
+            }
+            return res.json();
+        })
+        .then(function (data) {
+            hideLoading();
+            const answer  = data.answer  || 'Xin lỗi, tôi không có câu trả lời lúc này.';
+            const sources = data.sources || [];
+            appendMessage('bot', answer, sources);
+            history.push({ role: 'assistant', content: answer });
+        })
+        .catch(function (err) {
+            hideLoading();
+            const errMsg = '⚠️ Xin lỗi, có lỗi xảy ra: ' + (err.message || 'Không kết nối được server. Vui lòng thử lại sau.');
+            appendMessage('bot', errMsg, []);
+        })
+        .finally(function () {
+            isLoading = false;
+            sendBtn.disabled = false;
+            inputEl.disabled = false;
+            inputEl.focus();
+        });
+    }
+
+    // ── Input handlers ────────────────────────────────────────
+    sendBtn.addEventListener('click', function () {
+        sendMessage(inputEl.value);
+    });
+
+    inputEl.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            sendMessage(inputEl.value);
+        }
+    });
+
+    inputEl.addEventListener('input', autoResizeInput);
+
+    function autoResizeInput() {
+        inputEl.style.height = 'auto';
+        inputEl.style.height = Math.min(inputEl.scrollHeight, 90) + 'px';
+    }
+
+    // ── Helpers ───────────────────────────────────────────────
+    function scrollToBottom() {
+        requestAnimationFrame(function () {
+            messagesEl.scrollTop = messagesEl.scrollHeight;
+        });
+    }
+
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.appendChild(document.createTextNode(text));
+        return div.innerHTML;
+    }
+
+    // ── Init ──────────────────────────────────────────────────
+    btn.setAttribute('aria-expanded', 'false');
+    btn.setAttribute('aria-controls', 'rag-chat-panel');
+
+})();
+</script>
+<!-- ============ END RAG CHATBOT WIDGET ============ -->

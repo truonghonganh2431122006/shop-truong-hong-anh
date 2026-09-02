@@ -11,6 +11,13 @@ import uvicorn
 from typing import Optional, List, Dict, Set
 import os
 
+# Load .env file (cho môi trường local). Trên Render dùng biến ENV trực tiếp.
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass  # python-dotenv chưa cài, bỏ qua
+
 from pathlib import Path
 from fastapi.staticfiles import StaticFiles
 
@@ -1670,11 +1677,11 @@ async def search_by_image(file: UploadFile = File(...), top_k: int = 12, db: Ses
         raise HTTPException(status_code=400, detail="Ảnh quá lớn (tối đa 8MB)")
 
     # Lấy Gemini API key (có key dự phòng giống chatbot)
-    gemini_key = os.getenv("GEMINI_API_KEY", "AIzaSyAJKjMcv0vhlG-KDfeOZGNxtppZ6lyN3B4")
+    gemini_key = os.getenv("GEMINI_API_KEY", "")
     if not gemini_key:
         raise HTTPException(status_code=503, detail="Chưa cấu hình GEMINI_API_KEY. Vui lòng liên hệ admin.")
 
-    gemini_model = os.getenv("GEMINI_MODEL", "gemini-1.5-flash")
+    gemini_model = os.getenv("GEMINI_MODEL", "gemini-3.6-flash")
     gemini_url = f"https://generativelanguage.googleapis.com/v1beta/models/{gemini_model}:generateContent?key={gemini_key}"
 
     # Lấy danh sách sản phẩm đang bán
@@ -2857,11 +2864,11 @@ def wishlist_stats(user: User = Depends(get_current_user), db: Session = Depends
 import httpx
 import asyncio
 
-# 1. Lấy Key từ Environment của Render (Nếu không có thì dùng Key dự phòng)
-# Lưu ý: Bạn nên dán Key vào mục Environment trên Render như tớ hướng dẫn ở trên
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "AIzaSyAJKjMcv0vhlG-KDfeOZGNxtppZ6lyN3B4")
+# 1. Lấy Key từ Environment của Render
+# Lưu ý: Key phải được set trong Environment Variables (Render / .env)
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
 
-GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-1.5-flash")
+GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-3.6-flash")
 GEMINI_URL = f"https://generativelanguage.googleapis.com/v1beta/models/{GEMINI_MODEL}:generateContent?key={GEMINI_API_KEY}"
 
 # 3. Giữ nguyên System Prompt của bạn (Rất tốt)
@@ -2901,8 +2908,7 @@ class ChatMessage(BaseModel):
 async def chatbot_chat_endpoint(req: List[ChatMessage], db: Session = Depends(get_db)):
     gemini_key = os.getenv("GEMINI_API_KEY", "") or os.getenv("GOOGLE_API_KEY", "")
     if not gemini_key:
-        # Fallback key nếu môi trường Render chưa set
-        gemini_key = "AIzaSyAJKjMcv0vhlG-KDfeOZGNxtppZ6lyN3B4"
+        raise HTTPException(status_code=503, detail="Chưa cấu hình GEMINI_API_KEY trong Environment Variables")
     
     system_instruction = (
         "Bạn là Hồng Anh AI — trợ lý AI toàn năng của shop Trương Hồng Anh (Smart Shopping & CSKH).\n"
@@ -2962,29 +2968,401 @@ async def chatbot_chat_endpoint(req: List[ChatMessage], db: Session = Depends(ge
             except Exception as e:
                 last_error = str(e)
 
-        # 2. Fallback sang Groq API trên Server nếu Gemini bận hoặc Key hết hạn
-        groq_key = "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"
-        groq_url = "https://api.groq.com/openai/v1/chat/completions"
-        groq_models = ["openai/gpt-oss-20b", "groq/compound", "qwen/qwen3.6-27b"]
-        
-        groq_messages = [{"role": "system", "content": full_system}] + [
-            {"role": "user" if m.role == "user" else "assistant", "content": m.content}
-            for m in req
-        ]
+    raise HTTPException(status_code=502, detail=last_error)
 
-        for gmod in groq_models:
+
+# =============================================================================
+# RAG CHATBOT — RETRIEVAL-AUGMENTED GENERATION
+# Thêm vào cuối main.py, KHÔNG sửa bất kỳ code nào ở trên.
+# Endpoint: POST /api/rag-chat   — chat với RAG
+#           POST /api/reindex    — chạy lại embedding (cần ADMIN_REINDEX_KEY)
+# =============================================================================
+
+import math
+
+# ── Cấu hình RAG ──────────────────────────────────────────────────────────────
+RAG_VECTOR_STORE_PATH = Path(__file__).parent / "vector_store.json"
+RAG_KB_DIR             = Path(__file__).parent / "knowledge-base"
+RAG_EMBEDDING_MODEL    = "gemini-embedding-001"
+RAG_GEN_MODELS         = ["gemini-1.5-flash", "gemini-2.0-flash"]
+
+RAG_TOP_K              = 5       # số chunk lấy ra khi tìm kiếm
+RAG_CHUNK_TARGET_WORDS = 400
+RAG_CHUNK_OVERLAP      = 2
+
+# Cache vector store trong bộ nhớ để không đọc file mỗi request
+_rag_vector_store: list[dict] | None = None
+_rag_store_mtime: float = 0.0
+
+
+# ── Pydantic schemas ──────────────────────────────────────────────────────────
+class RagChatRequest(BaseModel):
+    question: str
+    history: Optional[List[ChatMessage]] = []
+
+
+class RagChatResponse(BaseModel):
+    answer: str
+    sources: List[str] = []
+
+
+class ReindexResponse(BaseModel):
+    status: str
+    chunks_indexed: int
+    message: str
+
+
+# ── Helpers: vector store ─────────────────────────────────────────────────────
+def _load_rag_store() -> list[dict]:
+    """Đọc vector_store.json vào bộ nhớ, cache lại nếu file chưa thay đổi."""
+    global _rag_vector_store, _rag_store_mtime
+    if not RAG_VECTOR_STORE_PATH.exists():
+        return []
+    mtime = RAG_VECTOR_STORE_PATH.stat().st_mtime
+    if _rag_vector_store is not None and mtime == _rag_store_mtime:
+        return _rag_vector_store
+    try:
+        with open(RAG_VECTOR_STORE_PATH, "r", encoding="utf-8") as f:
+            store = json.load(f)
+        _rag_vector_store = [s for s in store if s.get("vector")]
+        _rag_store_mtime = mtime
+        print(f"[RAG] Đã load vector store: {len(_rag_vector_store)} chunks.")
+        return _rag_vector_store
+    except Exception as e:
+        print(f"[RAG] Lỗi load vector_store.json: {e}")
+        return []
+
+
+def _cosine_sim(a: list[float], b: list[float]) -> float:
+    """Tính cosine similarity giữa 2 vector bằng numpy."""
+    import numpy as np
+    va = np.array(a, dtype="float32")
+    vb = np.array(b, dtype="float32")
+    denom = (np.linalg.norm(va) * np.linalg.norm(vb))
+    if denom == 0:
+        return 0.0
+    return float(np.dot(va, vb) / denom)
+
+
+def _retrieve_top_k(query_vector: list[float], store: list[dict], k: int = RAG_TOP_K) -> list[dict]:
+    """Tìm top-k chunk có cosine similarity cao nhất với query_vector."""
+    if not store or not query_vector:
+        return []
+    scored = []
+    for item in store:
+        try:
+            score = _cosine_sim(query_vector, item["vector"])
+            scored.append((score, item))
+        except Exception:
+            continue
+    scored.sort(key=lambda x: x[0], reverse=True)
+    return [item for _, item in scored[:k]]
+
+
+# ── Helpers: Gemini API calls (async) ────────────────────────────────────────
+async def _rag_embed_text(text: str, task_type: str = "RETRIEVAL_QUERY") -> list[float] | None:
+    """Gọi Gemini Embedding API bất đồng bộ."""
+    # Thứ tự ưu tiên: .env / Render ENV → GOOGLE_API_KEY → module-level GEMINI_API_KEY (fallback)
+    api_key = os.getenv("GEMINI_API_KEY", "") or os.getenv("GOOGLE_API_KEY", "") or GEMINI_API_KEY
+    if not api_key:
+        return None
+    url = (
+        f"https://generativelanguage.googleapis.com/v1beta/models/"
+        f"{RAG_EMBEDDING_MODEL}:embedContent?key={api_key}"
+    )
+    payload = {
+        "model": f"models/{RAG_EMBEDDING_MODEL}",
+        "content": {"parts": [{"text": text}]},
+        "taskType": task_type,
+    }
+    try:
+        async with httpx.AsyncClient(timeout=20.0) as client:
+            resp = await client.post(url, json=payload)
+            if resp.status_code == 200:
+                data = resp.json()
+                return data.get("embedding", {}).get("values", None)
+            else:
+                print(f"[RAG Embed Error {resp.status_code}] {resp.text[:200]}")
+                return None
+    except Exception as e:
+        print(f"[RAG Embed Exception] {e}")
+        return None
+
+
+async def _rag_generate(system_prompt: str, user_question: str,
+                         history: list[ChatMessage],
+                         has_context: bool = True) -> str:
+    """Gọi Gemini Generate Content API để sinh câu trả lời."""
+    # Thứ tự ưu tiên: .env / Render ENV → GOOGLE_API_KEY → module-level GEMINI_API_KEY (fallback)
+    api_key = os.getenv("GEMINI_API_KEY", "") or os.getenv("GOOGLE_API_KEY", "") or GEMINI_API_KEY
+    if not api_key:
+        raise HTTPException(status_code=500, detail="Chưa cấu hình GEMINI_API_KEY")
+
+    # Xây dựng contents (lịch sử + câu hỏi hiện tại)
+    contents = []
+    for msg in (history or []):
+        role = "user" if msg.role == "user" else "model"
+        contents.append({"role": role, "parts": [{"text": msg.content}]})
+    contents.append({"role": "user", "parts": [{"text": user_question}]})
+
+    payload = {
+        "systemInstruction": {"parts": [{"text": system_prompt}]},
+        "contents": contents,
+        "generationConfig": {
+            "temperature": 0.3,
+            "maxOutputTokens": 2048,
+        },
+    }
+
+    # Khi không có ngữ cảnh RAG (câu hỏi ngoài lề), bật Google Search
+    # để model tra cứu thông tin thực tế thay vì đoán từ kiến thức cũ
+    if not has_context:
+        payload["tools"] = [{"google_search": {}}]
+
+    last_error = "Không thể kết nối Gemini API"
+    async with httpx.AsyncClient(timeout=25.0) as client:
+        # Khi bật google_search, chỉ dùng gemini-3.6-flash (model cũ không tương thích tool này)
+        models = [RAG_GEN_MODELS[0]] if not has_context else RAG_GEN_MODELS
+        for model in models:
+            url = (
+                f"https://generativelanguage.googleapis.com/v1beta/models/"
+                f"{model}:generateContent?key={api_key}"
+            )
             try:
-                res = await client.post(
-                    groq_url,
-                    headers={"Authorization": f"Bearer {groq_key}", "Content-Type": "application/json"},
-                    json={"model": gmod, "messages": groq_messages, "max_tokens": 450, "temperature": 0.7}
-                )
-                if res.status_code == 200:
-                    gdata = res.json()
-                    choices = gdata.get("choices", [])
-                    if choices and choices[0].get("message"):
-                        return {"reply": choices[0]["message"]["content"]}
-            except Exception:
-                pass
+                resp = await client.post(url, json=payload)
+                if resp.status_code == 200:
+                    data = resp.json()
+                    candidates = data.get("candidates", [])
+                    if candidates:
+                        parts = candidates[0].get("content", {}).get("parts", [])
+                        if parts and parts[0].get("text", "").strip():
+                            return parts[0]["text"].strip()
+                else:
+                    last_error = f"Gemini [{model}] HTTP {resp.status_code}: {resp.text[:200]}"
+            except Exception as e:
+                last_error = str(e)
 
     raise HTTPException(status_code=502, detail=last_error)
+
+
+# ── Helpers: Chunking (dùng cho /api/reindex) ─────────────────────────────────
+def _split_sentences(text: str) -> list[str]:
+    import re as _re
+    sentences = _re.split(r'(?<=[.!?])\s+|(?<=\n)\n+', text.strip())
+    return [s.strip() for s in sentences if s.strip()]
+
+
+def _chunk_text(text: str, target_words: int = RAG_CHUNK_TARGET_WORDS,
+                overlap: int = RAG_CHUNK_OVERLAP) -> list[str]:
+    sentences = _split_sentences(text)
+    if not sentences:
+        return []
+    chunks, current, word_count = [], [], 0
+    for sent in sentences:
+        current.append(sent)
+        word_count += len(sent.split())
+        if word_count >= target_words:
+            chunk = " ".join(current).strip()
+            if chunk:
+                chunks.append(chunk)
+            current = current[-overlap:] if overlap > 0 else []
+            word_count = sum(len(s.split()) for s in current)
+    if current:
+        leftover = " ".join(current).strip()
+        if leftover and (not chunks or leftover != chunks[-1]):
+            chunks.append(leftover)
+    return chunks
+
+
+# ── Endpoint 1: POST /api/rag-chat ───────────────────────────────────────────
+@app.post("/api/rag-chat", response_model=RagChatResponse)
+async def rag_chat(req: RagChatRequest):
+    """
+    Chatbot AI với RAG:
+    1. Embed câu hỏi bằng Gemini Embedding.
+    2. Tìm top-K chunk gần nhất trong vector_store.
+    3. Tạo system prompt chứa context tìm được.
+    4. Gọi Gemini để sinh câu trả lời.
+    """
+    question = req.question.strip()
+    if not question:
+        raise HTTPException(status_code=400, detail="Câu hỏi không được để trống")
+
+    # ── 1. Load vector store ──────────────────────────────────────────────────
+    store = _load_rag_store()
+
+    # ── 2. Embed câu hỏi ─────────────────────────────────────────────────────
+    if store:
+        query_vector = await _rag_embed_text(question, task_type="RETRIEVAL_QUERY")
+    else:
+        query_vector = None
+
+    # ── 3. Retrieve top-K ─────────────────────────────────────────────────────
+    if query_vector and store:
+        top_chunks = _retrieve_top_k(query_vector, store, k=RAG_TOP_K)
+        sources = list({c.get("source", "") for c in top_chunks if c.get("source")})
+        context_text = "\n\n---\n\n".join(c["chunk"] for c in top_chunks)
+    else:
+        # Fallback: không có vector store → trả lời chung
+        top_chunks = []
+        sources = []
+        context_text = ""
+
+    # ── 4. Tạo system prompt ──────────────────────────────────────────────────
+    if context_text:
+        system_prompt = (
+            "Bạn là Hồng Anh AI — trợ lý tư vấn của Shop Trương Hồng Anh, "
+            "chuyên về điện thoại, laptop, phụ kiện và đồng hồ thông minh chính hãng.\n\n"
+            "QUY TẮC QUAN TRỌNG:\n"
+            "- Chỉ trả lời dựa trên thông tin trong phần NGỮCẢNH bên dưới.\n"
+            "- Nếu ngữ cảnh không có đủ thông tin để trả lời, hãy nói thật thà: "
+            "'Xin lỗi, tôi không tìm thấy thông tin về vấn đề này trong dữ liệu của shop.'\n"
+            "- Trả lời bằng tiếng Việt có dấu, thân thiện và ngắn gọn (2-5 câu).\n"
+            "- Không bịa thêm thông tin không có trong ngữ cảnh.\n"
+            "- Với các câu hỏi về SỐ LƯỢNG, THỐNG KÊ cụ thể (ví dụ: có bao nhiêu sản phẩm, bao nhiêu mẫu...), "
+            "CHỈ trả lời số liệu chính xác nếu số đó CÓ TRONG ngữ cảnh. Tuyệt đối KHÔNG ước lượng hay dùng từ "
+            "mơ hồ như 'hàng trăm', 'rất nhiều', 'đa dạng' để thay thế cho số liệu thật. Nếu không có số liệu "
+            "chính xác trong ngữ cảnh, hãy nói: 'Hiện em chưa có số liệu chính xác, anh/chị có thể xem trực tiếp "
+            "trên trang sản phẩm của shop ạ.'\n\n"
+            f"NGỮCẢNH:\n{context_text}"
+        )
+    else:
+        system_prompt = (
+            "Bạn là Hồng Anh AI — trợ lý tư vấn thân thiện của Shop Trương Hồng Anh "
+            "(chuyên điện thoại, laptop, phụ kiện, đồng hồ thông minh chính hãng).\n\n"
+            "Khách vừa hỏi một câu NẰM NGOÀI phạm vi sản phẩm/chính sách của shop "
+            "(ví dụ: thời sự, chính trị, kiến thức chung, thể thao, v.v.). BẠN PHẢI TUÂN THỦ ĐÚNG CẤU TRÚC SAU:\n"
+            "1. Trả lời chính xác, dứt khoát, tối đa 1-2 câu, dựa trên thông tin cập nhật nhất mà bạn có. "
+            "Không thêm disclaimer (ví dụ không nói 'tôi là AI nên...').\n"
+            "2. Ngay sau câu trả lời, chuyển ý tự nhiên trong 1 câu, liên kết chủ đề vừa hỏi với sản phẩm/dịch vụ của shop.\n"
+            "3. Kết thúc bằng 1 câu hỏi mở, gợi ý khách cho biết nhu cầu để tư vấn sản phẩm.\n\n"
+            "Ví dụ mẫu:\n"
+            "\"Dạ, Chủ tịch nước Cộng hòa Xã hội Chủ nghĩa Việt Nam hiện tại là ông Lương Cường ạ. "
+            "Để tiện cập nhật tin tức thời sự nhanh chóng và mượt mà mỗi ngày, anh/chị có thể tham khảo "
+            "các dòng điện thoại hoặc laptop chính hãng mới nhất tại Shop Trương Hồng Anh nha. "
+            "Anh/chị đang quan tâm đến sản phẩm nào để em tư vấn chi tiết hơn ạ?\"\n\n"
+            "TUYỆT ĐỐI KHÔNG được từ chối trả lời câu hỏi ngoài lề, không trả lời lan man, "
+            "và không được bỏ qua bước dẫn dắt về sản phẩm.\n\n"
+            "- Với các câu hỏi về SỐ LƯỢNG, THỐNG KÊ (có bao nhiêu sản phẩm, bao nhiêu mẫu...), "
+            "TUYỆT ĐỐI KHÔNG DÙNG TỪ 'hàng trăm', 'rất nhiều'. BẮT BUỘC trả lời: "
+            "'Hiện em chưa có số liệu chính xác, anh/chị có thể xem trực tiếp trên trang sản phẩm của shop ạ.'\n"
+            "- Giữ giọng văn gần gũi, không quảng cáo lộ liễu, không bịa thông tin cụ thể "
+            "(giá, thông số) nếu không có trong dữ liệu.\n"
+            "- Trả lời bằng tiếng Việt có dấu."
+        )
+
+    # ── 5. Gọi Gemini Generate ────────────────────────────────────────────────
+    answer = await _rag_generate(system_prompt, question, req.history or [], has_context=bool(context_text))
+
+    return RagChatResponse(answer=answer, sources=sources)
+
+
+# ── Endpoint 2: POST /api/reindex ────────────────────────────────────────────
+@app.post("/api/reindex", response_model=ReindexResponse)
+async def reindex_knowledge_base(
+    background_tasks: BackgroundTasks,
+    x_admin_key: Optional[str] = Header(default=None, alias="X-Admin-Key"),
+):
+    """
+    Chạy lại toàn bộ embedding cho knowledge-base.
+    Yêu cầu header: X-Admin-Key: <ADMIN_REINDEX_KEY từ .env>
+    """
+    reindex_key = os.getenv("ADMIN_REINDEX_KEY", "")
+    if not reindex_key:
+        raise HTTPException(status_code=403, detail="ADMIN_REINDEX_KEY chưa được cấu hình trên server. Từ chối reindex.")
+    if x_admin_key != reindex_key:
+        raise HTTPException(status_code=403, detail="Sai Admin Key, không có quyền reindex")
+
+    if not RAG_KB_DIR.exists():
+        raise HTTPException(
+            status_code=404,
+            detail=f"Thư mục knowledge-base không tồn tại: {RAG_KB_DIR}"
+        )
+
+    api_key = os.getenv("GEMINI_API_KEY", "") or os.getenv("GOOGLE_API_KEY", "")
+    if not api_key:
+        raise HTTPException(status_code=500, detail="Chưa cấu hình GEMINI_API_KEY")
+
+    # Chạy embedding trong background để không block response
+    background_tasks.add_task(_run_reindex_background, api_key)
+
+    return ReindexResponse(
+        status="started",
+        chunks_indexed=0,
+        message="Reindex đã được khởi động trong background. Kiểm tra log server để xem tiến trình.",
+    )
+
+
+async def _run_reindex_background(api_key: str):
+    """Chạy toàn bộ pipeline embedding trong background task."""
+    import time as _time
+
+    global _rag_vector_store, _rag_store_mtime
+
+    print("[RAG Reindex] Bắt đầu reindex knowledge base...")
+
+    # Load tài liệu
+    docs = []
+    for ext in ["*.md", "*.txt", "*.json"]:
+        for fp in sorted(RAG_KB_DIR.glob(ext)):
+            try:
+                content = fp.read_text(encoding="utf-8")
+                docs.append({"source": fp.name, "text": content})
+                print(f"[RAG Reindex] Loaded: {fp.name}")
+            except Exception as e:
+                print(f"[RAG Reindex] Lỗi load {fp.name}: {e}")
+
+    if not docs:
+        print("[RAG Reindex] Không tìm thấy tài liệu nào.")
+        return
+
+    # Chunking
+    all_chunks = []
+    for doc in docs:
+        chunks = _chunk_text(doc["text"])
+        for chunk in chunks:
+            all_chunks.append({"source": doc["source"], "chunk": chunk, "vector": None})
+        print(f"[RAG Reindex] {doc['source']}: {len(chunks)} chunks")
+
+    print(f"[RAG Reindex] Tổng {len(all_chunks)} chunks, bắt đầu embedding...")
+
+    embed_url = (
+        f"https://generativelanguage.googleapis.com/v1beta/models/"
+        f"{RAG_EMBEDDING_MODEL}:embedContent?key={api_key}"
+    )
+
+    success = 0
+    async with httpx.AsyncClient(timeout=30.0) as client:
+        for i, item in enumerate(all_chunks):
+            payload = {
+                "model": f"models/{RAG_EMBEDDING_MODEL}",
+                "content": {"parts": [{"text": item["chunk"]}]},
+                "taskType": "RETRIEVAL_DOCUMENT",
+            }
+            try:
+                resp = await client.post(embed_url, json=payload)
+                if resp.status_code == 200:
+                    data = resp.json()
+                    vec = data.get("embedding", {}).get("values")
+                    if vec:
+                        item["vector"] = vec
+                        success += 1
+                else:
+                    print(f"[RAG Reindex] Chunk {i+1} lỗi: HTTP {resp.status_code}")
+            except Exception as e:
+                print(f"[RAG Reindex] Chunk {i+1} exception: {e}")
+
+            # Delay nhỏ giữa các request
+            await asyncio.sleep(0.3)
+
+    # Lọc và lưu
+    valid = [c for c in all_chunks if c["vector"] is not None]
+    with open(RAG_VECTOR_STORE_PATH, "w", encoding="utf-8") as f:
+        json.dump(valid, f, ensure_ascii=False, indent=2)
+
+    # Invalidate cache
+    _rag_vector_store = None
+    _rag_store_mtime = 0.0
+
+    print(f"[RAG Reindex] ✅ Hoàn tất! {success}/{len(all_chunks)} chunks được index.")
+    print(f"[RAG Reindex] Đã lưu: {RAG_VECTOR_STORE_PATH}")
