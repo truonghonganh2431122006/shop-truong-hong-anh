@@ -1724,7 +1724,7 @@ async def search_by_image(file: UploadFile = File(...), top_k: int = 12, db: Ses
 
     try:
         import httpx as _httpx
-        async with _httpx.AsyncClient(timeout=20.0) as client:
+        async with _httpx.AsyncClient(timeout=60.0) as client:
             resp = await client.post(gemini_url, json=gemini_payload)
             if resp.status_code in (401, 403, 404):
                 raise HTTPException(
@@ -1732,6 +1732,7 @@ async def search_by_image(file: UploadFile = File(...), top_k: int = 12, db: Ses
                     detail="GEMINI_API_KEY chưa đúng hoặc đã hết hạn. Vui lòng tạo key mới miễn phí tại aistudio.google.com và thêm biến GEMINI_API_KEY trên Render."
                 )
             if resp.status_code != 200:
+                print(f"[Image Search] Gemini API lỗi HTTP {resp.status_code}: {resp.text[:200]}")
                 raise HTTPException(status_code=502, detail=f"Gemini API lỗi (HTTP {resp.status_code}). Vui lòng thử lại.")
             data = resp.json()
 
@@ -2941,13 +2942,15 @@ async def chatbot_chat_endpoint(req: List[ChatMessage], db: Session = Depends(ge
         "contents": contents
     }
 
-    models_to_try = [
-        os.getenv("GEMINI_MODEL", "gemini-3.6-flash"),
-        "gemini-3.5-flash-lite",
-        "gemini-3.6-flash"
-    ]
+    # Loại bỏ model trùng lặp, giữ thứ tự ưu tiên
+    _seen = set()
+    models_to_try = []
+    for _m in [os.getenv("GEMINI_MODEL", "gemini-3.6-flash"), "gemini-3.5-flash-lite", "gemini-3.6-flash"]:
+        if _m not in _seen:
+            _seen.add(_m)
+            models_to_try.append(_m)
 
-    async with httpx.AsyncClient(timeout=18.0) as client:
+    async with httpx.AsyncClient(timeout=60.0) as client:
         last_error = "Không thể kết nối Gemini API"
         # 1. Thử các model Gemini chuẩn
         for mod in models_to_try:
@@ -2963,12 +2966,23 @@ async def chatbot_chat_endpoint(req: List[ChatMessage], db: Session = Depends(ge
                             text = parts[0].get("text", "")
                             if text.strip():
                                 return {"reply": text}
+                    # Nếu candidates rỗng (safety filter), thử model tiếp
+                    last_error = f"Gemini ({mod}): phản hồi rỗng (có thể bị chặn bởi safety filter)"
                 else:
-                    last_error = f"Gemini API ({mod}) error HTTP {res.status_code}: {res.text}"
+                    last_error = f"Gemini API ({mod}) error HTTP {res.status_code}: {res.text[:200]}"
+                    # Nếu lỗi 429 (rate limit), chờ 1s trước khi thử model tiếp
+                    if res.status_code == 429:
+                        await asyncio.sleep(1)
+            except httpx.TimeoutException:
+                last_error = f"Gemini ({mod}): timeout sau 60s"
+                print(f"[Chatbot] Timeout khi gọi {mod}")
             except Exception as e:
                 last_error = str(e)
+                print(f"[Chatbot] Lỗi khi gọi {mod}: {e}")
 
-    raise HTTPException(status_code=502, detail=last_error)
+    # Thay vì trả 502 gây crash frontend, trả message thân thiện
+    print(f"[Chatbot] Tất cả model thất bại. Lỗi cuối: {last_error}")
+    return {"reply": "Xin lỗi, hệ thống AI đang bận. Vui lòng thử lại sau vài giây hoặc liên hệ trực tiếp qua Zalo/Facebook nhé! 🙏"}
 
 
 # =============================================================================
@@ -3027,10 +3041,10 @@ def _load_rag_store() -> list[dict]:
             store = json.load(f)
         _rag_vector_store = [s for s in store if s.get("vector")]
         _rag_store_mtime = mtime
-        print(f"[RAG] Đã load vector store: {len(_rag_vector_store)} chunks.")
+        print(f"[RAG] Loaded vector store: {len(_rag_vector_store)} chunks.")
         return _rag_vector_store
     except Exception as e:
-        print(f"[RAG] Lỗi load vector_store.json: {e}")
+        print(f"[RAG] Error loading vector_store.json: {e}")
         return []
 
 
@@ -3077,7 +3091,7 @@ async def _rag_embed_text(text: str, task_type: str = "RETRIEVAL_QUERY") -> list
         "taskType": task_type,
     }
     try:
-        async with httpx.AsyncClient(timeout=20.0) as client:
+        async with httpx.AsyncClient(timeout=30.0) as client:
             resp = await client.post(url, json=payload)
             if resp.status_code == 200:
                 data = resp.json()
@@ -3121,7 +3135,7 @@ async def _rag_generate(system_prompt: str, user_question: str,
         payload["tools"] = [{"google_search": {}}]
 
     last_error = "Không thể kết nối Gemini API"
-    async with httpx.AsyncClient(timeout=25.0) as client:
+    async with httpx.AsyncClient(timeout=60.0) as client:
         # Khi bật google_search, chỉ dùng gemini-3.6-flash (model cũ không tương thích tool này)
         models = [RAG_SEARCH_MODEL] if not has_context else RAG_GEN_MODELS
         for model in models:
@@ -3129,21 +3143,42 @@ async def _rag_generate(system_prompt: str, user_question: str,
                 f"https://generativelanguage.googleapis.com/v1beta/models/"
                 f"{model}:generateContent?key={api_key}"
             )
-            try:
-                resp = await client.post(url, json=payload)
-                if resp.status_code == 200:
-                    data = resp.json()
-                    candidates = data.get("candidates", [])
-                    if candidates:
-                        parts = candidates[0].get("content", {}).get("parts", [])
-                        if parts and parts[0].get("text", "").strip():
-                            return parts[0]["text"].strip()
-                else:
-                    last_error = f"Gemini [{model}] HTTP {resp.status_code}: {resp.text[:200]}"
-            except Exception as e:
-                last_error = str(e)
+            for attempt in range(3):
+                try:
+                    resp = await client.post(url, json=payload)
+                    if resp.status_code == 200:
+                        data = resp.json()
+                        candidates = data.get("candidates", [])
+                        if candidates:
+                            parts = candidates[0].get("content", {}).get("parts", [])
+                            if parts and parts[0].get("text", "").strip():
+                                return parts[0]["text"].strip()
+                        # candidates rỗng → thử model tiếp
+                        last_error = f"Gemini [{model}]: phản hồi rỗng"
+                        break
+                    elif resp.status_code == 429:
+                        last_error = f"Gemini [{model}] HTTP 429: rate limit"
+                        if attempt < 2:
+                            wait_time = 2 ** attempt
+                            print(f"[RAG] 429 Rate limit ({model}), thử lại lần {attempt+1} sau {wait_time}s...")
+                            await asyncio.sleep(wait_time)
+                        else:
+                            break # Hết số lần thử, chuyển sang model khác
+                    else:
+                        last_error = f"Gemini [{model}] HTTP {resp.status_code}: {resp.text[:200]}"
+                        break
+                except httpx.TimeoutException:
+                    last_error = f"Gemini [{model}]: timeout sau 60s"
+                    print(f"[RAG] Timeout khi gọi {model}")
+                    break
+                except Exception as e:
+                    last_error = str(e)
+                    print(f"[RAG] Lỗi khi gọi {model}: {e}")
+                    break
 
-    raise HTTPException(status_code=502, detail=last_error)
+    # Trả message thân thiện thay vì lỗi 502
+    print(f"[RAG] Tất cả model thất bại. Lỗi cuối: {last_error}")
+    return "Xin lỗi, hệ thống AI đang bận. Vui lòng thử lại sau vài giây nhé! 🙏"
 
 
 # ── Helpers: Chunking (dùng cho /api/reindex) ─────────────────────────────────
