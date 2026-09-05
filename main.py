@@ -2985,6 +2985,7 @@ RAG_VECTOR_STORE_PATH = Path(__file__).parent / "vector_store.json"
 RAG_KB_DIR             = Path(__file__).parent / "knowledge-base"
 RAG_EMBEDDING_MODEL    = "gemini-embedding-001"
 RAG_GEN_MODELS         = ["gemini-3.5-flash", "gemini-3.1-flash-lite"]
+RAG_SEARCH_MODEL       = os.getenv("GEMINI_MODEL", "gemini-3.6-flash")  # model dùng khi bật google_search (câu hỏi ngoài lề)
 
 RAG_TOP_K              = 5       # số chunk lấy ra khi tìm kiếm
 RAG_CHUNK_TARGET_WORDS = 400
@@ -3122,7 +3123,7 @@ async def _rag_generate(system_prompt: str, user_question: str,
     last_error = "Không thể kết nối Gemini API"
     async with httpx.AsyncClient(timeout=25.0) as client:
         # Khi bật google_search, chỉ dùng gemini-3.6-flash (model cũ không tương thích tool này)
-        models = [RAG_GEN_MODELS[0]] if not has_context else RAG_GEN_MODELS
+        models = [RAG_SEARCH_MODEL] if not has_context else RAG_GEN_MODELS
         for model in models:
             url = (
                 f"https://generativelanguage.googleapis.com/v1beta/models/"
