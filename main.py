@@ -3059,8 +3059,8 @@ def _cosine_sim(a: list[float], b: list[float]) -> float:
     return float(np.dot(va, vb) / denom)
 
 
-def _retrieve_top_k(query_vector: list[float], store: list[dict], k: int = RAG_TOP_K) -> list[dict]:
-    """Tìm top-k chunk có cosine similarity cao nhất với query_vector."""
+def _retrieve_top_k(query_vector: list[float], store: list[dict], k: int = RAG_TOP_K, min_score: float = 0.3) -> list[dict]:
+    """Tìm top-k chunk có cosine similarity cao nhất với query_vector và lớn hơn min_score."""
     if not store or not query_vector:
         return []
     scored = []
@@ -3071,7 +3071,7 @@ def _retrieve_top_k(query_vector: list[float], store: list[dict], k: int = RAG_T
         except Exception:
             continue
     scored.sort(key=lambda x: x[0], reverse=True)
-    return [item for _, item in scored[:k]]
+    return [item for score, item in scored[:k] if score >= min_score]
 
 
 # ── Helpers: Gemini API calls (async) ────────────────────────────────────────
@@ -3132,11 +3132,11 @@ async def _rag_generate(system_prompt: str, user_question: str,
     # Khi không có ngữ cảnh RAG (câu hỏi ngoài lề), bật Google Search
     # để model tra cứu thông tin thực tế thay vì đoán từ kiến thức cũ
     if not has_context:
-        payload["tools"] = [{"google_search": {}}]
+        payload["tools"] = [{"googleSearch": {}}]
 
     last_error = "Không thể kết nối Gemini API"
     async with httpx.AsyncClient(timeout=60.0) as client:
-        # Khi bật google_search, chỉ dùng gemini-3.6-flash (model cũ không tương thích tool này)
+        # Khi bật googleSearch, chỉ dùng gemini-3.6-flash (model cũ không tương thích tool này)
         models = [RAG_SEARCH_MODEL] if not has_context else RAG_GEN_MODELS
         for model in models:
             url = (
@@ -3250,33 +3250,32 @@ async def rag_chat(req: RagChatRequest):
             "Bạn là Hồng Anh AI — trợ lý tư vấn của Shop Trương Hồng Anh, "
             "chuyên về điện thoại, laptop, phụ kiện và đồng hồ thông minh chính hãng.\n\n"
             "QUY TẮC QUAN TRỌNG:\n"
-            "- Chỉ trả lời dựa trên thông tin trong phần NGỮCẢNH bên dưới.\n"
-            "- Nếu ngữ cảnh không có đủ thông tin để trả lời, hãy nói thật thà: "
-            "'Xin lỗi, tôi không tìm thấy thông tin về vấn đề này trong dữ liệu của shop.'\n"
-            "- Trả lời bằng tiếng Việt có dấu, thân thiện và ngắn gọn (2-5 câu).\n"
-            "- Không bịa thêm thông tin không có trong ngữ cảnh.\n"
-            "- Với các câu hỏi về SỐ LƯỢNG, THỐNG KÊ cụ thể (ví dụ: có bao nhiêu sản phẩm, bao nhiêu mẫu...), "
+            "1. Nếu câu hỏi liên quan đến sản phẩm, dịch vụ của shop: Chỉ trả lời dựa trên thông tin trong phần NGỮCẢNH bên dưới. Không bịa thêm thông tin.\n"
+            "2. Nếu khách hỏi những câu NGOÀI LỀ (ví dụ: thời tiết, chủ tịch nước, kiến thức chung...) không có trong ngữ cảnh: HÃY TRẢ LỜI chính xác dựa trên kiến thức của bạn. Ngay sau khi trả lời, PHẢI có một câu chuyển ý khéo léo để mời khách mua sắm các sản phẩm của shop (điện thoại, laptop...) và hỏi xem họ có nhu cầu gì không.\n"
+            "3. Trả lời bằng tiếng Việt có dấu, thân thiện và ngắn gọn (2-5 câu).\n"
+            "4. Với các câu hỏi về SỐ LƯỢNG, THỐNG KÊ cụ thể (ví dụ: có bao nhiêu sản phẩm, bao nhiêu mẫu...), "
             "CHỈ trả lời số liệu chính xác nếu số đó CÓ TRONG ngữ cảnh. Tuyệt đối KHÔNG ước lượng hay dùng từ "
-            "mơ hồ như 'hàng trăm', 'rất nhiều', 'đa dạng' để thay thế cho số liệu thật. Nếu không có số liệu "
-            "chính xác trong ngữ cảnh, hãy nói: 'Hiện em chưa có số liệu chính xác, anh/chị có thể xem trực tiếp "
+            "mơ hồ như 'hàng trăm', 'rất nhiều', 'đa dạng'. Nếu không có số liệu "
+            "chính xác, hãy nói: 'Hiện em chưa có số liệu chính xác, anh/chị có thể xem trực tiếp "
             "trên trang sản phẩm của shop ạ.'\n\n"
             f"NGỮCẢNH:\n{context_text}"
         )
     else:
+        import datetime
+        current_date = datetime.datetime.now().strftime("%d/%m/%Y")
         system_prompt = (
-            "Bạn là Hồng Anh AI — trợ lý tư vấn thân thiện của Shop Trương Hồng Anh "
-            "(chuyên điện thoại, laptop, phụ kiện, đồng hồ thông minh chính hãng).\n\n"
+            f"Bạn là Hồng Anh AI — trợ lý tư vấn thân thiện của Shop Trương Hồng Anh.\n"
+            f"Hôm nay là ngày {current_date}.\n\n"
             "Khách vừa hỏi một câu NẰM NGOÀI phạm vi sản phẩm/chính sách của shop "
             "(ví dụ: thời sự, chính trị, kiến thức chung, thể thao, v.v.). BẠN PHẢI TUÂN THỦ ĐÚNG CẤU TRÚC SAU:\n"
-            "1. Trả lời chính xác, dứt khoát, tối đa 1-2 câu, dựa trên thông tin cập nhật nhất mà bạn có. "
+            "1. Trả lời chính xác, dứt khoát, tối đa 1-2 câu, dựa trên thông tin cập nhật nhất của bạn hoặc công cụ tìm kiếm. "
             "Không thêm disclaimer (ví dụ không nói 'tôi là AI nên...').\n"
             "2. Ngay sau câu trả lời, chuyển ý tự nhiên trong 1 câu, liên kết chủ đề vừa hỏi với sản phẩm/dịch vụ của shop.\n"
             "3. Kết thúc bằng 1 câu hỏi mở, gợi ý khách cho biết nhu cầu để tư vấn sản phẩm.\n\n"
             "Ví dụ mẫu:\n"
-            "\"Dạ, Chủ tịch nước Cộng hòa Xã hội Chủ nghĩa Việt Nam hiện tại là ông Lương Cường ạ. "
-            "Để tiện cập nhật tin tức thời sự nhanh chóng và mượt mà mỗi ngày, anh/chị có thể tham khảo "
-            "các dòng điện thoại hoặc laptop chính hãng mới nhất tại Shop Trương Hồng Anh nha. "
-            "Anh/chị đang quan tâm đến sản phẩm nào để em tư vấn chi tiết hơn ạ?\"\n\n"
+            "\"Dạ, thời tiết hôm nay khá mát mẻ với nhiệt độ khoảng 25 độ C ạ. "
+            "Tiết trời này rất thích hợp để mang theo một chiếc laptop mỏng nhẹ hoặc đeo tai nghe chống ồn nhâm nhi ly cà phê làm việc đó ạ. "
+            "Shop Trương Hồng Anh đang có nhiều mẫu mới, anh/chị muốn em tư vấn dòng máy nào không ạ?\"\n\n"
             "TUYỆT ĐỐI KHÔNG được từ chối trả lời câu hỏi ngoài lề, không trả lời lan man, "
             "và không được bỏ qua bước dẫn dắt về sản phẩm.\n\n"
             "- Với các câu hỏi về SỐ LƯỢNG, THỐNG KÊ (có bao nhiêu sản phẩm, bao nhiêu mẫu...), "
