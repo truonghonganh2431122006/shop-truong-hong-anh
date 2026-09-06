@@ -2869,7 +2869,7 @@ import asyncio
 # Lưu ý: Key phải được set trong Environment Variables (Render / .env)
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
 
-GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-3.6-flash")
+GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-3.8-flash")
 GEMINI_URL = f"https://generativelanguage.googleapis.com/v1beta/models/{GEMINI_MODEL}:generateContent?key={GEMINI_API_KEY}"
 
 # 3. Giữ nguyên System Prompt của bạn (Rất tốt)
@@ -2998,8 +2998,9 @@ import math
 RAG_VECTOR_STORE_PATH = Path(__file__).parent / "vector_store.json"
 RAG_KB_DIR             = Path(__file__).parent / "knowledge-base"
 RAG_EMBEDDING_MODEL    = "gemini-embedding-001"
-RAG_GEN_MODELS         = ["gemini-3.5-flash", "gemini-3.1-flash-lite"]
-RAG_SEARCH_MODEL       = os.getenv("GEMINI_MODEL", "gemini-3.6-flash")  # model dùng khi bật google_search (câu hỏi ngoài lề)
+RAG_GEN_MODELS         = ["gemini-3.8-flash", "gemini-3.5-flash", "gemini-2.5-flash"]
+RAG_SEARCH_MODELS      = ["gemini-3.8-flash", "gemini-3.5-flash", "gemini-2.5-flash"]  # models dùng khi bật googleSearch (câu hỏi ngoài lề)
+
 
 RAG_TOP_K              = 5       # số chunk lấy ra khi tìm kiếm
 RAG_CHUNK_TARGET_WORDS = 400
@@ -3108,7 +3109,6 @@ async def _rag_generate(system_prompt: str, user_question: str,
                          history: list[ChatMessage],
                          has_context: bool = True) -> str:
     """Gọi Gemini Generate Content API để sinh câu trả lời."""
-    # Thứ tự ưu tiên: .env / Render ENV → GOOGLE_API_KEY → module-level GEMINI_API_KEY (fallback)
     api_key = os.getenv("GEMINI_API_KEY", "") or os.getenv("GOOGLE_API_KEY", "") or GEMINI_API_KEY
     if not api_key:
         raise HTTPException(status_code=500, detail="Chưa cấu hình GEMINI_API_KEY")
@@ -3120,7 +3120,7 @@ async def _rag_generate(system_prompt: str, user_question: str,
         contents.append({"role": role, "parts": [{"text": msg.content}]})
     contents.append({"role": "user", "parts": [{"text": user_question}]})
 
-    payload = {
+    base_payload = {
         "systemInstruction": {"parts": [{"text": system_prompt}]},
         "contents": contents,
         "generationConfig": {
@@ -3129,56 +3129,73 @@ async def _rag_generate(system_prompt: str, user_question: str,
         },
     }
 
-    # Khi không có ngữ cảnh RAG (câu hỏi ngoài lề), bật Google Search
-    # để model tra cứu thông tin thực tế thay vì đoán từ kiến thức cũ
+    # Chiến lược thử:
+    # Lượt 1 (câu hỏi ngoài lề): thử TẤT CẢ models VỚI googleSearch
+    # Lượt 2 (fallback): nếu lượt 1 thất bại, thử lại KHÔNG dùng googleSearch
+    #         (model trả lời bằng kiến thức sẵn có — vẫn tốt hơn báo lỗi)
+    # Lượt RAG (có context): chỉ cần 1 lượt, không cần googleSearch
     if not has_context:
-        payload["tools"] = [{"googleSearch": {}}]
+        rounds = [
+            (RAG_SEARCH_MODELS, True),   # Lượt 1: có googleSearch
+            (RAG_GEN_MODELS, False),     # Lượt 2: fallback không tool
+        ]
+    else:
+        rounds = [
+            (RAG_GEN_MODELS, False),     # RAG thường: không cần tool
+        ]
 
     last_error = "Không thể kết nối Gemini API"
     async with httpx.AsyncClient(timeout=60.0) as client:
-        # Khi bật googleSearch, chỉ dùng gemini-3.6-flash (model cũ không tương thích tool này)
-        models = [RAG_SEARCH_MODEL] if not has_context else RAG_GEN_MODELS
-        for model in models:
-            url = (
-                f"https://generativelanguage.googleapis.com/v1beta/models/"
-                f"{model}:generateContent?key={api_key}"
-            )
-            for attempt in range(3):
-                try:
-                    resp = await client.post(url, json=payload)
-                    if resp.status_code == 200:
-                        data = resp.json()
-                        candidates = data.get("candidates", [])
-                        if candidates:
-                            parts = candidates[0].get("content", {}).get("parts", [])
-                            if parts and parts[0].get("text", "").strip():
-                                return parts[0]["text"].strip()
-                        # candidates rỗng → thử model tiếp
-                        last_error = f"Gemini [{model}]: phản hồi rỗng"
-                        break
-                    elif resp.status_code == 429:
-                        last_error = f"Gemini [{model}] HTTP 429: rate limit"
-                        if attempt < 2:
-                            wait_time = 2 ** attempt
-                            print(f"[RAG] 429 Rate limit ({model}), thử lại lần {attempt+1} sau {wait_time}s...")
-                            await asyncio.sleep(wait_time)
-                        else:
-                            break # Hết số lần thử, chuyển sang model khác
-                    else:
-                        last_error = f"Gemini [{model}] HTTP {resp.status_code}: {resp.text[:200]}"
-                        break
-                except httpx.TimeoutException:
-                    last_error = f"Gemini [{model}]: timeout sau 60s"
-                    print(f"[RAG] Timeout khi gọi {model}")
-                    break
-                except Exception as e:
-                    last_error = str(e)
-                    print(f"[RAG] Lỗi khi gọi {model}: {e}")
-                    break
+        for models, use_search in rounds:
+            for model in models:
+                # Tạo payload cho lượt này
+                payload = dict(base_payload)
+                if use_search:
+                    payload["tools"] = [{"googleSearch": {}}]
+                elif "tools" in payload:
+                    payload = {k: v for k, v in payload.items() if k != "tools"}
 
-    # Trả message thân thiện thay vì lỗi 502
+                url = (
+                    f"https://generativelanguage.googleapis.com/v1beta/models/"
+                    f"{model}:generateContent?key={api_key}"
+                )
+                for attempt in range(3):
+                    try:
+                        resp = await client.post(url, json=payload)
+                        if resp.status_code == 200:
+                            data = resp.json()
+                            candidates = data.get("candidates", [])
+                            if candidates:
+                                parts = candidates[0].get("content", {}).get("parts", [])
+                                if parts and parts[0].get("text", "").strip():
+                                    return parts[0]["text"].strip()
+                            last_error = f"Gemini [{model}]: phản hồi rỗng"
+                            break
+                        elif resp.status_code == 429:
+                            last_error = f"Gemini [{model}] HTTP 429: rate limit"
+                            if attempt < 2:
+                                wait_time = 2 ** (attempt + 1)  # 2s, 4s
+                                print(f"[RAG] 429 Rate limit ({model}), thử lại lần {attempt+1} sau {wait_time}s...")
+                                await asyncio.sleep(wait_time)
+                            else:
+                                print(f"[RAG] 429 hết retry cho {model}, chuyển model tiếp...")
+                                break
+                        else:
+                            last_error = f"Gemini [{model}] HTTP {resp.status_code}: {resp.text[:200]}"
+                            print(f"[RAG] {last_error}")
+                            break
+                    except httpx.TimeoutException:
+                        last_error = f"Gemini [{model}]: timeout sau 60s"
+                        print(f"[RAG] Timeout khi gọi {model}")
+                        break
+                    except Exception as e:
+                        last_error = str(e)
+                        print(f"[RAG] Lỗi khi gọi {model}: {e}")
+                        break
+
+    # Trả message thân thiện thay vì hiện lỗi kỹ thuật cho khách hàng
     print(f"[RAG] Tất cả model thất bại. Lỗi cuối: {last_error}")
-    return f"Xin lỗi, hệ thống AI đang bận. Lỗi hệ thống: {last_error} 🙏"
+    return "Xin lỗi, hệ thống AI đang bận. Vui lòng thử lại sau vài giây nhé! 🙏"
 
 
 # ── Helpers: Chunking (dùng cho /api/reindex) ─────────────────────────────────
