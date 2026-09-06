@@ -3178,7 +3178,7 @@ async def _rag_generate(system_prompt: str, user_question: str,
 
     # Trả message thân thiện thay vì lỗi 502
     print(f"[RAG] Tất cả model thất bại. Lỗi cuối: {last_error}")
-    return "Xin lỗi, hệ thống AI đang bận. Vui lòng thử lại sau vài giây nhé! 🙏"
+    return f"Xin lỗi, hệ thống AI đang bận. Lỗi hệ thống: {last_error} 🙏"
 
 
 # ── Helpers: Chunking (dùng cho /api/reindex) ─────────────────────────────────
