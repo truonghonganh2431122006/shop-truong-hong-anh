@@ -1182,9 +1182,6 @@ def login(data: LoginRequest, db: Session = Depends(get_db)):
     # 4. Tạo Token
     token = create_token({"sub": user.email, "role": user.role})
     
-    # Logic phân quyền chuẩn
-    # Lấy role từ DB, nếu không có thì mặc định là USER, sau đó viết HOA hết lên để so sánh
-    # Kiểm tra lại đoạn này trong main.py
     user_role = (user.role or "USER").upper()
     
     if user_role in ("ADMIN", "STAFF"):
@@ -1200,7 +1197,67 @@ def login(data: LoginRequest, db: Session = Depends(get_db)):
             "email": user.email,
             "role": user.role
         },
-        "redirect": redirect_url  # Đảm bảo có dòng này
+        "redirect": redirect_url
+    }
+
+
+# ===================== AUTH: ĐĂNG NHẬP / ĐĂNG KÝ BẰNG GOOGLE =====================
+class GoogleLoginRequest(BaseModel):
+    access_token: str
+
+@app.post("/auth/google-login")
+def google_login(data: GoogleLoginRequest, db: Session = Depends(get_db)):
+    # 1. Gọi Google để lấy thông tin user từ access_token
+    try:
+        resp = http_requests.get(
+            "https://www.googleapis.com/oauth2/v3/userinfo",
+            params={"access_token": data.access_token},
+            timeout=10,
+        )
+    except Exception:
+        return {"success": False, "message": "Không thể kết nối tới Google"}
+
+    if resp.status_code != 200:
+        return {"success": False, "message": "Token Google không hợp lệ hoặc đã hết hạn"}
+
+    info = resp.json()
+    email = info.get("email")
+    if not email:
+        return {"success": False, "message": "Không lấy được email từ Google"}
+
+    # 2. Tìm user theo email, nếu chưa có thì tạo mới (tự đăng ký qua Google)
+    user = db.query(User).filter(User.email == email).first()
+    if not user:
+        random_password = get_password_hash(os.urandom(16).hex())
+        user = User(
+            email=email,
+            password=random_password,   # tài khoản Google không cần mật khẩu thật
+            role=ROLE_USER,
+            status=STATUS_ACTIVE,
+        )
+        db.add(user)
+        db.commit()
+        db.refresh(user)
+
+    # 3. Kiểm tra bị khóa
+    if user.status == STATUS_BANNED:
+        return {"success": False, "message": BANNED_LOGIN_MESSAGE}
+
+    # 4. Tạo token đăng nhập, giống hệt /auth/login
+    token = create_token({"sub": user.email, "role": user.role})
+
+    user_role = (user.role or "USER").upper()
+    redirect_url = "/admin" if user_role in ("ADMIN", "STAFF") else "/shop"
+
+    return {
+        "success": True,
+        "access_token": token,
+        "user": {
+            "id": user.id,
+            "email": user.email,
+            "role": user.role,
+        },
+        "redirect": redirect_url,
     }
 
 @app.post("/auth/admin-key")
