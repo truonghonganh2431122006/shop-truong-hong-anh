@@ -25020,7 +25020,17 @@
                     }
 
                     if (href === '' || href === '#' || href.indexOf('javascript:') === 0) { e.preventDefault(); e.stopImmediatePropagation(); return false; }
+
+                    // ★ CHO PHÉP NAVIGATION đến các trang quan trọng (login, register, admin, order-history, v.v.)
+                    var allowedPaths = ['/login', '/register', '/verify-otp', '/admin', '/order-history', '/shop', '/staff', '/don-hang', '/my-orders'];
+                    var isAllowed = allowedPaths.some(function(p) { return href === p || href.indexOf(p) === 0; });
+                    // Cho phép link bên ngoài (http:// hoặc https://) và các trang nội bộ trong whitelist
+                    if (isAllowed || href.indexOf('http://') === 0 || href.indexOf('https://') === 0) {
+                        return; // Không chặn — cho phép trình duyệt điều hướng bình thường
+                    }
+
                     e.preventDefault(); e.stopImmediatePropagation(); return false;
+
                 }
             }, true);
 
