@@ -42,9 +42,9 @@
   /* ========== ANIMATED GRADIENT BG ========== */
   .gradient-bg {
     position: fixed; inset: 0; z-index: 0;
-    background: linear-gradient(135deg, #f97316, #a855f7, #3b82f6, #06b6d4, #f97316);
-    background-size: 400% 400%;
-    animation: gradientShift 12s ease infinite;
+    background: linear-gradient(135deg, #fb923c, #f97316, #ea580c, #fb923c);
+    background-size: 300% 300%;
+    animation: gradientShift 16s ease infinite;
   }
   @keyframes gradientShift {
     0%   { background-position: 0% 50%; }
@@ -133,6 +133,32 @@
 
   /* Form title */
   .form-title { font-size: 1.75rem; font-weight: 700; text-align: center; margin-bottom: 0.25rem; }
+
+  /* ===== Các nút đăng ký nhanh (Facebook / Google / Email) — style giống Shopee ===== */
+  #authMethods { display: flex; flex-direction: column; gap: 14px; margin-bottom: 4px; }
+  .auth-method-btn {
+    position: relative; width: 100%; padding: 14px 20px; border-radius: 14px;
+    border: 1.5px solid var(--input-border); background: var(--card-bg); color: var(--text);
+    font-size: 16px; font-weight: 500; font-family: inherit; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.3s;
+  }
+  .auth-method-btn:hover { border-color: var(--primary); background: var(--input-bg); }
+  .auth-method-icon {
+    position: absolute; left: 20px; top: 50%; transform: translateY(-50%);
+    width: 24px; height: 24px; display: flex; align-items: center; justify-content: center;
+  }
+  .auth-method-icon svg { width: 100%; height: 100%; }
+  .auth-method-text { pointer-events: none; }
+
+  .back-to-methods {
+    display: flex; align-items: center; gap: 6px; background: none; border: none;
+    color: var(--text-secondary); font-size: 14px; font-weight: 600; cursor: pointer;
+    padding: 0; margin-bottom: 18px;
+  }
+  .back-to-methods:hover { color: var(--primary); }
+  .back-to-methods .ic { width: 18px; height: 18px; }
+
   .form-desc { text-align: center; color: var(--text-secondary); margin-bottom: 1.75rem; font-size: 0.95rem; }
 
   /* Input groups */
@@ -142,8 +168,9 @@
     position: relative; display: flex; align-items: center;
   }
   .input-icon {
-    position: absolute; left: 14px; font-size: 1.1rem;
-    color: var(--text-secondary); pointer-events: none;
+    position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
+    font-size: 1.1rem; color: var(--text-secondary); pointer-events: none;
+    display: flex; align-items: center;
   }
   .input-wrapper input {
     width: 100%; padding: 14px 48px 14px 44px;
@@ -228,7 +255,26 @@
     .form-section { padding: 1.5rem; }
     .mobile-logo { display: block; }
   }
-  </style>
+  
+.ic { width: 18px; height: 18px; stroke: currentColor; fill: none;
+  stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
+  flex-shrink: 0; vertical-align: middle; display: inline-block; }
+.ic-lg { width: 34px; height: 34px; }
+.ic-xl { width: 56px; height: 56px; }
+.btn-icon-row { display: inline-flex; align-items: center; gap: 8px; }
+</style>
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <script>
+    window.fbAsyncInit = function() {
+      FB.init({
+        appId      : 'YOUR_FACEBOOK_APP_ID',
+        cookie     : true,
+        xfbml      : false,
+        version    : 'v19.0'
+      });
+    };
+  </script>
+  <script async defer crossorigin="anonymous" src="https://connect.facebook.net/vi_VN/sdk.js"></script>
   </head>
   <body>
   <!-- Animated background -->
@@ -236,7 +282,7 @@
   <div class="orb"></div><div class="orb"></div><div class="orb"></div><div class="orb"></div>
 
   <!-- Dark mode toggle -->
-  <button class="dark-toggle" onclick="toggleDark()" title="Chuyển chế độ sáng/tối">🌙</button>
+  <button class="dark-toggle" onclick="toggleDark()" title="Chuyển chế độ sáng/tối"><svg class="ic" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></button>
 
   <!-- Toast notification -->
   <div class="toast" id="toast"></div>
@@ -245,9 +291,9 @@
     <!-- Left Banner -->
     <div class="banner">
       <div class="banner-content">
-        <div class="banner-logo"><span>🛒</span> ShopOnline</div>
+        <div class="banner-logo"><span class="btn-icon-row"><svg class="ic" viewBox="0 0 24 24"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg> ShopOnline</span></div>
         <p class="banner-subtitle">Tạo tài khoản để khám phá hàng triệu sản phẩm chính hãng với ưu đãi hấp dẫn mỗi ngày!</p>
-        <div class="banner-illustration">🛍️</div>
+        <div class="banner-illustration"><svg class="ic" style="width:96px;height:96px" viewBox="0 0 24 24"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg></div>
       </div>
     </div>
 
@@ -255,17 +301,55 @@
     <div class="form-section">
       <div class="form-card">
         <!-- Mobile logo -->
-        <div class="mobile-logo"><span>🛒</span> ShopOnline</div>
+        <div class="mobile-logo"><span class="btn-icon-row"><svg class="ic" viewBox="0 0 24 24"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg> ShopOnline</span></div>
 
         <h2 class="form-title">Tạo tài khoản</h2>
         <p class="form-desc">Đăng ký để bắt đầu mua sắm!</p>
 
-        <form id="registerForm" novalidate>
+        <!-- Các lựa chọn đăng ký nhanh -->
+        <div id="authMethods">
+          <button type="button" class="auth-method-btn" onclick="handleFacebookLoginClick()">
+            <span class="auth-method-icon">
+              <svg viewBox="0 0 36 36" xmlns="http://www.w3.org/2000/svg">
+                <path fill="#1877F2" d="M36,18c0-9.94-8.06-18-18-18S0,8.06,0,18c0,8.98,6.58,16.41,15.19,17.76V23.13h-4.34V18h4.34v-3.91c0-4.28,2.55-6.65,6.46-6.65c1.87,0,3.83,0.33,3.83,0.33v4.22h-2.16c-2.13,0-2.79,1.32-2.79,2.68V18h4.75l-0.76,5.13h-3.99v12.63C29.42,34.41,36,26.98,36,18z"/>
+                <path fill="#FFFFFF" d="M25.02,23.13L25.78,18h-4.75v-3.34c0-1.36,0.67-2.68,2.79-2.68h2.16V7.76c0,0-1.96-0.33-3.83-0.33c-3.91,0-6.46,2.37-6.46,6.65V18h-4.34v5.13h4.34v12.63c0.87,0.14,1.76,0.21,2.67,0.21s1.8-0.07,2.67-0.21V23.13H25.02z"/>
+              </svg>
+            </span>
+            <span class="auth-method-text">Tiếp tục với Facebook</span>
+          </button>
+
+          <button type="button" class="auth-method-btn" onclick="handleGoogleLoginClick()">
+            <span class="auth-method-icon">
+              <svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+                <path fill="#FFC107" d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24c0,11.045,8.955,20,20,20c11.045,0,20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"/>
+                <path fill="#FF3D00" d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z"/>
+                <path fill="#4CAF50" d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.202,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z"/>
+                <path fill="#1976D2" d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571c0.001-0.001,0.002-0.001,0.003-0.002l6.19,5.238C36.971,39.205,44,34,44,24C44,22.659,43.862,21.35,43.611,20.083z"/>
+              </svg>
+            </span>
+            <span class="auth-method-text">Tiếp tục với Google</span>
+          </button>
+
+          <button type="button" class="auth-method-btn" onclick="showEmailForm()">
+            <span class="auth-method-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#374151" stroke-width="1.6"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22 6 12 13 2 6"/></svg>
+            </span>
+            <span class="auth-method-text">Tiếp tục với Email</span>
+          </button>
+        </div>
+        <div id="fb-root"></div>
+
+        <form id="registerForm" novalidate style="display:none">
+          <button type="button" class="back-to-methods" onclick="hideEmailForm()">
+            <svg class="ic" viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+            Chọn cách khác
+          </button>
+
           <!-- Email -->
           <div class="input-group">
             <label for="email">Email</label>
             <div class="input-wrapper">
-              <span class="input-icon">📧</span>
+              <span class="input-icon"><svg class="ic" viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22 6 12 13 2 6"/></svg></span>
               <input type="email" id="email" placeholder="Nhập email" autocomplete="email">
             </div>
             <div class="error-msg" id="emailError" style="display:none"></div>
@@ -275,9 +359,9 @@
           <div class="input-group">
             <label for="password">Mật khẩu</label>
             <div class="input-wrapper">
-              <span class="input-icon">🔒</span>
+              <span class="input-icon"><svg class="ic" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span>
               <input type="password" id="password" placeholder="Nhập mật khẩu (tối thiểu 6 ký tự)">
-              <button type="button" class="toggle-pass" onclick="togglePassword('password', this)">👁</button>
+              <button type="button" class="toggle-pass" onclick="togglePassword('password', this)"><svg class="ic" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
             </div>
             <div class="error-msg" id="passwordError" style="display:none"></div>
           </div>
@@ -286,9 +370,9 @@
           <div class="input-group">
             <label for="confirmPassword">Xác nhận mật khẩu</label>
             <div class="input-wrapper">
-              <span class="input-icon">🔒</span>
+              <span class="input-icon"><svg class="ic" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span>
               <input type="password" id="confirmPassword" placeholder="Xác nhận mật khẩu">
-              <button type="button" class="toggle-pass" onclick="togglePassword('confirmPassword', this)">👁</button>
+              <button type="button" class="toggle-pass" onclick="togglePassword('confirmPassword', this)"><svg class="ic" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
             </div>
             <div class="error-msg" id="confirmError" style="display:none"></div>
           </div>
@@ -319,20 +403,20 @@ const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 function toggleDark() {
   document.documentElement.classList.toggle('dark');
   const btn = document.querySelector('.dark-toggle');
-  btn.textContent = document.documentElement.classList.contains('dark') ? '☀️' : '🌙';
+  btn.innerHTML = document.documentElement.classList.contains('dark') ? `<svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>` : `<svg class="ic" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>`;
 }
 
 function togglePassword(id, btn) {
   const input = document.getElementById(id);
   const isPassword = input.type === 'password';
   input.type = isPassword ? 'text' : 'password';
-  btn.textContent = isPassword ? '🙈' : '👁';
+  btn.innerHTML = isPassword ? `<svg class="ic" viewBox="0 0 24 24"><path d="M17.94 17.94A10.94 10.94 0 0 1 12 20c-7 0-11-8-11-8a18.5 18.5 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>` : `<svg class="ic" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>`;
 }
 
 /* ========== HIỂN THỊ LỖI TRÊN TỪNG Ô NHẬP ========== */
 function showError(id, msg) {
   const el = document.getElementById(id);
-  el.textContent = '⚠ ' + msg;
+  el.innerHTML = `<svg class="ic" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> ` + msg;
   el.style.display = 'flex';
   const input = document.getElementById(id.replace('Error', '').replace('confirm', 'confirmPassword'));
   if(input) input.classList.add('error');
@@ -350,6 +434,104 @@ function showToast(msg, type) {
   toast.textContent = msg;
   toast.className = 'toast ' + type + ' show';
   setTimeout(() => toast.classList.remove('show'), 3000);
+}
+
+/* ========== HIỆN/ẨN FORM EMAIL + MẬT KHẨU ========== */
+function showEmailForm() {
+  document.getElementById('authMethods').style.display = 'none';
+  registerForm.style.display = 'block';
+  emailInput.focus();
+}
+function hideEmailForm() {
+  registerForm.style.display = 'none';
+  document.getElementById('authMethods').style.display = 'flex';
+}
+
+/* ========== ĐĂNG KÝ / ĐĂNG NHẬP BẰNG GOOGLE ========== */
+// Dùng Google Identity Services (token client) để tự thiết kế giao diện nút,
+// không dùng khung nút mặc định của Google. Email đã được Google xác thực
+// nên không cần qua bước nhập mã OTP nữa.
+let googleTokenClient = null;
+function handleGoogleLoginClick() {
+  if (!googleTokenClient) {
+    googleTokenClient = google.accounts.oauth2.initTokenClient({
+      client_id: '298853881583-kfpga0mtsfqlpiasje295jd95u71l45s.apps.googleusercontent.com',
+      scope: 'openid email profile',
+      callback: (tokenResponse) => {
+        if (tokenResponse && tokenResponse.access_token) {
+          handleGoogleLoginResponse(tokenResponse.access_token);
+        } else {
+          showToast('❌ Đăng nhập Google thất bại', 'error');
+        }
+      },
+    });
+  }
+  googleTokenClient.requestAccessToken();
+}
+
+async function handleGoogleLoginResponse(accessToken) {
+  try {
+    const res = await fetch("/auth/google-login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ access_token: accessToken })
+    });
+    const data = await res.json();
+
+    if (res.ok && data.success === true) {
+      localStorage.setItem("access_token", data.access_token);
+      localStorage.setItem("token", data.access_token);
+      if (data.user) {
+        localStorage.setItem("user_email", data.user.email);
+        localStorage.setItem("currentUser", JSON.stringify(data.user));
+        if (data.user.id) localStorage.setItem("user_id", data.user.id);
+      }
+      showToast('✅ Đăng nhập bằng Google thành công!', 'success');
+      setTimeout(() => { window.location.href = data.redirect; }, 1000);
+    } else {
+      showToast('❌ ' + (data.message || data.detail || 'Đăng nhập Google thất bại'), 'error');
+    }
+  } catch (err) {
+    showToast('❌ Không thể kết nối đến máy chủ!', 'error');
+  }
+}
+
+/* ========== ĐĂNG KÝ / ĐĂNG NHẬP BẰNG FACEBOOK ========== */
+function handleFacebookLoginClick() {
+    FB.login(function(response) {
+        if (response.authResponse) {
+            handleFacebookLoginResponse(response.authResponse.accessToken);
+        } else {
+            showToast('❌ Bạn đã huỷ đăng nhập Facebook', 'error');
+        }
+    }, { scope: 'public_profile,email' });
+}
+
+async function handleFacebookLoginResponse(accessToken) {
+    try {
+        const res = await fetch("/auth/facebook-login", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ access_token: accessToken })
+        });
+        const data = await res.json();
+
+        if (res.ok && data.success === true) {
+            localStorage.setItem("access_token", data.access_token);
+            localStorage.setItem("token", data.access_token);
+            if (data.user) {
+                localStorage.setItem("user_email", data.user.email);
+                localStorage.setItem("currentUser", JSON.stringify(data.user));
+                if (data.user.id) localStorage.setItem("user_id", data.user.id);
+            }
+            showToast('✅ Đăng nhập bằng Facebook thành công!', 'success');
+            setTimeout(() => { window.location.href = data.redirect; }, 1000);
+        } else {
+            showToast('❌ ' + (data.message || data.detail || 'Đăng nhập Facebook thất bại'), 'error');
+        }
+    } catch (err) {
+        showToast('❌ Không thể kết nối đến máy chủ!', 'error');
+    }
 }
 
 /* ========== XỬ LÝ ĐĂNG KÝ KẾT NỐI SERVER ========== */
