@@ -29636,6 +29636,7 @@
     gap: 8px;
     align-items: flex-end;
     flex-shrink: 0;
+    position: relative;
 }
 #rag-chat-input {
     flex: 1;
@@ -29689,6 +29690,46 @@
 }
 .rag-chip:hover { background: #ffd400; color: #111; border-color: #ffd400; }
 
+/* Voice & Attach Buttons */
+#rag-chat-attach, #rag-chat-voice {
+    width: 36px; height: 36px; flex-shrink: 0;
+    border-radius: 50%;
+    background: transparent;
+    border: none; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: background 0.15s;
+    margin-bottom: 2px;
+}
+#rag-chat-attach:hover, #rag-chat-voice:hover { background: #f3f4f6; }
+#rag-chat-attach svg, #rag-chat-voice svg { width: 20px; height: 20px; fill: #6b7280; }
+#rag-chat-voice.rag-recording svg { fill: #ef4444; animation: pulse-record 1.5s infinite; }
+@keyframes pulse-record {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.15); }
+    100% { transform: scale(1); }
+}
+
+/* Image Preview */
+#rag-chat-img-preview {
+    position: absolute;
+    bottom: 100%; left: 0; right: 0;
+    background: #fff;
+    padding: 8px 12px;
+    border-top: 1px solid #e5e7eb;
+    display: flex; align-items: center;
+    box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
+    z-index: 10;
+}
+#rag-chat-img-thumb {
+    height: 48px; border-radius: 6px; border: 1px solid #e5e7eb; object-fit: contain;
+}
+#rag-chat-img-remove {
+    margin-left: 12px; background: #fee2e2; color: #ef4444;
+    border: none; border-radius: 50%; width: 24px; height: 24px;
+    cursor: pointer; font-weight: bold; font-size: 16px;
+    display: flex; align-items: center; justify-content: center;
+}
+
 /* RAG badge ở footer input */
 .rag-footer-badge {
     text-align: center;
@@ -29735,11 +29776,24 @@
         <!-- Welcome message + suggestions inserted by JS -->
     </div>
 
+    <!-- Image Preview Area -->
+    <div id="rag-chat-img-preview" style="display: none;">
+        <img id="rag-chat-img-thumb" src="" alt="preview">
+        <button id="rag-chat-img-remove" title="Xóa ảnh">&times;</button>
+    </div>
+
     <!-- Input Area -->
     <div id="rag-chat-input-area">
+        <input type="file" id="rag-chat-file-input" accept="image/*" style="display: none;">
+        <button id="rag-chat-attach" title="Gửi ảnh" aria-label="Gửi ảnh">
+            <svg viewBox="0 0 24 24"><path d="M16.5 6v11.5c0 2.21-1.79 4-4 4s-4-1.79-4-4V5a2.5 2.5 0 0 1 5 0v10.5c0 .55-.45 1-1 1s-1-.45-1-1V6H10v9.5a2.5 2.5 0 0 0 5 0V5c0-2.21-1.79-4-4-4S7 2.79 7 5v12.5c0 3.04 2.46 5.5 5.5 5.5s5.5-2.46 5.5-5.5V6h-1.5z"/></svg>
+        </button>
+        <button id="rag-chat-voice" title="Nhập bằng giọng nói" aria-label="Nhập bằng giọng nói">
+            <svg viewBox="0 0 24 24"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/><path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg>
+        </button>
         <textarea
             id="rag-chat-input"
-            placeholder="Nhập câu hỏi của bạn..."
+            placeholder="Nhập câu hỏi..."
             rows="1"
             maxlength="500"
             aria-label="Nhập câu hỏi"
@@ -29766,6 +29820,12 @@
     const messagesEl = document.getElementById('rag-chat-messages');
     const inputEl    = document.getElementById('rag-chat-input');
     const sendBtn    = document.getElementById('rag-chat-send');
+    const attachBtn  = document.getElementById('rag-chat-attach');
+    const voiceBtn   = document.getElementById('rag-chat-voice');
+    const fileInput  = document.getElementById('rag-chat-file-input');
+    const previewDiv = document.getElementById('rag-chat-img-preview');
+    const previewImg = document.getElementById('rag-chat-img-thumb');
+    const removeImgBtn = document.getElementById('rag-chat-img-remove');
 
     if (!btn || !panel) return; // Safety guard
 
@@ -29773,6 +29833,8 @@
     let isOpen    = false;
     let isLoading = false;
     let history   = []; // [{role, content}, ...]
+    let currentImageBase64 = null;
+    let currentImageMime = null;
 
     const SUGGESTIONS = [
         '📋 Chính sách bảo hành?',
@@ -29848,7 +29910,7 @@
     }
 
     // ── Append message ────────────────────────────────────────
-    function appendMessage(role, text, sources) {
+    function appendMessage(role, text, sources, imageBase64) {
         const isUser = (role === 'user');
         const wrapper = document.createElement('div');
         wrapper.className = `rag-msg ${isUser ? 'rag-user' : 'rag-bot'}`;
@@ -29867,11 +29929,16 @@
         const sourcesHTML = (!isUser && sources && sources.length)
             ? `<div class="rag-sources">📚 Nguồn: ${sources.map(s => `<span>${s}</span>`).join('')}</div>`
             : '';
+            
+        const imageHTML = imageBase64 ? `<div style="margin-bottom: 8px;"><img src="data:image/jpeg;base64,${imageBase64}" style="max-width: 100%; border-radius: 8px;"></div>` : '';
 
         wrapper.innerHTML = `
             ${avatarHTML}
             <div>
-                <div class="rag-bubble">${escaped}</div>
+                <div class="rag-bubble">
+                    ${imageHTML}
+                    ${escaped}
+                </div>
                 ${sourcesHTML}
             </div>
         `;
@@ -29913,30 +29980,45 @@
     // ── Send message ──────────────────────────────────────────
     function sendMessage(text) {
         text = (text || '').trim();
-        if (!text || isLoading) return;
+        const hasImage = !!currentImageBase64;
+        if ((!text && !hasImage) || isLoading) return;
 
         // Ẩn suggestions sau lần chat đầu tiên
         const sugArea = document.getElementById('rag-suggestions-area');
         if (sugArea) sugArea.style.display = 'none';
 
-        appendMessage('user', text);
-        history.push({ role: 'user', content: text });
+        // Append message to UI
+        const imageToSend = currentImageBase64;
+        const mimeToSend = currentImageMime;
+        appendMessage('user', text, null, imageToSend);
+        
+        history.push({ role: 'user', content: text + (hasImage ? " [Kèm ảnh]" : "") });
 
         isLoading = true;
         sendBtn.disabled = true;
         inputEl.disabled = true;
+        attachBtn.disabled = true;
+        voiceBtn.disabled = true;
         showLoading();
 
         // Reset input
         inputEl.value = '';
         autoResizeInput();
+        
+        // Reset image preview
+        currentImageBase64 = null;
+        currentImageMime = null;
+        previewDiv.style.display = 'none';
+        previewImg.src = '';
 
         fetch('/api/rag-chat', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                question: text,
+                question: text || "Tư vấn giúp tôi về ảnh này",
                 history: history.slice(-8), // Giữ tối đa 8 lượt gần nhất
+                image_b64: imageToSend,
+                image_mime: mimeToSend
             }),
         })
         .then(function (res) {
@@ -29987,6 +30069,79 @@
         inputEl.style.height = 'auto';
         inputEl.style.height = Math.min(inputEl.scrollHeight, 90) + 'px';
     }
+
+    // ── Voice Input ───────────────────────────────────────────
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (SpeechRecognition) {
+        const recognition = new SpeechRecognition();
+        recognition.lang = 'vi-VN';
+        recognition.interimResults = false;
+        recognition.maxAlternatives = 1;
+
+        voiceBtn.addEventListener('click', () => {
+            recognition.start();
+            inputEl.placeholder = "Đang nghe...";
+            voiceBtn.classList.add('rag-recording');
+        });
+
+        recognition.onresult = (event) => {
+            const transcript = event.results[0][0].transcript;
+            inputEl.value = (inputEl.value + ' ' + transcript).trim();
+            autoResizeInput();
+        };
+
+        recognition.onspeechend = () => {
+            recognition.stop();
+            inputEl.placeholder = "Nhập câu hỏi...";
+            voiceBtn.classList.remove('rag-recording');
+        };
+
+        recognition.onerror = (event) => {
+            console.error('Speech recognition error', event.error);
+            inputEl.placeholder = "Nhập câu hỏi...";
+            voiceBtn.classList.remove('rag-recording');
+        };
+    } else {
+        voiceBtn.style.display = 'none';
+        console.warn("Speech Recognition API not supported in this browser.");
+    }
+
+    // ── Image Upload ──────────────────────────────────────────
+    attachBtn.addEventListener('click', () => {
+        fileInput.click();
+    });
+
+    fileInput.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        if (!file.type.startsWith('image/')) {
+            alert('Vui lòng chọn một file ảnh.');
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = (evt) => {
+            const dataUrl = evt.target.result;
+            // dataUrl format: "data:image/jpeg;base64,/9j/4AAQSkZJRg..."
+            const parts = dataUrl.split(',');
+            if (parts.length === 2) {
+                currentImageBase64 = parts[1];
+                currentImageMime = file.type;
+                previewImg.src = dataUrl;
+                previewDiv.style.display = 'flex';
+            }
+        };
+        reader.readAsDataURL(file);
+    });
+
+    removeImgBtn.addEventListener('click', () => {
+        currentImageBase64 = null;
+        currentImageMime = null;
+        previewImg.src = '';
+        previewDiv.style.display = 'none';
+        fileInput.value = '';
+    });
 
     // ── Helpers ───────────────────────────────────────────────
     function scrollToBottom() {

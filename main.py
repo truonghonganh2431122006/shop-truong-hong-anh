@@ -3072,6 +3072,8 @@ _rag_store_mtime: float = 0.0
 class RagChatRequest(BaseModel):
     question: str
     history: Optional[List[ChatMessage]] = []
+    image_b64: Optional[str] = None
+    image_mime: Optional[str] = None
 
 
 class RagChatResponse(BaseModel):
@@ -3164,7 +3166,9 @@ async def _rag_embed_text(text: str, task_type: str = "RETRIEVAL_QUERY") -> list
 
 async def _rag_generate(system_prompt: str, user_question: str,
                          history: list[ChatMessage],
-                         has_context: bool = True) -> str:
+                         has_context: bool = True,
+                         image_b64: Optional[str] = None,
+                         image_mime: Optional[str] = None) -> str:
     """Gọi Gemini Generate Content API để sinh câu trả lời."""
     api_key = os.getenv("GEMINI_API_KEY", "") or os.getenv("GOOGLE_API_KEY", "") or GEMINI_API_KEY
     if not api_key:
@@ -3175,7 +3179,16 @@ async def _rag_generate(system_prompt: str, user_question: str,
     for msg in (history or []):
         role = "user" if msg.role == "user" else "model"
         contents.append({"role": role, "parts": [{"text": msg.content}]})
-    contents.append({"role": "user", "parts": [{"text": user_question}]})
+    
+    user_parts = [{"text": user_question}]
+    if image_b64:
+        user_parts.append({
+            "inline_data": {
+                "mime_type": image_mime or "image/jpeg",
+                "data": image_b64
+            }
+        })
+    contents.append({"role": "user", "parts": user_parts})
 
     base_payload = {
         "systemInstruction": {"parts": [{"text": system_prompt}]},
@@ -3361,7 +3374,12 @@ async def rag_chat(req: RagChatRequest):
         )
 
     # ── 5. Gọi Gemini Generate ────────────────────────────────────────────────
-    answer = await _rag_generate(system_prompt, question, req.history or [], has_context=bool(context_text))
+    answer = await _rag_generate(
+        system_prompt, question, req.history or [], 
+        has_context=bool(context_text),
+        image_b64=req.image_b64,
+        image_mime=req.image_mime
+    )
 
     return RagChatResponse(answer=answer, sources=sources)
 
