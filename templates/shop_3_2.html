@@ -25838,9 +25838,11 @@
                     //  < 20%       => coi như KHÔNG có deal, hiện sản phẩm bình thường
                     const fsPct = isFsActive ? getDealDiscountPercent(p, fs) : 0;
                     const isRealDeal = isFsActive && fsPct >= 20; // chỉ tính là "deal" khi >= 20%
+                    // Badge FLASH SALE/DEAL ĐẸP đứng ĐÚNG vị trí của HOT (không dùng vị trí thứ 2 nữa)
+                    // để tránh vướng, đè lên nhau — nếu có deal thật thì badge HOT/SALE gốc sẽ bị ẩn đi.
                     const fsBadge = !isRealDeal ? '' : (fsPct >= 50
-                        ? '<span class="ha-badge ha-badge-2" style="background:var(--ha-red,#d0021c);">⚡ FLASH SALE</span>'
-                        : '<span class="ha-badge ha-badge-2" style="background:#f59e0b;">🏷️ DEAL ĐẸP</span>');
+                        ? '<span class="ha-badge" style="background:var(--ha-red,#d0021c);">⚡ FLASH SALE</span>'
+                        : '<span class="ha-badge" style="background:#f59e0b;">🏷️ DEAL ĐẸP</span>');
 
                     // Tạo thẻ div sản phẩm
                     const itemDiv = document.createElement('div');
@@ -25870,9 +25872,10 @@
 
                     itemDiv.style.cursor = 'pointer';
 
-                    const badge = isHot
+                    // HOT/SALE gốc — chỉ hiện khi KHÔNG có Flash Sale/Deal Đẹp thật (nếu có deal, badge deal thay chỗ HOT luôn)
+                    const badge = isRealDeal ? '' : (isHot
                         ? '<span class="ha-badge">HOT</span>'
-                        : isSale ? '<span class="ha-badge" style="background:#0071e3">SALE</span>' : '';
+                        : isSale ? '<span class="ha-badge" style="background:#0071e3">SALE</span>' : '');
 
                     const aiBadge = (p.id % 2 === 0 || /samsung|apple|iphone|watch|ultra/i.test(p.name)) ? '<span class="tgdd-ai-badge">✦ AI</span>' : '';
 
