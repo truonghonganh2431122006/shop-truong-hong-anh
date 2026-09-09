@@ -24371,6 +24371,25 @@
             }
             window.getEffectivePrice = getEffectivePrice;
 
+            // % giảm giá thật của 1 sản phẩm (dựa theo Deal Đẹp admin đã tạo cho sản phẩm đó)
+            function getDealDiscountPercent(product, fs) {
+                fs = fs || (window.flashSalesMap && product && window.flashSalesMap[product.id]);
+                if (!fs || !product || !product.price) return 0;
+                if (fs.discount_percent !== undefined && fs.discount_percent !== null) return parseInt(fs.discount_percent) || 0;
+                return Math.max(0, Math.round((1 - (fs.sale_price / product.price)) * 100));
+            }
+            window.getDealDiscountPercent = getDealDiscountPercent;
+
+            // Deal Đẹp (fs) của 1 sản phẩm có đang thật sự "active" (trong khung thời gian) hay không
+            function isDealActive(fs) {
+                if (!fs) return false;
+                const now = new Date();
+                const start = new Date(fs.start_time);
+                const end = new Date(fs.end_time);
+                return now >= start && now <= end;
+            }
+            window.isDealActive = isDealActive;
+
             async function updateFlashSalesMap() {
                 try {
                     const res = await fetch('/flash-sales/active');
@@ -24382,7 +24401,11 @@
                 } catch (e) { }
             }
             window.updateFlashSalesMap = updateFlashSalesMap;
-            setInterval(updateFlashSalesMap, 60000); // Poll every 60 seconds
+            setInterval(async function () {
+                await updateFlashSalesMap();
+                // Deal Đẹp có thể hết hạn hoặc thay đổi % giảm giá theo thời gian thực -> render lại
+                if (typeof window.renderDealSection === 'function') window.renderDealSection();
+            }, 60000); // Poll every 60 seconds
 
             // ===== VOUCHER HANDLERS (REAL BACKEND API) =====
             var appliedVoucher = null;
@@ -25943,8 +25966,10 @@
                 const soldList = [27.9, 313, 45, 12, 8.2, 156, 89, 34];
                 const sold = soldList[seed % soldList.length];
 
-                const discountPct = Math.round(10 + (seed * 13) % 35);
-                const oldPriceNum = Math.round(effectivePrice / (1 - discountPct / 100));
+                // % giảm giá THẬT — lấy từ Deal Đẹp admin đã cấu hình cho sản phẩm này (không random nữa)
+                const fs = window.flashSalesMap && window.flashSalesMap[p.id];
+                const discountPct = getDealDiscountPercent(p, fs);
+                const oldPriceNum = p.price;
                 const oldPriceFmt = oldPriceNum.toLocaleString('vi-VN') + 'đ';
 
                 const giftK = Math.round(effectivePrice * 0.05 / 1000);
@@ -26025,11 +26050,30 @@
                 setInterval(tick, 1000);
             }
 
+            // ── Quy tắc hiển thị "Deal Đẹp Có Hạn" ──
+            // Chỉ những sản phẩm ĐƯỢC ADMIN CẤU HÌNH giảm giá (mục "Deal Đẹp" trong Admin) và
+            // đang trong thời gian áp dụng, với % giảm giá THỰC TẾ < 50%, mới xuất hiện ở đây.
+            // Sản phẩm giảm giá >= 50% (hoặc không có Deal Đẹp nào) sẽ KHÔNG hiện ở mục này,
+            // mà vẫn hiển thị bình thường ở lưới sản phẩm phía trên.
             window.renderDealSection = function () {
                 if (!window.allProducts || !window.allProducts.length) return;
-                dealAllProducts = window.allProducts.slice();
+                dealAllProducts = window.allProducts.filter(function (p) {
+                    const fs = window.flashSalesMap && window.flashSalesMap[p.id];
+                    if (!isDealActive(fs)) return false;
+                    const pct = getDealDiscountPercent(p, fs);
+                    return pct > 0 && pct < 50;
+                });
                 dealFilterProducts();
                 dealRenderBatch(true);
+
+                const list = document.getElementById('ha-deal-product-list');
+                const moreBtn = document.getElementById('ha-deal-loadmore');
+                if (list && !dealAllProducts.length) {
+                    list.innerHTML = '<div style="padding:30px;text-align:center;color:#888;width:100%;">Hiện chưa có Deal Đẹp nào đang diễn ra. Vui lòng quay lại sau!</div>';
+                    if (moreBtn) moreBtn.style.display = 'none';
+                } else if (moreBtn) {
+                    moreBtn.style.display = '';
+                }
             };
 
             document.addEventListener('click', function (e) {

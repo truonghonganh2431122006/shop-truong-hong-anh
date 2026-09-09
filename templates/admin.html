@@ -633,7 +633,7 @@
         </button>
         <div class="nav-section-label">Marketing</div>
         <button id="btn-flashsale" onclick="showTab('flashsale')">
-          <span class="nav-icon"><svg class="icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></span> Flash Sale
+          <span class="nav-icon"><svg class="icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></span> Deal Đẹp
         </button>
         <button id="btn-coupon" onclick="showTab('coupon')">
           <span class="nav-icon"><svg class="icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41 13.42 20.58a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82Z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg></span> Mã giảm giá
@@ -812,41 +812,52 @@
             <!-- TAB FLASH SALE -->
       <div id="tab-flashsale" class="card" style="display:none;">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px;">
-          <h2 style="margin:0;display:flex;align-items:center;gap:10px;"><svg class="icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg> Quản lý Flash Sale</h2>
+          <h2 style="margin:0;display:flex;align-items:center;gap:10px;"><svg class="icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg> Quản lý Deal Đẹp</h2>
           <button class="btn btn-ship" onclick="loadFlashSales()" style="display:flex;align-items:center;gap:6px;"><svg class="icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg> Làm mới</button>
         </div>
-        
-        <!-- Form Tạo Flash Sale -->
+
+        <p style="margin:0 0 14px;font-size:13px;color:var(--text-muted);line-height:1.6;">
+          Chọn 1 sản phẩm và % giảm giá — hệ thống sẽ tự tính giá sale từ giá gốc hiện tại.
+          Sản phẩm có <strong>% giảm giá &lt; 50%</strong> sẽ tự động xuất hiện ở mục
+          <strong>"Deal Đẹp Có Hạn"</strong> trên trang Shop; sản phẩm giảm giá <strong>≥ 50%</strong> sẽ không
+          hiện ở mục đó, chỉ hiển thị bình thường ở lưới sản phẩm phía trên.
+        </p>
+
+        <!-- Form Tạo Deal Đẹp -->
         <div style="background:var(--bg);padding:16px;border-radius:12px;border:1px solid var(--border);margin-bottom:20px;">
-          <h3 style="margin-top:0;margin-bottom:12px;font-size:15px;color:var(--text);display:flex;align-items:center;gap:8px;"><svg class="icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Tạo Flash Sale mới</h3>
+          <h3 style="margin-top:0;margin-bottom:12px;font-size:15px;color:var(--text);display:flex;align-items:center;gap:8px;"><svg class="icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Tạo Deal Đẹp mới</h3>
           <div style="display:flex;flex-wrap:wrap;gap:12px;align-items:center;">
-            <select id="fsProductId" style="padding:8px 12px;border:1px solid var(--border);border-radius:8px;background:var(--card-bg);color:var(--text);flex:1;min-width:200px;">
+            <select id="fsProductId" onchange="updateFsPreview()" style="padding:8px 12px;border:1px solid var(--border);border-radius:8px;background:var(--card-bg);color:var(--text);flex:1;min-width:220px;">
               <option value="">-- Chọn sản phẩm --</option>
             </select>
-            <input id="fsSalePrice" type="number" placeholder="Giá sale (VNĐ)" style="padding:8px 12px;border:1px solid var(--border);border-radius:8px;background:var(--card-bg);color:var(--text);width:150px;">
-            <label style="font-size:12px;color:var(--text-muted)">Bắt đầu:</label>
+            <input id="fsDiscountPercent" type="number" min="1" max="99" placeholder="% giảm giá" oninput="updateFsPreview()" style="padding:8px 12px;border:1px solid var(--border);border-radius:8px;background:var(--card-bg);color:var(--text);width:120px;">
+            <label style="font-size:12px;color:var(--text-muted)">Bắt đầu (bỏ trống = ngay):</label>
             <input id="fsStartTime" type="datetime-local" style="padding:8px 12px;border:1px solid var(--border);border-radius:8px;background:var(--card-bg);color:var(--text);">
-            <label style="font-size:12px;color:var(--text-muted)">Kết thúc:</label>
+            <label style="font-size:12px;color:var(--text-muted)">Kết thúc (bỏ trống = 30 ngày):</label>
             <input id="fsEndTime" type="datetime-local" style="padding:8px 12px;border:1px solid var(--border);border-radius:8px;background:var(--card-bg);color:var(--text);">
-            <button onclick="createFlashSaleSubmit()" class="btn" style="background:#ef4444;color:#fff;padding:8px 16px;border-radius:8px;font-weight:600;border:none;cursor:pointer;display:flex;align-items:center;gap:6px;"><svg class="icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg> Tạo Flash Sale</button>
+            <button onclick="createFlashSaleSubmit()" class="btn" style="background:#ef4444;color:#fff;padding:8px 16px;border-radius:8px;font-weight:600;border:none;cursor:pointer;display:flex;align-items:center;gap:6px;"><svg class="icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg> Tạo Deal Đẹp</button>
           </div>
+          <div id="fsPreview" style="margin-top:10px;font-size:13px;color:var(--text-muted);"></div>
         </div>
 
-        <!-- Bảng Danh sách Flash Sale -->
+        <!-- Bảng Danh sách Deal Đẹp -->
         <div style="overflow-x:auto;">
           <table style="width:100%;border-collapse:collapse;">
             <thead>
               <tr>
                 <th style="text-align:left;padding:10px;color:var(--text-muted);border-bottom:2px solid var(--border);">ID</th>
                 <th style="text-align:left;padding:10px;color:var(--text-muted);border-bottom:2px solid var(--border);">Sản phẩm</th>
+                <th style="text-align:right;padding:10px;color:var(--text-muted);border-bottom:2px solid var(--border);">Giá gốc</th>
                 <th style="text-align:right;padding:10px;color:var(--text-muted);border-bottom:2px solid var(--border);">Giá Sale</th>
+                <th style="text-align:center;padding:10px;color:var(--text-muted);border-bottom:2px solid var(--border);">% Giảm</th>
+                <th style="text-align:center;padding:10px;color:var(--text-muted);border-bottom:2px solid var(--border);">Hiện ở Deal Đẹp?</th>
                 <th style="text-align:center;padding:10px;color:var(--text-muted);border-bottom:2px solid var(--border);">Bắt đầu</th>
                 <th style="text-align:center;padding:10px;color:var(--text-muted);border-bottom:2px solid var(--border);">Kết thúc</th>
                 <th style="text-align:center;padding:10px;color:var(--text-muted);border-bottom:2px solid var(--border);">Thao tác</th>
               </tr>
             </thead>
             <tbody id="flashSaleTableBody">
-              <tr><td colspan="7" style="text-align:center;padding:30px;color:var(--text-muted);">Nhấn làm mới để tải...</td></tr>
+              <tr><td colspan="9" style="text-align:center;padding:30px;color:var(--text-muted);">Nhấn làm mới để tải...</td></tr>
             </tbody>
           </table>
         </div>
@@ -1038,22 +1049,29 @@
         }
     }
 
-    // ── FLASH SALE MANAGEMENT ──
+    // ── DEAL ĐẸP MANAGEMENT (trước đây là Flash Sale) ──
+    // Ngưỡng % giảm giá để 1 sản phẩm được hiện ở mục "Deal Đẹp Có Hạn" trên trang Shop.
+    // Phải khớp với điều kiện lọc phía shop.html (< 50%).
+    const DEAL_DEP_THRESHOLD = 50;
+    let fsProductsMap = {}; // id -> giá gốc, dùng để xem trước giá sale khi chọn % giảm giá
+
     async function loadFlashSales() {
         const tbody = document.getElementById('flashSaleTableBody');
         if (!tbody) return;
-        tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:30px;color:var(--text-muted);"><span class="loading-row">${ICON('loader',16,'icon-spin')} Đang tải danh sách Flash Sale...</span></td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;padding:30px;color:var(--text-muted);"><span class="loading-row">${ICON('loader',16,'icon-spin')} Đang tải danh sách Deal Đẹp...</span></td></tr>`;
         const tk = localStorage.getItem('access_token');
-        
-        // Always rebuild product dropdown
+
+        // Luôn tải lại toàn bộ sản phẩm (giống hệt danh sách ở tab Sản phẩm) để đổ vào ô chọn sản phẩm
         const sel = document.getElementById('fsProductId');
         if (sel) {
             sel.innerHTML = '<option value="">-- Chọn sản phẩm --</option>';
+            fsProductsMap = {};
             try {
                 const pRes = await fetch('/products');
                 if (pRes.ok) {
                     const prods = await pRes.json();
                     prods.forEach(p => {
+                        fsProductsMap[p.id] = p.price;
                         sel.options[sel.options.length] = new Option(`${p.name} (${cleanPrice(p.price)}đ)`, p.id);
                     });
                 }
@@ -1066,41 +1084,66 @@
             const sales = await fsRes.json();
 
             if (!sales.length) {
-                tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:40px;color:var(--text-muted);">Chưa có chương trình Flash Sale nào</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:40px;color:var(--text-muted);">Chưa có Deal Đẹp nào</td></tr>';
                 return;
             }
 
             tbody.innerHTML = sales.map(s => {
                 const pName = s.product_name || ('ID #' + s.product_id);
                 const origPrice = s.original_price ? `${cleanPrice(s.original_price)}đ` : '';
+                const pct = (s.discount_percent === null || s.discount_percent === undefined) ? '—' : s.discount_percent + '%';
                 const st = s.start_time ? new Date(s.start_time).toLocaleString('vi-VN') : '';
                 const et = s.end_time ? new Date(s.end_time).toLocaleString('vi-VN') : '';
+                const now = new Date();
+                const isRunning = s.start_time && s.end_time && now >= new Date(s.start_time) && now <= new Date(s.end_time);
+                const inDealSection = isRunning && typeof s.discount_percent === 'number' && s.discount_percent > 0 && s.discount_percent < DEAL_DEP_THRESHOLD;
+                const dealBadge = inDealSection
+                    ? '<span style="color:#16a34a;font-weight:600;">✔ Có</span>'
+                    : `<span style="color:var(--text-muted);">Không${isRunning ? ' (≥ ' + DEAL_DEP_THRESHOLD + '%)' : ' (chưa chạy)'}</span>`;
                 return `<tr style="border-bottom:1px solid var(--border);">
                     <td style="padding:10px;">${s.id}</td>
                     <td style="padding:10px;font-weight:600;">${pName}</td>
                     <td style="padding:10px;text-align:right;color:var(--text-sub);text-decoration:line-through;">${origPrice}</td>
                     <td style="padding:10px;text-align:right;color:#ef4444;font-weight:700;">${cleanPrice(s.sale_price)}đ</td>
+                    <td style="padding:10px;text-align:center;font-weight:600;">${pct}</td>
+                    <td style="padding:10px;text-align:center;font-size:12px;">${dealBadge}</td>
                     <td style="padding:10px;text-align:center;font-size:12px;">${st}</td>
                     <td style="padding:10px;text-align:center;font-size:12px;">${et}</td>
                     <td style="padding:10px;text-align:center;">
-                        <button class="icon-btn danger" onclick="deleteFlashSaleSubmit(${s.id})" title="Xoá Flash Sale" aria-label="Xoá">${ICON('trash',15)}</button>
+                        <button class="icon-btn danger" onclick="deleteFlashSaleSubmit(${s.id})" title="Xoá Deal Đẹp" aria-label="Xoá">${ICON('trash',15)}</button>
                     </td>
                 </tr>`;
             }).join('');
         } catch(e) {
-            tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:30px;color:#ef4444;"><span class="loading-row">${ICON('xCircle',16)} ${e.message}</span></td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;padding:30px;color:#ef4444;"><span class="loading-row">${ICON('xCircle',16)} ${e.message}</span></td></tr>`;
         }
+    }
+
+    // Xem trước giá sale + có xuất hiện ở mục "Deal Đẹp Có Hạn" hay không, ngay khi admin chọn sản phẩm + % giảm giá
+    function updateFsPreview() {
+        const box = document.getElementById('fsPreview');
+        if (!box) return;
+        const productId = parseInt(document.getElementById('fsProductId').value);
+        const pct = parseFloat(document.getElementById('fsDiscountPercent').value);
+        const price = fsProductsMap[productId];
+        if (!productId || !price || !pct || pct <= 0) { box.innerHTML = ''; return; }
+        const salePrice = Math.round(price * (1 - pct / 100));
+        const willShow = pct < DEAL_DEP_THRESHOLD;
+        box.innerHTML = `Giá sale dự kiến: <strong style="color:#ef4444;">${cleanPrice(salePrice)}đ</strong>` +
+            (willShow
+                ? ' — <span style="color:#16a34a;">✔ Sẽ hiện ở mục "Deal Đẹp Có Hạn"</span>'
+                : ` — <span style="color:#b45309;">Không hiện ở "Deal Đẹp Có Hạn" (vì ≥ ${DEAL_DEP_THRESHOLD}%), vẫn hiển thị bình thường ở lưới sản phẩm</span>`);
     }
 
     async function createFlashSaleSubmit() {
         const tk = localStorage.getItem('access_token');
         const productId = parseInt(document.getElementById('fsProductId').value);
-        const salePrice = parseInt(document.getElementById('fsSalePrice').value);
+        const discountPercent = parseInt(document.getElementById('fsDiscountPercent').value);
         const startTime = document.getElementById('fsStartTime').value;
         const endTime = document.getElementById('fsEndTime').value;
 
-        if (!productId || !salePrice || !startTime || !endTime) {
-            alert('Vui lòng nhập đầy đủ thông tin Flash Sale!');
+        if (!productId || !discountPercent || discountPercent < 1 || discountPercent > 99) {
+            alert('Vui lòng chọn sản phẩm và nhập % giảm giá hợp lệ (1-99)!');
             return;
         }
 
@@ -1113,16 +1156,18 @@
                 },
                 body: JSON.stringify({
                     product_id: productId,
-                    sale_price: salePrice,
-                    start_time: new Date(startTime).toISOString(),
-                    end_time: new Date(endTime).toISOString()
+                    discount_percent: discountPercent,
+                    start_time: startTime ? new Date(startTime).toISOString() : null,
+                    end_time: endTime ? new Date(endTime).toISOString() : null
                 })
             });
             if (!res.ok) {
                 const err = await res.json();
-                throw new Error(err.detail || 'Không thể tạo Flash Sale');
+                throw new Error(err.detail || 'Không thể tạo Deal Đẹp');
             }
-            alert('✅ Tạo Flash Sale thành công!');
+            alert('✅ Tạo Deal Đẹp thành công!');
+            document.getElementById('fsDiscountPercent').value = '';
+            document.getElementById('fsPreview').innerHTML = '';
             loadFlashSales();
         } catch(e) {
             alert('❌ ' + e.message);
@@ -1130,7 +1175,7 @@
     }
 
     async function deleteFlashSaleSubmit(id) {
-        if (!confirm('Bạn có chắc chắn muốn xoá chương trình Flash Sale này?')) return;
+        if (!confirm('Bạn có chắc chắn muốn xoá Deal Đẹp này?')) return;
         const tk = localStorage.getItem('access_token');
         try {
             const res = await fetch('/admin/flash-sales/' + id, {
@@ -1138,7 +1183,7 @@
                 headers: { 'Authorization': 'Bearer ' + tk }
             });
             if (!res.ok) throw new Error('Không thể xoá');
-            alert('✅ Đã xoá Flash Sale!');
+            alert('✅ Đã xoá Deal Đẹp!');
             loadFlashSales();
         } catch(e) {
             alert('❌ ' + e.message);
@@ -1190,7 +1235,7 @@
             users: { icon: 'users', label: 'Tài khoản' },
             revenue: { icon: 'wallet', label: 'Doanh thu' },
             wishlist: { icon: 'heart', label: 'Yêu thích' },
-            flashsale: { icon: 'zap', label: 'Flash Sale' },
+            flashsale: { icon: 'zap', label: 'Deal Đẹp' },
             coupon: { icon: 'tag', label: 'Mã giảm giá' }
         };
         const pageTitleEl = document.getElementById('pageTitle');

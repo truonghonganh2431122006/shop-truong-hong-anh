@@ -393,10 +393,13 @@ class Coupon(Base):
 
 
 class FlashSale(Base):
+    """Bảng lưu 'Deal Đẹp' (trước đây gọi Flash Sale): admin chọn 1 sản phẩm + % giảm giá.
+    sale_price được BACKEND tự tính = price * (1 - discount_percent/100), không cho nhập tay để tránh sai lệch."""
     __tablename__ = "flash_sales"
     id = Column(Integer, primary_key=True)
     product_id = Column(Integer, ForeignKey("products.id"), nullable=False)
-    sale_price = Column(Integer, nullable=False)   # giá sale, VND
+    sale_price = Column(Integer, nullable=False)   # giá sale, VND — tự tính từ discount_percent
+    discount_percent = Column(Integer, nullable=True)  # % giảm giá do admin chọn (1-99)
     start_time = Column(DateTime, nullable=False)
     end_time = Column(DateTime, nullable=False)
     is_active = Column(Boolean, default=True)
@@ -578,9 +581,9 @@ class CouponCreateSchema(BaseModel):
 
 class FlashSaleCreateSchema(BaseModel):
     product_id: int
-    sale_price: int
-    start_time: datetime
-    end_time: datetime
+    discount_percent: int = Field(ge=1, le=99)   # % giảm giá chọn ở Admin — sale_price sẽ tự tính từ giá gốc
+    start_time: Optional[datetime] = None        # bỏ trống -> bắt đầu ngay
+    end_time: Optional[datetime] = None          # bỏ trống -> mặc định chạy 30 ngày
 
 
 
@@ -637,9 +640,10 @@ def run_auto_migrations(engine):
     ensure_column(engine, "coupons", "expires_at", "TIMESTAMP")
     ensure_column(engine, "coupons", "created_at", "TIMESTAMP")
 
-    # 2. FlashSales table
+    # 2. FlashSales table ("Deal Đẹp")
     ensure_column(engine, "flash_sales", "product_id", "INTEGER")
     ensure_column(engine, "flash_sales", "sale_price", "INTEGER DEFAULT 0")
+    ensure_column(engine, "flash_sales", "discount_percent", "INTEGER")
     ensure_column(engine, "flash_sales", "start_time", "TIMESTAMP")
     ensure_column(engine, "flash_sales", "end_time", "TIMESTAMP")
     ensure_column(engine, "flash_sales", "is_active", "BOOLEAN DEFAULT TRUE")
@@ -1576,7 +1580,19 @@ def delete_coupon(coupon_id: int, admin: User = Depends(require_admin), db: Sess
     return {"message": "Đã xoá"}
 
 
-# ===================== FLASH SALES =====================
+# ===================== DEAL ĐẸP (Flash Sale) =====================
+def _fs_discount_percent(s: "FlashSale") -> int:
+    """Trả về % giảm giá thật của 1 Deal Đẹp. Ưu tiên cột discount_percent đã lưu;
+    nếu bản ghi cũ chưa có (tạo trước khi thêm tính năng), suy ra từ giá gốc/giá sale."""
+    if s.discount_percent is not None:
+        return int(s.discount_percent)
+    if s.product and s.product.price:
+        try:
+            return max(0, round((1 - (s.sale_price / s.product.price)) * 100))
+        except Exception:
+            return 0
+    return 0
+
 @app.get("/flash-sales/active")
 def get_active_flash_sales(db: Session = Depends(get_db)):
     now = now_vn()
@@ -1589,6 +1605,7 @@ def get_active_flash_sales(db: Session = Depends(get_db)):
         "id": s.id,
         "product_id": s.product_id,
         "sale_price": s.sale_price,
+        "discount_percent": _fs_discount_percent(s),
         "start_time": s.start_time.isoformat() if s.start_time else None,
         "end_time": s.end_time.isoformat() if s.end_time else None,
         "product": {
@@ -1602,17 +1619,43 @@ def get_active_flash_sales(db: Session = Depends(get_db)):
 
 @app.post("/admin/flash-sales")
 def create_flash_sale(data: FlashSaleCreateSchema, admin: User = Depends(require_admin), db: Session = Depends(get_db)):
-    data_dict = data.dict()
     from datetime import timezone, timedelta
-    if data_dict.get('start_time') and data_dict['start_time'].tzinfo is not None:
-        data_dict['start_time'] = data_dict['start_time'].astimezone(timezone(timedelta(hours=7))).replace(tzinfo=None)
-    if data_dict.get('end_time') and data_dict['end_time'].tzinfo is not None:
-        data_dict['end_time'] = data_dict['end_time'].astimezone(timezone(timedelta(hours=7))).replace(tzinfo=None)
-    fs = FlashSale(**data_dict)
+
+    product = db.query(Product).filter(Product.id == data.product_id).first()
+    if not product:
+        raise HTTPException(status_code=404, detail="Không tìm thấy sản phẩm")
+
+    def _to_vn_naive(dt):
+        if dt and dt.tzinfo is not None:
+            return dt.astimezone(timezone(timedelta(hours=7))).replace(tzinfo=None)
+        return dt
+
+    start_time = _to_vn_naive(data.start_time) or now_vn()
+    end_time = _to_vn_naive(data.end_time) or (start_time + timedelta(days=30))
+    if end_time <= start_time:
+        raise HTTPException(status_code=400, detail="Thời gian kết thúc phải sau thời gian bắt đầu")
+
+    # Backend tự tính giá sale từ % giảm giá + giá gốc hiện tại của sản phẩm
+    sale_price = round(product.price * (1 - data.discount_percent / 100))
+
+    fs = FlashSale(
+        product_id=data.product_id,
+        sale_price=sale_price,
+        discount_percent=data.discount_percent,
+        start_time=start_time,
+        end_time=end_time,
+    )
     db.add(fs)
     db.commit()
     db.refresh(fs)
-    return fs
+    return {
+        "id": fs.id,
+        "product_id": fs.product_id,
+        "sale_price": fs.sale_price,
+        "discount_percent": fs.discount_percent,
+        "start_time": fs.start_time.isoformat() if fs.start_time else None,
+        "end_time": fs.end_time.isoformat() if fs.end_time else None,
+    }
 
 @app.get("/admin/flash-sales")
 def list_flash_sales(admin: User = Depends(require_admin), db: Session = Depends(get_db)):
@@ -1624,6 +1667,7 @@ def list_flash_sales(admin: User = Depends(require_admin), db: Session = Depends
         "product_img": s.product.image_url if (s.product and s.product.image_url) else "",
         "original_price": s.product.price if s.product else 0,
         "sale_price": s.sale_price,
+        "discount_percent": _fs_discount_percent(s),
         "start_time": s.start_time.isoformat() if s.start_time else None,
         "end_time": s.end_time.isoformat() if s.end_time else None,
         "is_active": s.is_active
