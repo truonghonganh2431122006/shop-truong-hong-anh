@@ -830,6 +830,7 @@
             <select id="fsProductId" onchange="updateFsPreview()" style="padding:8px 12px;border:1px solid var(--border);border-radius:8px;background:var(--card-bg);color:var(--text);flex:1;min-width:220px;">
               <option value="">-- Chọn sản phẩm --</option>
             </select>
+            <button type="button" onclick="reloadDealProductsDropdown()" title="Tải lại danh sách sản phẩm" style="padding:8px 10px;border:1px solid var(--border);border-radius:8px;background:var(--card-bg);color:var(--text);cursor:pointer;">🔄</button>
             <input id="fsDiscountPercent" type="number" min="1" max="99" placeholder="% giảm giá" oninput="updateFsPreview()" style="padding:8px 12px;border:1px solid var(--border);border-radius:8px;background:var(--card-bg);color:var(--text);width:120px;">
             <label style="font-size:12px;color:var(--text-muted)">Bắt đầu (bỏ trống = ngay):</label>
             <input id="fsStartTime" type="datetime-local" style="padding:8px 12px;border:1px solid var(--border);border-radius:8px;background:var(--card-bg);color:var(--text);">
@@ -1055,28 +1056,59 @@
     const DEAL_DEP_THRESHOLD = 50;
     let fsProductsMap = {}; // id -> giá gốc, dùng để xem trước giá sale khi chọn % giảm giá
 
+    // Lấy TOÀN BỘ sản phẩm cho ô chọn của Deal Đẹp — dùng đúng kỹ thuật của tab "Sản phẩm"
+    // (/products?include_inactive=true kèm token), có fallback + log lỗi rõ ràng
+    // để không bao giờ để dropdown im lặng bị trống như trước (lỗi bị catch nuốt mất).
+    async function fetchAllProductsForDeal(tk) {
+        const attempts = [
+            { url: '/products?include_inactive=true', opts: { headers: tk ? { 'Authorization': 'Bearer ' + tk } : {} } },
+            { url: '/products', opts: {} } // fallback nếu lần gọi đầu lỗi (vd. cold-start, mạng chập chờn)
+        ];
+        for (const a of attempts) {
+            try {
+                const res = await fetch(a.url, a.opts);
+                if (res.ok) {
+                    const data = await res.json();
+                    if (Array.isArray(data)) return data;
+                } else {
+                    console.error('[Deal Đẹp] /products trả lỗi', res.status, a.url);
+                }
+            } catch (e) {
+                console.error('[Deal Đẹp] Không gọi được', a.url, e);
+            }
+        }
+        return null;
+    }
+
+    // Tải (hoặc tải lại) danh sách sản phẩm vào ô chọn của Deal Đẹp — dùng riêng để có thể
+    // bấm nút 🔄 thử lại ngay trên form mà không cần load lại cả bảng Deal Đẹp.
+    async function reloadDealProductsDropdown() {
+        const sel = document.getElementById('fsProductId');
+        if (!sel) return;
+        const tk = localStorage.getItem('access_token');
+        sel.innerHTML = '<option value="">-- Đang tải sản phẩm... --</option>';
+        fsProductsMap = {};
+        const prods = await fetchAllProductsForDeal(tk);
+        if (prods && prods.length) {
+            sel.innerHTML = '<option value="">-- Chọn sản phẩm --</option>';
+            prods.forEach(p => {
+                fsProductsMap[p.id] = p.price;
+                const hiddenTag = p.is_active === false ? ' — Đã ẩn' : '';
+                sel.options[sel.options.length] = new Option(`${p.name} (${cleanPrice(p.price)}đ)${hiddenTag}`, p.id);
+            });
+        } else {
+            sel.innerHTML = '<option value="">-- Không tải được sản phẩm, bấm 🔄 để thử lại --</option>';
+        }
+    }
+
     async function loadFlashSales() {
         const tbody = document.getElementById('flashSaleTableBody');
         if (!tbody) return;
         tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;padding:30px;color:var(--text-muted);"><span class="loading-row">${ICON('loader',16,'icon-spin')} Đang tải danh sách Deal Đẹp...</span></td></tr>`;
         const tk = localStorage.getItem('access_token');
 
-        // Luôn tải lại toàn bộ sản phẩm (giống hệt danh sách ở tab Sản phẩm) để đổ vào ô chọn sản phẩm
-        const sel = document.getElementById('fsProductId');
-        if (sel) {
-            sel.innerHTML = '<option value="">-- Chọn sản phẩm --</option>';
-            fsProductsMap = {};
-            try {
-                const pRes = await fetch('/products');
-                if (pRes.ok) {
-                    const prods = await pRes.json();
-                    prods.forEach(p => {
-                        fsProductsMap[p.id] = p.price;
-                        sel.options[sel.options.length] = new Option(`${p.name} (${cleanPrice(p.price)}đ)`, p.id);
-                    });
-                }
-            } catch(e) {}
-        }
+        // Luôn tải lại toàn bộ sản phẩm để đổ vào ô chọn sản phẩm
+        await reloadDealProductsDropdown();
 
         try {
             const fsRes = await fetch('/admin/flash-sales', { headers: { 'Authorization': 'Bearer ' + tk } });
