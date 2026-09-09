@@ -1475,7 +1475,8 @@
         }
 
         /* Badge HOT/SALE */
-        #product-list-container .item .ha-badge {
+        #product-list-container .item .ha-badge,
+        #ha-deal-product-list .item .ha-badge {
             position: absolute !important;
             top: 8px !important;
             left: 8px !important;
@@ -23345,81 +23346,157 @@
     <div id="ha-recently-viewed-list" class="listproduct" style="display:flex;flex-wrap:wrap;gap:16px;justify-content:flex-start;"></div>
 </section>
 
-<section class="web-only">
-    <h2 class="web-only__title">Mua Online - Hàng Chuẩn, Giá Mê</h2>
-    <div class="web-only__list owl-carousel">
-        <div class="web-only__item">
-            <a href="#" class="web-only__image">
-                <img class="web-only__product-image"
-                    src="https://cdnv2.tgdd.vn/mwg-static/common/Campaign/23/0c/230c5ec099f371a522782ea503d39de7.gif"
-                    alt="Sản phẩm Elmich">
-            </a>
-            <div class="web-only__description">
-                <span>3.3 DEAL CHỒNG DEAL</span>
+<section id="ha-deal-section" style="max-width:1200px;margin:40px auto;padding:0 20px;box-sizing:border-box;">
+        <div style="background:linear-gradient(135deg, var(--ha-yellow) 0%, #ff9d00 55%, var(--ha-red) 100%);border-radius:var(--ha-radius);padding:36px 24px 30px;position:relative;overflow:hidden;box-shadow:var(--ha-shadow);">
+        <div style="position:absolute;top:-30px;right:-30px;width:140px;height:140px;background:rgba(255,255,255,.15);border-radius:50%;"></div>
+        <div style="position:absolute;bottom:-40px;left:-20px;width:120px;height:120px;background:rgba(255,255,255,.12);border-radius:50%;"></div>
+
+        <svg style="position:absolute;left:14px;bottom:10px;width:56px;height:56px;filter:drop-shadow(0 4px 6px rgba(0,0,0,.28));transform:rotate(-8deg);" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <rect x="9" y="26" width="46" height="30" rx="3" fill="#fff"/>
+            <rect x="9" y="26" width="46" height="10" fill="#ffd400"/>
+            <rect x="27" y="26" width="10" height="30" fill="#d0021c"/>
+            <path d="M32 26c-6-3-11-9-6-14 5-4 10 3 6 14z" fill="#d0021c"/>
+            <path d="M32 26c6-3 11-9 6-14-5-4-10 3-6 14z" fill="#d0021c"/>
+        </svg>
+        <svg style="position:absolute;right:14px;bottom:10px;width:46px;height:46px;filter:drop-shadow(0 4px 6px rgba(0,0,0,.28));transform:rotate(9deg);" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <rect x="9" y="26" width="46" height="30" rx="3" fill="#fff"/>
+            <rect x="9" y="26" width="46" height="10" fill="#ffd400"/>
+            <rect x="27" y="26" width="10" height="30" fill="#d0021c"/>
+            <path d="M32 26c-6-3-11-9-6-14 5-4 10 3 6 14z" fill="#d0021c"/>
+            <path d="M32 26c6-3 11-9 6-14-5-4-10 3-6 14z" fill="#d0021c"/>
+        </svg>
+
+        <div style="position:relative;z-index:2;text-align:center;">
+            <div style="display:inline-flex;align-items:center;gap:6px;background:#fff;color:var(--ha-red);font-weight:800;font-size:12px;letter-spacing:1px;padding:5px 16px;border-radius:20px;box-shadow:0 2px 6px rgba(0,0,0,.12);">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M6 2h12M6 22h12M8 2c0 4 8 4 8 8s-8 4-8 8M16 2c0 4-8 4-8 8s8 4 8 8" stroke="#d0021c" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                ƯU ĐÃI CÓ HẠN
             </div>
-        </div>
-        <div class="web-only__item">
-            <a href="#" class="web-only__image">
-                <img class="web-only__product-image"
-                    src="https://cdnv2.tgdd.vn/mwg-static/common/Campaign/dd/d0/ddd0e3f4f115cc55463f447c58e4ee65.png"
-                    alt="Sản phẩm Elmich">
-            </a>
-            <div class="web-only__description">
-                <span>Trạm Sắc Màu Bảo Hành 2 Năm</span>
+            <h2 style="margin:14px 0 0;font-size:clamp(26px,4.2vw,40px);font-weight:900;color:#fff;letter-spacing:.5px;line-height:1.15;
+                text-shadow:0 1px 0 #ff9d00,0 2px 0 #ff9d00,0 3px 0 #d0021c,0 4px 0 #d0021c,0 7px 10px rgba(0,0,0,.25);">
+                Deal Đẹp Có Hạn
+            </h2>
+            <div style="display:inline-block;margin-top:10px;background:#b3001b;color:#fff;font-weight:800;font-size:13px;letter-spacing:1.5px;padding:7px 24px;border-radius:4px;box-shadow:0 3px 6px rgba(0,0,0,.2);">
+                RẺ HƠN MỖI NGÀY
             </div>
-        </div>
-        <div class="web-only__item">
-            <a href="#" class="web-only__image">
-                <img class="web-only__product-image"
-                    src="https://cdnv2.tgdd.vn/mwg-static/common/Campaign/af/e9/afe98caa21ee82800e4c6e01b34367d0.png"
-                    alt="Sản phẩm Elmich">
-            </a>
-            <div class="web-only__description">
-                <span>Bật Nhạc Cực Đã, Ưu Đãi 40%+</span>
-            </div>
-        </div>
-        <div class="web-only__item">
-            <a href="#" class="web-only__image">
-                <img class="web-only__product-image"
-                    src="https://cdnv2.tgdd.vn/mwg-static/common/Campaign/ca/65/ca65209607da17dcbb93c045d864a87d.png"
-                    alt="Sản phẩm Elmich">
-            </a>
-            <div class="web-only__description">
-                <span>Muôn Vàn Khám Phá Cùng Dekey</span>
-            </div>
-        </div>
-        <div class="web-only__item">
-            <a href="#" class="web-only__image">
-                <img class="web-only__product-image"
-                    src="https://cdnv2.tgdd.vn/mwg-static/common/Campaign/d7/ed/d7edb9fdd12a7914dc4645f43483599f.png"
-                    alt="Sản phẩm Elmich">
-            </a>
-            <div class="web-only__description">
-                <span>Phụ Kiện Đa Dạng, Mua Ngay!</span>
-            </div>
-        </div>
-        <div class="web-only__item">
-            <a href="#" class="web-only__image">
-                <img class="web-only__product-image"
-                    src="https://cdnv2.tgdd.vn/mwg-static/common/Campaign/75/d4/75d4573cabfca70bb81795992f77c2c7.png"
-                    alt="Sản phẩm Elmich">
-            </a>
-            <div class="web-only__description">
-                <span>Chuẩn Công Nghệ, Giảm Tới 50%+</span>
-            </div>
-        </div>
-        <div class="web-only__item">
-            <a href="#" class="web-only__image">
-                <img class="web-only__product-image"
-                    src="https://cdnv2.tgdd.vn/mwg-static/common/Campaign/2d/2e/2d2ea1b0e5a8217305f6e58b30497d74.png"
-                    alt="Sản phẩm Elmich">
-            </a>
-            <div class="web-only__description">
-                <span>Chiến Game Đỉnh Săn DEAL Hời</span>
+            <p style="margin:12px auto 0;color:#fff;font-weight:600;font-size:14.5px;opacity:.95;max-width:440px;line-height:1.5;">
+                Số lượng ưu đãi có giới hạn, nhanh tay kẻo lỡ!
+            </p>
+            <div style="margin-top:16px;display:inline-flex;gap:8px;align-items:center;background:rgba(0,0,0,.2);padding:8px 18px;border-radius:10px;color:#fff;font-weight:700;font-size:14px;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><circle cx="12" cy="13" r="8" stroke="#fff" stroke-width="1.8"/><path d="M12 9v4l3 2" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M9 2h6M12 2v2" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/></svg>
+                Kết thúc sau: <span id="ha-deal-countdown-text">--:--:--</span>
             </div>
         </div>
     </div>
+
+    <div id="ha-deal-tabs" style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin:18px 0;">
+        <button class="ha-deal-tab active" data-cate="" type="button">Nổi bật</button>
+        <button class="ha-deal-tab" data-cate="điện thoại" type="button">Điện thoại</button>
+        <button class="ha-deal-tab" data-cate="apple" type="button">Apple</button>
+        <button class="ha-deal-tab" data-cate="laptop" type="button">Laptop</button>
+        <button class="ha-deal-tab" data-cate="phụ kiện" type="button">Phụ kiện</button>
+        <button class="ha-deal-tab" data-cate="đồng hồ" type="button">Đồng hồ</button>
+    </div>
+
+    <div id="ha-deal-product-list" class="listproduct" style="min-height:80px;"></div>
+
+    <div style="text-align:center;margin-top:20px;">
+        <button id="ha-deal-loadmore" type="button" style="background:linear-gradient(135deg, var(--ha-yellow), #ff9d00);border:none;color:#111;font-weight:700;padding:10px 28px;border-radius:24px;cursor:pointer;box-shadow:var(--ha-shadow);">Xem thêm Deal ▼</button>
+    </div>
 </section>
+<style>
+    .ha-deal-tab { border: 1px solid var(--ha-border); background: #fff; color: var(--ha-text); font-weight: 600; font-size: 13px; padding: 7px 16px; border-radius: 20px; cursor: pointer; transition: all .2s var(--ha-ease); }
+    .ha-deal-tab:hover { border-color: var(--ha-red); color: var(--ha-red); }
+    .ha-deal-tab.active { background: var(--ha-red); border-color: var(--ha-red); color: #fff; }
+    #ha-deal-loadmore:hover { filter: brightness(1.05); transform: translateY(-1px); }
+    #ha-deal-loadmore[disabled] { opacity: .5; cursor: default; transform: none; }
+
+    /* ══════ Khung ảnh sản phẩm — khung Deal Đẹp Có Hạn ══════
+       Trước đây ảnh không có kích thước cố định nên bị tràn ra ngoài card.
+       Nay khoá khung ảnh vuông gọn gàng, thêm hiệu ứng zoom nhẹ + nền gradient sang trọng hơn. */
+    #ha-deal-product-list .item {
+        display: flex !important;
+        box-shadow: 0 2px 10px rgba(20, 20, 43, 0.05);
+        transition: transform .3s cubic-bezier(.34,1.2,.64,1), box-shadow .3s ease, border-color .3s ease !important;
+    }
+    #ha-deal-product-list .item:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 14px 28px rgba(208, 2, 28, 0.14);
+        border-color: #ffc9c9 !important;
+        z-index: 2;
+    }
+    #ha-deal-product-list .item .item-img {
+        width: 100% !important;
+        height: 170px !important;
+        min-height: 170px !important;
+        max-height: 170px !important;
+        background: radial-gradient(circle at 50% 38%, #ffffff 0%, #f4f5f9 100%) !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        overflow: hidden !important;
+        flex-shrink: 0 !important;
+        border-radius: 15px 15px 0 0 !important;
+        position: relative !important;
+    }
+    /* Ánh đỏ nhẹ dưới đáy khung ảnh — gợi không khí "deal nóng" mà không chói */
+    #ha-deal-product-list .item .item-img::after {
+        content: '';
+        position: absolute; left: 0; right: 0; bottom: 0; height: 46%;
+        background: linear-gradient(to top, rgba(208,2,28,.06), rgba(208,2,28,0));
+        pointer-events: none;
+    }
+    #ha-deal-product-list .item .item-img img {
+        width: 100% !important;
+        height: 100% !important;
+        max-width: 100% !important;
+        object-fit: contain !important;
+        padding: 14px !important;
+        border-radius: 15px !important;
+        transition: transform .45s cubic-bezier(.4,0,.2,1) !important;
+        display: block !important;
+        box-sizing: border-box !important;
+        position: relative; z-index: 1;
+    }
+    #ha-deal-product-list .item:hover .item-img img {
+        transform: scale(1.09);
+    }
+    /* ── Đệm lề cho tên / giá / quà — trước đây chữ dính sát mép trái do thiếu padding ── */
+    #ha-deal-product-list .item .remain_quantity.main-contain,
+    #ha-deal-product-list .item > a.remain_quantity {
+        padding: 12px 14px 8px !important;
+        display: flex !important;
+        flex-direction: column !important;
+        flex: 1 !important;
+        pointer-events: none !important;
+        text-decoration: none !important;
+    }
+    #ha-deal-product-list .item h3 {
+        font-size: 13.5px !important;
+        font-weight: 700 !important;
+        color: #0a0a0a !important;
+        line-height: 1.45 !important;
+        margin: 0 0 6px !important;
+        min-height: 39px !important;
+        display: -webkit-box !important;
+        -webkit-line-clamp: 2 !important;
+        -webkit-box-orient: vertical !important;
+        overflow: hidden !important;
+        letter-spacing: -0.1px !important;
+    }
+    #ha-deal-product-list .item strong.price {
+        font-size: 16px !important;
+        font-weight: 900 !important;
+        color: #e8000d !important;
+        display: flex !important;
+        align-items: center !important;
+        gap: 6px !important;
+        flex-wrap: wrap !important;
+        font-variant-numeric: tabular-nums !important;
+        letter-spacing: -0.3px !important;
+        margin: 2px 0 !important;
+    }
+    #ha-deal-product-list .item .tgdd-tra-cham { margin-left: 2px; margin-right: 2px; }
+</style>
 <div id="daily-recommended" class="homeproducts-block hide">
     <ul>
         <li data-id="recommend"></li>
@@ -23430,49 +23507,6 @@
         </div>
     </div>
 </div>
-<div class="monopoly-product-block">
-    <h3 class="lehoi">Lễ Hội Trả Chậm</h3>
-    <a data-cate="0" data-place="8072" href="#"
-        onclick="jQuery.ajax({ url: '/bannertracking?bid=106338&r='+ (new Date).getTime(), async: true, cache: false });">
-        <img style="cursor:pointer" class="lehoi1"
-            src="https://cdnv2.tgdd.vn/mwg-static/tgdd/Banner/f1/71/f171b5b04952fcb4baaec77268de377b.png"
-            alt="Lễ Hội Trả Chậm" width="760" height="1000">
-        <img style="cursor:pointer" class="lehoi2" src="/static/lehoi.jpg" alt="Lễ Hội Trả Chậm" width="760"
-            height="1000">
-    </a>
-</div>
-<!--Tuần lễ thương hiệu-->
-<section class="banner-brand-week">
-    <div class="box-banner-title">Có AI - Thông Minh Hơn Xài Sướng Hơn</div>
-    <div class="box-banner-offers">
-        <div data-banner="108547" class="banner-offers-item">
-            <a href="#">
-                <img class="ai-banner-img" src="/static/AI.jpg" alt="AI thông minh">
-            </a>
-        </div>
-    </div>
-</section>
-<section class="banner-brand-week">
-    <div class="box-banner-title">Gian Hàng Ưu Đãi</div>
-    <div class="box-banner-offers">
-        <div data-banner="108547" class="banner-offers-item">
-            <a href="#">
-                <img class="ai-banner-img" src="/static/uudai.jpg" alt="Gian Hàng Ưu Đãi">
-            </a>
-        </div>
-    </div>
-</section>
-<!--Bài tin-->
-<section class="banner-brand-week">
-    <div class="box-banner-title">Mạng xã hội</div>
-    <div class="box-banner-offers">
-        <div data-banner="108547" class="banner-offers-item">
-            <a href="#">
-                <img class="ai-banner-img" src="/static/xahoi.jpg" alt="Gian Hàng Ưu Đãi">
-            </a>
-        </div>
-    </div>
-</section>
 </div>
 <!-- Tìm kiếm nhiều -->
 <section class="search-trend">
@@ -25875,10 +25909,145 @@
                 });
                 // Khởi động phân trang và lọc sau khi sản phẩm đã render
                 if (window.haInitPaging) setTimeout(window.haInitPaging, 100);
+                // Render section "Deal Đẹp Có Hạn" bằng đúng dữ liệu sản phẩm thật vừa tải
+                if (typeof renderDealSection === 'function') renderDealSection();
             } catch (error) {
                 console.error("Lỗi khi kết nối API:", error);
             }
         }
+
+        // ── Section "Deal Đẹp Có Hạn": dùng chung dữ liệu/hành vi với grid sản phẩm chính ──
+        (function () {
+            let dealAllProducts = [];
+            let dealFiltered = [];
+            let dealShown = 0;
+            const DEAL_BATCH = 8;
+            let dealCate = '';
+
+            function dealCardHtml(p) {
+                // ── Sinh card đầy đủ giống hệt khu vực sản phẩm chính (#product-list-container):
+                // badge HOT/AI, sao đánh giá, đã bán, giá gốc gạch ngang + %, Quà, Trả chậm 0% ──
+                const imgUrl = p.image_url || p.img || 'https://placehold.co/200x200?text=No+Image';
+                const effectivePrice = getEffectivePrice(p);
+                const displayPrice = cleanPrice(effectivePrice);
+                const seed = p.id || 0;
+
+                const isHot = p.price >= 10000000;
+                const isSale = p.price < 3000000;
+                const badge = isHot
+                    ? '<span class="ha-badge">HOT</span>'
+                    : isSale ? '<span class="ha-badge" style="background:#0071e3">SALE</span>' : '';
+                const aiBadge = (seed % 2 === 0 || /samsung|apple|iphone|watch|ultra/i.test(p.name || '')) ? '<span class="tgdd-ai-badge">✦ AI</span>' : '';
+
+                const stars = (4.5 + (seed % 5) * 0.1).toFixed(1);
+                const soldList = [27.9, 313, 45, 12, 8.2, 156, 89, 34];
+                const sold = soldList[seed % soldList.length];
+
+                const discountPct = Math.round(10 + (seed * 13) % 35);
+                const oldPriceNum = Math.round(effectivePrice / (1 - discountPct / 100));
+                const oldPriceFmt = oldPriceNum.toLocaleString('vi-VN') + 'đ';
+
+                const giftK = Math.round(effectivePrice * 0.05 / 1000);
+                const installmentHtml = effectivePrice >= 3000000
+                    ? `<div class="tgdd-installment">Quà ${giftK}K</div>`
+                    : '';
+
+                return `<div class="item" style="cursor:pointer;position:relative;" data-pid="${p.id}" onclick="window.dealOpenModal(${p.id})">
+                    ${aiBadge}
+                    ${badge}
+                    <a href="javascript:void(0)" class="remain_quantity main-contain">
+                        <div class="item-img"><img src="${imgUrl}" alt="${p.name}" loading="lazy" onerror="this.onerror=null;this.src='https://placehold.co/200x200?text=No+Image'"></div>
+                        <h3>${p.name}</h3>
+                        <div class="tgdd-rating">★ ${stars}<span>• Đã bán ${sold}k</span></div>
+                        <strong class="price">${displayPrice} ₫</strong>
+                        <div class="tgdd-price-row"><span class="tgdd-old-price">${oldPriceFmt}</span><span class="tgdd-discount-pct">-${discountPct}%</span></div>
+                        ${installmentHtml}
+                    </a>
+                    <div class="tgdd-tra-cham">Trả chậm 0% trả trước 0đ</div>
+                    <button class="tgdd-compare-btn" onclick="event.stopPropagation();">+ So sánh</button>
+                </div>`;
+            }
+
+            // Mở modal xem chi tiết sản phẩm (dùng chung #productModal với khu sản phẩm chính)
+            // — gắn trực tiếp bằng onclick trên card để luôn chắc chắn hoạt động, kể cả khi đổi tab lọc liên tục.
+            window.dealOpenModal = function (id) {
+                const p = dealAllProducts.find(function (x) { return x.id === id; });
+                if (!p) return;
+                const imgUrl = p.image_url || p.img || '';
+                showProductModal(p.name, getEffectivePrice(p), imgUrl, p.description || '', p.id);
+            };
+
+            function dealFilterProducts() {
+                if (!dealCate) { dealFiltered = dealAllProducts.slice(); return; }
+                dealFiltered = dealAllProducts.filter(function (p) {
+                    const n = (p.name || '').toLowerCase();
+                    if (dealCate === 'apple') return /apple|iphone|ipad|macbook|airpod|apple watch/i.test(n);
+                    if (dealCate === 'laptop') return /laptop|macbook|dell|hp|asus|lenovo|acer|notebook/i.test(n);
+                    if (dealCate === 'điện thoại') return /iphone|samsung|oppo|xiaomi|vivo|realme|điện thoại|phone/i.test(n) && !/laptop|macbook/i.test(n);
+                    if (dealCate === 'phụ kiện') return /tai nghe|airpod|headphone|earphone|loa|sạc|cáp|ốp|phụ kiện/i.test(n);
+                    if (dealCate === 'đồng hồ') return /smartwatch|đồng hồ|garmin|apple watch|galaxy watch/i.test(n);
+                    return true;
+                });
+            }
+
+            function dealRenderBatch(reset) {
+                const list = document.getElementById('ha-deal-product-list');
+                const moreBtn = document.getElementById('ha-deal-loadmore');
+                if (!list) return;
+                if (reset) { list.innerHTML = ''; dealShown = 0; }
+                const next = dealFiltered.slice(dealShown, dealShown + DEAL_BATCH);
+                next.forEach(function (p) { list.insertAdjacentHTML('beforeend', dealCardHtml(p)); });
+                dealShown += next.length;
+                if (moreBtn) {
+                    if (dealShown >= dealFiltered.length) {
+                        moreBtn.textContent = 'Đã hiển thị tất cả';
+                        moreBtn.disabled = true;
+                    } else {
+                        moreBtn.textContent = 'Xem thêm Deal ▼';
+                        moreBtn.disabled = false;
+                    }
+                }
+            }
+
+            function dealStartCountdown() {
+                const el = document.getElementById('ha-deal-countdown-text');
+                if (!el) return;
+                function tick() {
+                    const now = new Date();
+                    const end = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 0, 0, 0);
+                    const diff = end - now;
+                    const h = String(Math.floor(diff / 3600000)).padStart(2, '0');
+                    const m = String(Math.floor((diff % 3600000) / 60000)).padStart(2, '0');
+                    const s = String(Math.floor((diff % 60000) / 1000)).padStart(2, '0');
+                    el.textContent = h + ':' + m + ':' + s;
+                }
+                tick();
+                setInterval(tick, 1000);
+            }
+
+            window.renderDealSection = function () {
+                if (!window.allProducts || !window.allProducts.length) return;
+                dealAllProducts = window.allProducts.slice();
+                dealFilterProducts();
+                dealRenderBatch(true);
+            };
+
+            document.addEventListener('click', function (e) {
+                const tab = e.target.closest('.ha-deal-tab');
+                if (tab) {
+                    document.querySelectorAll('.ha-deal-tab').forEach(function (t) { t.classList.remove('active'); });
+                    tab.classList.add('active');
+                    dealCate = tab.getAttribute('data-cate') || '';
+                    dealFilterProducts();
+                    dealRenderBatch(true);
+                }
+                if (e.target && e.target.id === 'ha-deal-loadmore') {
+                    dealRenderBatch(false);
+                }
+            });
+
+            document.addEventListener('DOMContentLoaded', dealStartCountdown);
+        })();
 
         function showProductModal(name, price, img, desc, id) {
             try {
@@ -28428,7 +28597,8 @@
   display: none; z-index: 3;
   transition: all 0.15s;
 }
-#product-list-container .item:hover .tgdd-compare-btn {
+#product-list-container .item:hover .tgdd-compare-btn,
+#ha-deal-product-list .item:hover .tgdd-compare-btn {
   display: block;
 }
 .tgdd-compare-btn:hover { border-color: #e8000d; color: #e8000d; }
@@ -29601,7 +29771,7 @@
     font-size: 13.5px;
     line-height: 1.55;
     word-break: break-word;
-    white-space: pre-wrap;
+    white-space: normal;
     text-align: left !important;
     vertical-align: top;
 }
