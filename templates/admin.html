@@ -935,6 +935,11 @@
 <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script>
 <script>
     
+    // Định dạng số tiền có dấu phân cách hàng nghìn (VD: 150000 -> "150.000")
+    function cleanPrice(v) {
+        return Number(v || 0).toLocaleString('vi-VN');
+    }
+
     // ── COUPON MANAGEMENT ──
     async function loadCouponUserOptions() {
         const sel = document.getElementById('cpUserId');
