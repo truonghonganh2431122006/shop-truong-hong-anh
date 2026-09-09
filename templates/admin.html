@@ -1070,20 +1070,24 @@
             { url: '/products?include_inactive=true', opts: { headers: tk ? { 'Authorization': 'Bearer ' + tk } : {} } },
             { url: '/products', opts: {} } // fallback nếu lần gọi đầu lỗi (vd. cold-start, mạng chập chờn)
         ];
+        let lastErr = '';
         for (const a of attempts) {
             try {
                 const res = await fetchWithTimeout(a.url, a.opts, 20000); // tối đa 20s / lần thử
                 if (res.ok) {
                     const data = await res.json();
-                    if (Array.isArray(data)) return data;
+                    if (Array.isArray(data)) return { products: data };
+                    lastErr = 'Dữ liệu trả về không phải danh sách (kiểm tra API /products)';
                 } else {
+                    lastErr = 'Lỗi HTTP ' + res.status + ' tại ' + a.url;
                     console.error('[Deal Đẹp] /products trả lỗi', res.status, a.url);
                 }
             } catch (e) {
+                lastErr = (e && e.name === 'AbortError' ? 'Hết thời gian chờ (timeout) tại ' : 'Lỗi mạng tại ') + a.url;
                 console.error('[Deal Đẹp] Không gọi được', a.url, e);
             }
         }
-        return null;
+        return { products: null, error: lastErr || 'Không rõ lỗi' };
     }
 
     // Tải (hoặc tải lại) danh sách sản phẩm vào ô chọn của Deal Đẹp — dùng riêng để có thể
@@ -1094,7 +1098,8 @@
         const tk = localStorage.getItem('access_token');
         sel.innerHTML = '<option value="">-- Đang tải sản phẩm... --</option>';
         fsProductsMap = {};
-        const prods = await fetchAllProductsForDeal(tk);
+        const result = await fetchAllProductsForDeal(tk);
+        const prods = result && result.products;
         if (prods && prods.length) {
             sel.innerHTML = '<option value="">-- Chọn sản phẩm --</option>';
             prods.forEach(p => {
@@ -1102,8 +1107,12 @@
                 const hiddenTag = p.is_active === false ? ' — Đã ẩn' : '';
                 sel.options[sel.options.length] = new Option(`${p.name} (${cleanPrice(p.price)}đ)${hiddenTag}`, p.id);
             });
+        } else if (prods && prods.length === 0) {
+            sel.innerHTML = '<option value="">-- Chưa có sản phẩm nào trong kho --</option>';
         } else {
-            sel.innerHTML = '<option value="">-- Không tải được sản phẩm, bấm 🔄 để thử lại --</option>';
+            // Hiện NGAY lỗi thật lên dropdown (không cần mở Console) để dễ báo lại chính xác
+            const msg = (result && result.error) ? result.error : 'Không tải được sản phẩm';
+            sel.innerHTML = `<option value="">-- ${msg} (bấm 🔄) --</option>`;
         }
     }
 
