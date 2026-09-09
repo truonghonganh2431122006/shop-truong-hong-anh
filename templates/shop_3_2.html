@@ -25831,9 +25831,13 @@
                     const fs = window.flashSalesMap && window.flashSalesMap[p.id];
                     const now = new Date();
                     const isFsActive = fs && (now >= new Date(fs.start_time)) && (now <= new Date(fs.end_time));
-                    // Phân biệt rõ 2 loại: giảm ≥50% => Flash Sale (đỏ), giảm <50% => Deal Đẹp (cam)
+                    // 3 mốc rõ ràng dựa trên % giảm THẬT (admin cấu hình):
+                    //  >= 50%      => Flash Sale (đỏ)
+                    //  20% - <50%  => Deal Đẹp (cam)
+                    //  < 20%       => coi như KHÔNG có deal, hiện sản phẩm bình thường
                     const fsPct = isFsActive ? getDealDiscountPercent(p, fs) : 0;
-                    const fsBadge = !isFsActive ? '' : (fsPct >= 50
+                    const isRealDeal = isFsActive && fsPct >= 20; // chỉ tính là "deal" khi >= 20%
+                    const fsBadge = !isRealDeal ? '' : (fsPct >= 50
                         ? '<span class="ha-badge ha-badge-2" style="background:var(--ha-red,#d0021c);">⚡ FLASH SALE</span>'
                         : '<span class="ha-badge ha-badge-2" style="background:#f59e0b;">🏷️ DEAL ĐẸP</span>');
 
@@ -25848,6 +25852,8 @@
                     itemDiv.setAttribute('data-fs-active', isFsActive ? '1' : '0');
                     itemDiv.setAttribute('data-fs-price', fs ? fs.sale_price : '');
                     itemDiv.setAttribute('data-fs-end', fs ? fs.end_time : '');
+                    itemDiv.setAttribute('data-fs-real-deal', isRealDeal ? '1' : '0'); // chỉ '1' khi giảm thật >= 20%
+                    itemDiv.setAttribute('data-porig', p.price); // giá gốc thật, dùng để tính % giảm thật
                     // data-pcate giúp lọc danh mục — suy ra chính xác từ tên sản phẩm
                     const nameLower = p.name.toLowerCase();
                     let pcates = [];
@@ -25868,13 +25874,12 @@
                         : isSale ? '<span class="ha-badge" style="background:#0071e3">SALE</span>' : '';
 
                     const aiBadge = (p.id % 2 === 0 || /samsung|apple|iphone|watch|ultra/i.test(p.name)) ? '<span class="tgdd-ai-badge">✦ AI</span>' : '';
-                    const oldPriceVal = cleanPrice(Math.round(p.price * 1.35));
-                    const discountPct = Math.round(15 + (p.id * 7) % 30);
 
                     const safeName = p.name.replace(/'/g, "\\'").replace(/"/g, '&quot;');
 
+                    // Dòng giá ⚡ (giá gốc gạch ngang + giá deal + đếm ngược) — chỉ hiện khi là deal THẬT (>=20%)
                     let fsTimerHtml = '';
-                    if (fs) {
+                    if (isRealDeal) {
                         fsTimerHtml = `<div id="fs-box-${p.id}" style="margin-top:4px;font-size:12px;color:var(--ha-red);font-weight:700;">
                             ⚡ <span style="text-decoration:line-through;color:#888;font-size:11px;margin-right:4px;">${displayPrice} ₫</span> ${cleanPrice(fs.sale_price)} ₫
                             <div id="fs-timer-${p.id}" style="display:inline-block;background:var(--ha-red);color:#fff;padding:1px 5px;border-radius:4px;font-size:10px;margin-left:4px;">⏰ --:--:--</div>
@@ -25899,7 +25904,7 @@
                         </a>
                     `;
 
-                    if (fs) {
+                    if (isRealDeal) {
                         const endTime = new Date(fs.end_time).getTime();
                         const timerEl = itemDiv.querySelector(`#fs-timer-${p.id}`);
                         const boxEl = itemDiv.querySelector(`#fs-box-${p.id}`);
@@ -26063,16 +26068,16 @@
 
             // ── Quy tắc hiển thị "Deal Đẹp Có Hạn" ──
             // Chỉ những sản phẩm ĐƯỢC ADMIN CẤU HÌNH giảm giá (mục "Deal Đẹp" trong Admin) và
-            // đang trong thời gian áp dụng, với % giảm giá THỰC TẾ < 50%, mới xuất hiện ở đây.
-            // Sản phẩm giảm giá >= 50% (hoặc không có Deal Đẹp nào) sẽ KHÔNG hiện ở mục này,
-            // mà vẫn hiển thị bình thường ở lưới sản phẩm phía trên.
+            // đang trong thời gian áp dụng, với % giảm giá THỰC TẾ trong khoảng 20% - dưới 50%, mới xuất hiện ở đây.
+            // < 20%  => coi như không có deal, hiện bình thường ở lưới sản phẩm chính (không có badge gì đặc biệt)
+            // >= 50% => thuộc khu FLASH SALE riêng
             window.renderDealSection = function () {
                 if (!window.allProducts || !window.allProducts.length) return;
                 dealAllProducts = window.allProducts.filter(function (p) {
                     const fs = window.flashSalesMap && window.flashSalesMap[p.id];
                     if (!isDealActive(fs)) return false;
                     const pct = getDealDiscountPercent(p, fs);
-                    return pct > 0 && pct < 50;
+                    return pct >= 20 && pct < 50;
                 });
                 dealFilterProducts();
                 dealRenderBatch(true);
@@ -28747,33 +28752,43 @@
         }
       }
 
-      // Thêm giá gốc + % giảm + trả góp sau strong.price
+      // Rating + Đã bán — hiển thị cho MỌI sản phẩm, không phụ thuộc có Deal hay không
       var priceEl = item.querySelector('strong.price');
-      if (priceEl && !item.querySelector('.tgdd-price-row')) {
-        var pct = [8,10,12,15,17,20,24,25,30,31,38,40][idx % 12];
-        var oldPrice = Math.round(price / (1 - pct/100));
-        var oldFmt = oldPrice.toLocaleString('vi-VN');
-        var row = document.createElement('div');
-        row.className = 'tgdd-price-row';
-        row.innerHTML = '<span class="tgdd-old-price">' + oldFmt + 'đ</span><span class="tgdd-discount-pct">-' + pct + '%</span>';
-        priceEl.after(row);
-
-        // Trả góp
-        if (price >= 3000000) {
-          var monthly = Math.round(price / 12 / 1000) * 1000;
-          var inst = document.createElement('div');
-          inst.className = 'tgdd-installment';
-          inst.textContent = 'Quà ' + Math.round(price * 0.05 / 1000) + 'K';
-          row.after(inst);
-        }
-
-        // Rating
+      if (priceEl && !item.querySelector('.tgdd-rating')) {
         var stars = (4.5 + (idx % 5) * 0.1).toFixed(1);
         var sold  = [27.9, 313, 45, 12, 8.2, 156, 89, 34][idx % 8];
         var rating = document.createElement('div');
         rating.className = 'tgdd-rating';
         rating.innerHTML = '★ ' + stars + '<span>• Đã bán ' + sold + 'k</span>';
         priceEl.before(rating);
+      }
+
+      // Giá gốc gạch ngang + % giảm — CHỈ hiện khi sản phẩm có Deal Đẹp THẬT (admin cấu hình ở trang Admin)
+      // với mức giảm thực tế trong khoảng 20% - dưới 50%. Không dùng số % giả định nữa.
+      //   < 20%       => không có deal thật / giảm quá ít => hiện giá gốc bình thường, không có dòng này
+      //   20% - <50%  => Deal Đẹp => hiện dòng giá gốc gạch ngang + % thật
+      //   >= 50%      => Flash Sale => đã có dòng ⚡ riêng ở trên rồi, không lặp lại ở đây
+      if (priceEl && !item.querySelector('.tgdd-price-row')) {
+        var isRealDeal = item.getAttribute('data-fs-real-deal') === '1';
+        var fsPrice = parseFloat(item.getAttribute('data-fs-price') || '0');
+        var origPrice = parseFloat(item.getAttribute('data-porig') || price || '0');
+        var realPct = (origPrice > 0 && fsPrice > 0) ? Math.round((1 - fsPrice / origPrice) * 100) : 0;
+
+        if (isRealDeal && realPct >= 20 && realPct < 50) {
+          var oldFmt = origPrice.toLocaleString('vi-VN');
+          var row = document.createElement('div');
+          row.className = 'tgdd-price-row';
+          row.innerHTML = '<span class="tgdd-old-price">' + oldFmt + 'đ</span><span class="tgdd-discount-pct">-' + realPct + '%</span>';
+          priceEl.after(row);
+
+          // Trả góp / Quà — chỉ tặng kèm khi thực sự đang trong Deal Đẹp
+          if (price >= 3000000) {
+            var inst = document.createElement('div');
+            inst.className = 'tgdd-installment';
+            inst.textContent = 'Quà ' + Math.round(price * 0.05 / 1000) + 'K';
+            row.after(inst);
+          }
+        }
       }
 
       // Nút so sánh
