@@ -1057,8 +1057,14 @@
     let fsProductsMap = {}; // id -> giá gốc, dùng để xem trước giá sale khi chọn % giảm giá
 
     // Lấy TOÀN BỘ sản phẩm cho ô chọn của Deal Đẹp — dùng đúng kỹ thuật của tab "Sản phẩm"
-    // (/products?include_inactive=true kèm token), có fallback + log lỗi rõ ràng
-    // để không bao giờ để dropdown im lặng bị trống như trước (lỗi bị catch nuốt mất).
+    // (/products?include_inactive=true kèm token), có fallback + timeout an toàn + log lỗi rõ ràng
+    // để không bao giờ để dropdown im lặng bị trống/treo như trước.
+    function fetchWithTimeout(url, opts, ms) {
+        const ctrl = new AbortController();
+        const timer = setTimeout(() => ctrl.abort(), ms);
+        return fetch(url, Object.assign({}, opts, { signal: ctrl.signal })).finally(() => clearTimeout(timer));
+    }
+
     async function fetchAllProductsForDeal(tk) {
         const attempts = [
             { url: '/products?include_inactive=true', opts: { headers: tk ? { 'Authorization': 'Bearer ' + tk } : {} } },
@@ -1066,7 +1072,7 @@
         ];
         for (const a of attempts) {
             try {
-                const res = await fetch(a.url, a.opts);
+                const res = await fetchWithTimeout(a.url, a.opts, 20000); // tối đa 20s / lần thử
                 if (res.ok) {
                     const data = await res.json();
                     if (Array.isArray(data)) return data;
@@ -1107,8 +1113,11 @@
         tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;padding:30px;color:var(--text-muted);"><span class="loading-row">${ICON('loader',16,'icon-spin')} Đang tải danh sách Deal Đẹp...</span></td></tr>`;
         const tk = localStorage.getItem('access_token');
 
-        // Luôn tải lại toàn bộ sản phẩm để đổ vào ô chọn sản phẩm
-        await reloadDealProductsDropdown();
+        // QUAN TRỌNG: KHÔNG await ở đây — giống hệt cách loadCoupons() gọi loadCouponUserOptions().
+        // Nếu await, lỡ việc tải sản phẩm bị chậm/lỗi sẽ chặn luôn việc tải bảng Deal Đẹp bên dưới,
+        // khiến bảng bị kẹt mãi ở "Đang tải..." dù dữ liệu Deal Đẹp đã sẵn sàng từ lâu.
+        // Chạy song song để 2 phần độc lập với nhau.
+        reloadDealProductsDropdown();
 
         try {
             const fsRes = await fetch('/admin/flash-sales', { headers: { 'Authorization': 'Bearer ' + tk } });
