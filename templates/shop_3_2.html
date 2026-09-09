@@ -22134,14 +22134,18 @@
 
         /* ═══ Nâng cấp thẻ sản phẩm trong banner "FLASH SALE ĐANG DIỄN RA" ═══ */
         .ha-fs-card {
-            width: 168px;
-            flex-shrink: 0;
+            width: 168px !important;
+            max-width: 168px !important;
+            min-width: 168px !important;
+            flex-shrink: 0 !important;
             background: #fff;
             border-radius: 18px;
             padding: 14px 14px 16px;
             cursor: pointer;
             text-align: center;
             position: relative;
+            box-sizing: border-box !important;
+            overflow: hidden !important;
             box-shadow: 0 6px 18px rgba(0, 0, 0, 0.14);
             transition: transform .25s cubic-bezier(.4,0,.2,1), box-shadow .25s;
         }
@@ -22177,19 +22181,26 @@
             z-index: 2;
         }
         .ha-fs-card .ha-fs-imgwrap {
+            width: 100% !important;
+            max-width: 100% !important;
             background: linear-gradient(160deg, #fff7f0, #ffe3e3);
             border-radius: 14px;
             padding: 10px;
             margin-bottom: 10px;
-            height: 108px;
+            height: 108px !important;
+            max-height: 108px !important;
+            box-sizing: border-box !important;
+            overflow: hidden !important;
             display: flex;
             align-items: center;
             justify-content: center;
         }
         .ha-fs-card .ha-fs-imgwrap img {
-            max-width: 100%;
-            max-height: 100%;
-            object-fit: contain;
+            width: auto !important;
+            height: auto !important;
+            max-width: 100% !important;
+            max-height: 100% !important;
+            object-fit: contain !important;
         }
         .ha-fs-card .ha-fs-name {
             font-size: 13px;
