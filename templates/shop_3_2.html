@@ -22077,6 +22077,86 @@
                     font-size: 16px;
                 }
             }
+
+        /* ═══ Nâng cấp thẻ sản phẩm trong banner "FLASH SALE ĐANG DIỄN RA" ═══ */
+        .ha-fs-card {
+            width: 168px;
+            flex-shrink: 0;
+            background: #fff;
+            border-radius: 18px;
+            padding: 14px 14px 16px;
+            cursor: pointer;
+            text-align: center;
+            position: relative;
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.14);
+            transition: transform .25s cubic-bezier(.4,0,.2,1), box-shadow .25s;
+        }
+        .ha-fs-card:hover {
+            transform: translateY(-6px) scale(1.03);
+            box-shadow: 0 16px 34px rgba(0, 0, 0, 0.24);
+        }
+        .ha-fs-card .ha-fs-badge {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: linear-gradient(135deg, #ff5b5b, #e60023);
+            color: #fff;
+            font-size: 10px;
+            font-weight: 800;
+            padding: 4px 9px;
+            border-radius: 20px;
+            letter-spacing: .4px;
+            box-shadow: 0 2px 8px rgba(230, 0, 35, .45);
+            z-index: 2;
+        }
+        .ha-fs-card .ha-fs-pct {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #fff3cd;
+            color: #b45309;
+            font-size: 10px;
+            font-weight: 800;
+            padding: 4px 8px;
+            border-radius: 20px;
+            border: 1px solid #fde68a;
+            z-index: 2;
+        }
+        .ha-fs-card .ha-fs-imgwrap {
+            background: linear-gradient(160deg, #fff7f0, #ffe3e3);
+            border-radius: 14px;
+            padding: 10px;
+            margin-bottom: 10px;
+            height: 108px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .ha-fs-card .ha-fs-imgwrap img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+        .ha-fs-card .ha-fs-name {
+            font-size: 13px;
+            font-weight: 600;
+            color: #1a1a2e;
+            height: 34px;
+            overflow: hidden;
+            margin-bottom: 6px;
+            line-height: 1.3;
+        }
+        .ha-fs-card .ha-fs-price {
+            font-size: 15px;
+            font-weight: 800;
+            color: #e60023;
+        }
+        .ha-fs-card .ha-fs-oldprice {
+            font-size: 11px;
+            text-decoration: line-through;
+            color: #a1a1aa;
+            margin-top: 2px;
+        }
     </style>
 </head>
 <!-- End Floating Banners -->
@@ -28578,13 +28658,15 @@
                     if (!p) return '';
                     const img = p.image_url || 'https://placehold.co/150x150?text=SP';
                     const safeN = (p.name || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
+                    const pct = s.discount_percent || Math.max(0, Math.round((1 - s.sale_price / p.price) * 100));
                     return `
-                <div onclick="showProductModal('${safeN}', ${s.sale_price}, '${img}', '${(p.description || '').replace(/'/g, "\\'").replace(/"/g, '&quot;')}', ${p.id})" style="width:160px;flex-shrink:0;background:#fff;color:#333;border-radius:12px;padding:12px;cursor:pointer;text-align:center;box-shadow:0 4px 12px rgba(0,0,0,0.15);position:relative;">
-                    <span style="position:absolute;top:8px;left:8px;background:#e60023;color:#fff;font-size:10px;font-weight:800;padding:2px 6px;border-radius:4px;">FLASH SALE</span>
-                    <img src="${img}" style="width:100px;height:100px;object-fit:contain;margin-bottom:8px;">
-                    <div style="font-size:13px;font-weight:600;height:36px;overflow:hidden;margin-bottom:6px;">${p.name}</div>
-                    <div style="font-size:14px;font-weight:800;color:#e60023;">${cleanPrice(s.sale_price)}đ</div>
-                    <div style="font-size:11px;text-decoration:line-through;color:#888;">${cleanPrice(p.price)}đ</div>
+                <div class="ha-fs-card" onclick="showProductModal('${safeN}', ${s.sale_price}, '${img}', '${(p.description || '').replace(/'/g, "\\'").replace(/"/g, '&quot;')}', ${p.id})">
+                    <span class="ha-fs-badge">⚡ SALE</span>
+                    ${pct > 0 ? `<span class="ha-fs-pct">-${pct}%</span>` : ''}
+                    <div class="ha-fs-imgwrap"><img src="${img}" alt="${p.name}" onerror="this.onerror=null;this.src='https://placehold.co/150x150?text=SP'"></div>
+                    <div class="ha-fs-name">${p.name}</div>
+                    <div class="ha-fs-price">${cleanPrice(s.sale_price)}đ</div>
+                    <div class="ha-fs-oldprice">${cleanPrice(p.price)}đ</div>
                 </div>
             `;
                 }).join('');
