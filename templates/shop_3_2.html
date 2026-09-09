@@ -1492,6 +1492,13 @@
             box-shadow: 0 2px 6px rgba(208, 2, 28, 0.4) !important;
         }
 
+        /* Badge thứ 2 (Deal Đẹp / Flash Sale) — xếp NGAY DƯỚI badge HOT/SALE, không đè lên nhau */
+        #product-list-container .item .ha-badge-2,
+        #ha-deal-product-list .item .ha-badge-2 {
+            top: 32px !important;
+            z-index: 4 !important;
+        }
+
         /* Flash sale bar */
         #product-list-container .item .fs-contain {
             display: flex !important;
@@ -25824,7 +25831,11 @@
                     const fs = window.flashSalesMap && window.flashSalesMap[p.id];
                     const now = new Date();
                     const isFsActive = fs && (now >= new Date(fs.start_time)) && (now <= new Date(fs.end_time));
-                    const fsBadge = isFsActive ? '<span class="ha-badge" style="background:var(--ha-red,#d0021c);top:38px;left:8px;z-index:4;">⚡ FLASH SALE</span>' : '';
+                    // Phân biệt rõ 2 loại: giảm ≥50% => Flash Sale (đỏ), giảm <50% => Deal Đẹp (cam)
+                    const fsPct = isFsActive ? getDealDiscountPercent(p, fs) : 0;
+                    const fsBadge = !isFsActive ? '' : (fsPct >= 50
+                        ? '<span class="ha-badge ha-badge-2" style="background:var(--ha-red,#d0021c);">⚡ FLASH SALE</span>'
+                        : '<span class="ha-badge ha-badge-2" style="background:#f59e0b;">🏷️ DEAL ĐẸP</span>');
 
                     // Tạo thẻ div sản phẩm
                     const itemDiv = document.createElement('div');
