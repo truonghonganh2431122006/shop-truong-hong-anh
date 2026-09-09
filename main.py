@@ -3210,7 +3210,7 @@ async def _rag_generate(system_prompt: str, user_question: str,
                 # Tạo payload cho lượt này
                 payload = dict(base_payload)
                 if use_search:
-                    payload["tools"] = [{"googleSearch": {}}]
+                    payload["tools"] = [{"google_search": {}}]
                 elif "tools" in payload:
                     payload = {k: v for k, v in payload.items() if k != "tools"}
 
