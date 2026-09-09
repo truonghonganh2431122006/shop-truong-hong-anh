@@ -28538,7 +28538,9 @@
             try {
                 const res = await fetch('/flash-sales/active');
                 if (!res.ok) { banner.style.display = 'none'; return; }
-                const sales = await res.json();
+                const allSales = await res.json();
+                // Banner "FLASH SALE" chỉ hiện deal giảm ≥50% — deal <50% thuộc về khu "Deal Đẹp Có Hạn"
+                const sales = (allSales || []).filter(s => (s.discount_percent || 0) >= 50);
                 if (!sales.length) { banner.style.display = 'none'; return; }
 
                 banner.style.display = 'block';
