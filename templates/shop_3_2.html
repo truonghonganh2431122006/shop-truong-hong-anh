@@ -25878,9 +25878,10 @@
 
                     const safeName = p.name.replace(/'/g, "\\'").replace(/"/g, '&quot;');
 
-                    // Dòng giá ⚡ (giá gốc gạch ngang + giá deal + đếm ngược) — chỉ hiện khi là deal THẬT (>=20%)
+                    // Dòng giá ⚡ (giá gốc gạch ngang + giá deal + đếm ngược) — hiện với MỌI deal thật đang active,
+                    // bất kể % bao nhiêu (kể cả dưới 20%). Badge màu DEAL ĐẸP/FLASH SALE mới là thứ giới hạn ở 20%.
                     let fsTimerHtml = '';
-                    if (isRealDeal) {
+                    if (isFsActive) {
                         fsTimerHtml = `<div id="fs-box-${p.id}" style="margin-top:4px;font-size:12px;color:var(--ha-red);font-weight:700;">
                             ⚡ <span style="text-decoration:line-through;color:#888;font-size:11px;margin-right:4px;">${cleanPrice(p.price)} ₫</span> ${cleanPrice(fs.sale_price)} ₫
                             <div id="fs-timer-${p.id}" style="display:inline-block;background:var(--ha-red);color:#fff;padding:1px 5px;border-radius:4px;font-size:10px;margin-left:4px;">⏰ --:--:--</div>
@@ -25905,7 +25906,7 @@
                         </a>
                     `;
 
-                    if (isRealDeal) {
+                    if (isFsActive) {
                         const endTime = new Date(fs.end_time).getTime();
                         const timerEl = itemDiv.querySelector(`#fs-timer-${p.id}`);
                         const boxEl = itemDiv.querySelector(`#fs-box-${p.id}`);
@@ -28764,25 +28765,23 @@
         priceEl.before(rating);
       }
 
-      // Giá gốc gạch ngang + % giảm — CHỈ hiện khi sản phẩm có Deal Đẹp THẬT (admin cấu hình ở trang Admin)
-      // với mức giảm thực tế trong khoảng 20% - dưới 50%. Không dùng số % giả định nữa.
-      //   < 20%       => không có deal thật / giảm quá ít => hiện giá gốc bình thường, không có dòng này
-      //   20% - <50%  => Deal Đẹp => hiện dòng giá gốc gạch ngang + % thật
-      //   >= 50%      => Flash Sale => đã có dòng ⚡ riêng ở trên rồi, không lặp lại ở đây
+      // Giá gốc gạch ngang + % giảm — hiện với MỌI deal thật admin đã cấu hình đang active,
+      // bất kể % bao nhiêu (kể cả deal 5%, 10%...). Không dùng số % giả định nữa.
+      //   Badge màu DEAL ĐẸP (cam) / FLASH SALE (đỏ) mới là thứ giới hạn theo mốc 20% / 50% (đã xử lý ở nơi khác).
       if (priceEl && !item.querySelector('.tgdd-price-row')) {
-        var isRealDeal = item.getAttribute('data-fs-real-deal') === '1';
+        var fsActive = item.getAttribute('data-fs-active') === '1';
         var fsPrice = parseFloat(item.getAttribute('data-fs-price') || '0');
         var origPrice = parseFloat(item.getAttribute('data-porig') || price || '0');
         var realPct = (origPrice > 0 && fsPrice > 0) ? Math.round((1 - fsPrice / origPrice) * 100) : 0;
 
-        if (isRealDeal && realPct >= 20 && realPct < 50) {
+        if (fsActive && realPct > 0) {
           var oldFmt = origPrice.toLocaleString('vi-VN');
           var row = document.createElement('div');
           row.className = 'tgdd-price-row';
           row.innerHTML = '<span class="tgdd-old-price">' + oldFmt + 'đ</span><span class="tgdd-discount-pct">-' + realPct + '%</span>';
           priceEl.after(row);
 
-          // Trả góp / Quà — chỉ tặng kèm khi thực sự đang trong Deal Đẹp
+          // Trả góp / Quà — tặng kèm khi có deal thật đang giảm giá
           if (price >= 3000000) {
             var inst = document.createElement('div');
             inst.className = 'tgdd-installment';
