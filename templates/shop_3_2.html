@@ -1311,14 +1311,8 @@
             display: flex !important;
         }
 
-        /* ── HOVER EFFECT ── nổi lên mạnh + viền vàng + đổ bóng rộng mịn */
+        /* ── HOVER EFFECT ── khung sản phẩm đứng yên, không viền/không đổ bóng thêm; chỉ ảnh bên trong nổi lên (xem rule .item-img img bên dưới) */
         #product-list-container .item:hover {
-            transform: translateY(-8px) scale(1.022) !important;
-            box-shadow:
-                0 20px 50px rgba(0, 0, 0, 0.16),
-                0 6px 16px rgba(0, 0, 0, 0.10),
-                0 0 0 2.5px #ffcd00 !important;
-            border-color: #ffcd00 !important;
             z-index: 2 !important;
         }
 
@@ -23346,9 +23340,9 @@
     <div class="close-slide"></div>
 </section>
 <section id="ha-recently-viewed-section"
-    style="display:none;margin:40px 0;padding:20px;background:var(--ha-white);border-radius:var(--ha-radius);box-shadow:var(--ha-shadow);">
+    style="display:none;margin:40px auto;padding:20px;background:var(--ha-white);border-radius:var(--ha-radius);box-shadow:var(--ha-shadow);max-width:1200px;width:100%;box-sizing:border-box;">
     <h2 style="font-size:20px;font-weight:700;margin-bottom:16px;color:var(--ha-text);">🕒 Sản phẩm đã xem gần đây</h2>
-    <div id="ha-recently-viewed-list" class="listproduct" style="display:flex;flex-wrap:wrap;gap:16px;"></div>
+    <div id="ha-recently-viewed-list" class="listproduct" style="display:flex;flex-wrap:wrap;gap:16px;justify-content:flex-start;"></div>
 </section>
 
 <section class="web-only">
@@ -28395,8 +28389,7 @@
   box-shadow: 0 1px 4px rgba(0,0,0,0.08) !important;
 }
 #product-list-container .item:hover {
-  box-shadow: 0 8px 24px rgba(0,0,0,0.15), 0 0 0 2px #e8000d !important;
-  border-color: #e8000d !important;
+  /* Khung sản phẩm đứng yên khi hover — không viền, không đổ bóng thêm; chỉ ảnh bên trong nổi lên */
 }
 
 /* Giá gốc + % giảm theo kiểu tgdd */
@@ -29480,18 +29473,29 @@
     max-width: calc(100vw - 32px);
     height: 520px;
     max-height: calc(100vh - 120px);
+    min-width: 300px;
+    min-height: 360px;
     background: #ffffff;
     border-radius: 20px;
     box-shadow: 0 12px 48px rgba(0,0,0,0.18), 0 2px 8px rgba(0,0,0,0.10);
     display: flex;
     flex-direction: column;
     overflow: hidden;
+    resize: both;
     transform: scale(0.85) translateY(24px);
     opacity: 0;
     pointer-events: none;
     transition: transform 0.28s cubic-bezier(.34,1.56,.64,1),
                 opacity 0.22s ease;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+/* Khi panel đang mở mới cho phép resize (tránh kéo khi ẩn) */
+#rag-chat-panel:not(.rag-open) {
+    resize: none;
+}
+/* Khi đang kéo di chuyển bằng header, tắt transition để không bị giật/lag */
+#rag-chat-panel.rag-dragging {
+    transition: none !important;
 }
 #rag-chat-panel.rag-open {
     transform: scale(1) translateY(0);
@@ -29507,6 +29511,8 @@
     align-items: center;
     gap: 10px;
     flex-shrink: 0;
+    cursor: move;
+    user-select: none;
 }
 #rag-chat-header .rag-avatar {
     width: 38px; height: 38px; border-radius: 50%;
@@ -29540,6 +29546,23 @@
 #rag-chat-close:hover { background: rgba(0,0,0,0.22); }
 #rag-chat-close svg { width: 16px; height: 16px; fill: #111; }
 
+#rag-chat-expand {
+    background: rgba(0,0,0,0.12);
+    border: none; cursor: pointer;
+    width: 30px; height: 30px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    transition: background 0.15s;
+    flex-shrink: 0;
+}
+#rag-chat-expand:hover { background: rgba(0,0,0,0.22); }
+#rag-chat-expand svg { width: 15px; height: 15px; fill: #111; }
+
+/* Trạng thái phóng to khi bấm nút #rag-chat-expand */
+#rag-chat-panel.rag-expanded {
+    width: min(560px, calc(100vw - 32px)) !important;
+    height: min(760px, calc(100vh - 60px)) !important;
+}
+
 /* Messages area */
 #rag-chat-messages {
     flex: 1;
@@ -29571,13 +29594,28 @@
 .rag-msg.rag-user { flex-direction: row-reverse; }
 
 .rag-bubble {
-    max-width: 78%;
+    display: inline-block;
+    max-width: min(78%, 260px);
     padding: 9px 13px;
     border-radius: 16px;
     font-size: 13.5px;
     line-height: 1.55;
     word-break: break-word;
     white-space: pre-wrap;
+    text-align: left !important;
+    vertical-align: top;
+}
+/* Vị trí bong bóng (trái/phải) được quyết định bởi text-align của khung bọc ngoài,
+   còn kích thước bong bóng luôn tự co theo nội dung nhờ display:inline-block */
+.rag-msg > div {
+    max-width: 100%;
+    min-width: 0;
+}
+.rag-msg.rag-user > div {
+    text-align: right;
+}
+.rag-msg.rag-bot > div {
+    text-align: left;
 }
 .rag-msg.rag-bot .rag-bubble {
     background: #ffffff;
@@ -29766,6 +29804,9 @@
                 Trợ lý thông minh của Shop
             </div>
         </div>
+        <button id="rag-chat-expand" title="Phóng to khung chat" aria-label="Phóng to/thu nhỏ khung chat">
+            <svg viewBox="0 0 24 24"><path d="M9 3H5a2 2 0 0 0-2 2v4h2V6.41l4.29 4.3 1.42-1.42L6.41 5H9V3zm10 6V5a2 2 0 0 0-2-2h-4v2h2.59l-4.3 4.29 1.42 1.42L17 6.41V9h2zM6.41 19H9v2H5a2 2 0 0 1-2-2v-4h2v2.59l4.29-4.3 1.42 1.42L6.41 19zM19 15v4a2 2 0 0 1-2 2h-4v-2h2.59l-4.3-4.29 1.42-1.42L17 17.59V15h2z"/></svg>
+        </button>
         <button id="rag-chat-close" title="Đóng" aria-label="Đóng chatbot">
             <svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
         </button>
@@ -29817,6 +29858,7 @@
     const btn        = document.getElementById('rag-chat-btn');
     const panel      = document.getElementById('rag-chat-panel');
     const closeBtn   = document.getElementById('rag-chat-close');
+    const expandBtn  = document.getElementById('rag-chat-expand');
     const messagesEl = document.getElementById('rag-chat-messages');
     const inputEl    = document.getElementById('rag-chat-input');
     const sendBtn    = document.getElementById('rag-chat-send');
@@ -29863,6 +29905,73 @@
     btn.addEventListener('click', () => isOpen ? closePanel() : openPanel());
     closeBtn.addEventListener('click', closePanel);
 
+    // ── Nút phóng to / thu nhỏ khung chat ──────────────────────
+    if (expandBtn) {
+        expandBtn.addEventListener('click', function () {
+            const isExpanded = panel.classList.toggle('rag-expanded');
+            // Nếu người dùng đã tự kéo giãn tay (resize) trước đó,
+            // xóa width/height inline để class rag-expanded/mặc định áp dụng đúng.
+            panel.style.width = '';
+            panel.style.height = '';
+            expandBtn.title = isExpanded ? 'Thu nhỏ khung chat' : 'Phóng to khung chat';
+        });
+    }
+
+    // ── Kéo di chuyển panel bằng header (giữ chuột + kéo) ──────
+    const headerEl = document.getElementById('rag-chat-header');
+    if (headerEl) {
+        let isDragging = false;
+        let dragStartX = 0, dragStartY = 0;
+        let panelStartLeft = 0, panelStartTop = 0;
+
+        headerEl.addEventListener('mousedown', function (e) {
+            // Không kéo nếu bấm vào nút đóng
+            if (e.target === closeBtn || (closeBtn && closeBtn.contains(e.target))) return;
+
+            isDragging = true;
+            panel.classList.add('rag-dragging');
+
+            const rect = panel.getBoundingClientRect();
+            // Chuyển sang định vị bằng left/top để có thể kéo tự do,
+            // thay vì bottom/right cố định ban đầu.
+            panel.style.left   = rect.left + 'px';
+            panel.style.top    = rect.top + 'px';
+            panel.style.right  = 'auto';
+            panel.style.bottom = 'auto';
+
+            panelStartLeft = rect.left;
+            panelStartTop  = rect.top;
+            dragStartX = e.clientX;
+            dragStartY = e.clientY;
+
+            e.preventDefault();
+        });
+
+        document.addEventListener('mousemove', function (e) {
+            if (!isDragging) return;
+
+            let newLeft = panelStartLeft + (e.clientX - dragStartX);
+            let newTop  = panelStartTop + (e.clientY - dragStartY);
+
+            // Giới hạn không cho kéo ra ngoài màn hình
+            const rect = panel.getBoundingClientRect();
+            const maxLeft = window.innerWidth - rect.width;
+            const maxTop  = window.innerHeight - rect.height;
+            newLeft = Math.max(0, Math.min(newLeft, maxLeft));
+            newTop  = Math.max(0, Math.min(newTop, maxTop));
+
+            panel.style.left = newLeft + 'px';
+            panel.style.top  = newTop + 'px';
+        });
+
+        document.addEventListener('mouseup', function () {
+            if (isDragging) {
+                isDragging = false;
+                panel.classList.remove('rag-dragging');
+            }
+        });
+    }
+
     // Đóng khi click bên ngoài
     document.addEventListener('click', function (e) {
         if (isOpen && !panel.contains(e.target) && e.target !== btn && !btn.contains(e.target)) {
@@ -29884,7 +29993,7 @@
                 <svg viewBox="0 0 24 24"><path d="M12 2a5 5 0 1 1 0 10A5 5 0 0 1 12 2zm0 12c5.33 0 8 2.67 8 4v2H4v-2c0-1.33 2.67-4 8-4z"/></svg>
             </div>
             <div>
-                <div class="rag-bubble">
+                <div class="rag-bubble" style="text-align:left;">
                     👋 Xin chào! Tôi là <strong>Hồng Anh AI</strong> — trợ lý thông minh của Shop Trương Hồng Anh.<br><br>
                     Tôi có thể giúp bạn về <strong>chính sách bảo hành, đổi trả, hướng dẫn đặt hàng</strong> và nhiều hơn nữa. Hỏi tôi đi! 😊
                 </div>
@@ -29935,7 +30044,7 @@
         wrapper.innerHTML = `
             ${avatarHTML}
             <div>
-                <div class="rag-bubble">
+                <div class="rag-bubble" style="text-align:left;">
                     ${imageHTML}
                     ${escaped}
                 </div>
@@ -29960,7 +30069,7 @@
             <div class="rag-msg-avatar">
                 <svg viewBox="0 0 24 24"><path d="M12 2a5 5 0 1 1 0 10A5 5 0 0 1 12 2zm0 12c5.33 0 8 2.67 8 4v2H4v-2c0-1.33 2.67-4 8-4z"/></svg>
             </div>
-            <div class="rag-bubble">
+            <div class="rag-bubble" style="text-align:left;">
                 <div class="rag-loading-dots">
                     <span></span><span></span><span></span>
                 </div>
