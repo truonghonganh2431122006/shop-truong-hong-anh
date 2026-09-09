@@ -25823,11 +25823,12 @@
 
                 products.forEach(p => {
                     const imgUrl = p.image_url || "https://placehold.co/200x200?text=No+Image";
-                    const displayPrice = cleanPrice(p.price);
                     const isHot = p.price >= 10000000;
                     const isSale = p.price < 3000000;
 
                     const effectivePrice = getEffectivePrice(p);
+                    // Giá TO hiển thị chính = giá thực khách phải trả (đã áp deal nếu có), không phải luôn là giá gốc
+                    const displayPrice = cleanPrice(effectivePrice);
                     const fs = window.flashSalesMap && window.flashSalesMap[p.id];
                     const now = new Date();
                     const isFsActive = fs && (now >= new Date(fs.start_time)) && (now <= new Date(fs.end_time));
@@ -25881,7 +25882,7 @@
                     let fsTimerHtml = '';
                     if (isRealDeal) {
                         fsTimerHtml = `<div id="fs-box-${p.id}" style="margin-top:4px;font-size:12px;color:var(--ha-red);font-weight:700;">
-                            ⚡ <span style="text-decoration:line-through;color:#888;font-size:11px;margin-right:4px;">${displayPrice} ₫</span> ${cleanPrice(fs.sale_price)} ₫
+                            ⚡ <span style="text-decoration:line-through;color:#888;font-size:11px;margin-right:4px;">${cleanPrice(p.price)} ₫</span> ${cleanPrice(fs.sale_price)} ₫
                             <div id="fs-timer-${p.id}" style="display:inline-block;background:var(--ha-red);color:#fff;padding:1px 5px;border-radius:4px;font-size:10px;margin-left:4px;">⏰ --:--:--</div>
                         </div>`;
                     }
