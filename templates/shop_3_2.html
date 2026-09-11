@@ -26764,11 +26764,14 @@
                     ? `<div class="tgdd-installment">Quà ${giftK}K</div>`
                     : '';
 
-                return `<div class="item" style="cursor:pointer;position:relative;" data-pid="${p.id}" onclick="window.dealOpenModal(${p.id})">
+                const safeName = (p.name || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
+                const safeDesc = (p.description || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
+
+                return `<div class="item" style="cursor:pointer;position:relative;" data-pid="${p.id}" onclick="showProductModal('${safeName}', ${effectivePrice}, '${imgUrl}', '${safeDesc}', ${p.id})">
                     ${aiBadge}
                     ${badge}
                     <a href="javascript:void(0)" class="remain_quantity main-contain">
-                        <div class="item-img"><img src="${imgUrl}" alt="${p.name}" loading="lazy" onerror="this.onerror=null;this.src='https://placehold.co/200x200?text=No+Image'"></div>
+                        <div class="item-img"><img src="${imgUrl}" alt="${safeName}" loading="lazy" onerror="this.onerror=null;this.src='https://placehold.co/200x200?text=No+Image'"></div>
                         <h3>${p.name}</h3>
                         <div class="tgdd-rating">★ ${stars}<span>• Đã bán ${sold}k</span></div>
                         <strong class="price">${displayPrice} ₫</strong>
@@ -26782,12 +26785,6 @@
 
             // Mở modal xem chi tiết sản phẩm (dùng chung #productModal với khu sản phẩm chính)
             // — gắn trực tiếp bằng onclick trên card để luôn chắc chắn hoạt động, kể cả khi đổi tab lọc liên tục.
-            window.dealOpenModal = function (id) {
-                const p = dealAllProducts.find(function (x) { return x.id === id; });
-                if (!p) return;
-                const imgUrl = p.image_url || p.img || '';
-                showProductModal(p.name, getEffectivePrice(p), imgUrl, p.description || '', p.id);
-            };
 
             function dealFilterProducts() {
                 if (!dealCate) { dealFiltered = dealAllProducts.slice(); return; }
