@@ -1409,7 +1409,56 @@
             }
         }
 
-        /* Định dạng từng ô sản phẩm — chiều cao đồng đều bằng Grid */
+        /* ════ FIX: slider-flashsale không được override grid layout của product-list-container ════ */
+        #product-list-container.listproduct.slider-flashsale {
+            display: grid !important;
+            grid-template-columns: repeat(5, 1fr) !important;
+            gap: 14px !important;
+            width: 96% !important;
+            max-width: 1260px !important;
+            margin: 18px auto 32px !important;
+            padding: 0 !important;
+            overflow: visible !important;
+            max-height: none !important;
+            float: none !important;
+        }
+        #product-list-container.listproduct.slider-flashsale .item {
+            float: none !important;
+            max-width: 100% !important;
+            width: 100% !important;
+            margin: 0 !important;
+            padding: 0 !important;
+        }
+        /* Ảnh trong flash sale product card giữ đúng kích thước */
+        #product-list-container.slider-flashsale .item .item-img {
+            height: 170px !important;
+            max-height: 170px !important;
+            overflow: hidden !important;
+        }
+        #product-list-container.slider-flashsale .item .item-img img {
+            max-height: 150px !important;
+            width: 100% !important;
+            object-fit: contain !important;
+        }
+        @media (max-width: 1100px) {
+            #product-list-container.listproduct.slider-flashsale {
+                grid-template-columns: repeat(4, 1fr) !important;
+            }
+        }
+        @media (max-width: 780px) {
+            #product-list-container.listproduct.slider-flashsale {
+                grid-template-columns: repeat(3, 1fr) !important;
+                gap: 10px !important;
+            }
+        }
+        @media (max-width: 500px) {
+            #product-list-container.listproduct.slider-flashsale {
+                grid-template-columns: repeat(2, 1fr) !important;
+                gap: 8px !important;
+            }
+        }
+
+                /* Định dạng từng ô sản phẩm — chiều cao đồng đều bằng Grid */
         .listproduct .item {
             display: none;
             /* JS sẽ setProperty để hiện */
