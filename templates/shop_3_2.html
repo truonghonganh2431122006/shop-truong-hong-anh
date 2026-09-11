@@ -44,8 +44,14 @@
         /* ════════════════════════════════════════════════
            THEGIOIDIDONG.COM STYLES (Header, Banners, Cards)
         ════════════════════════════════════════════════ */
+        @keyframes top-bar-shimmer {
+            0%   { background-position: -400px 0; }
+            100% { background-position: 400px 0; }
+        }
         .tgdd-top-bar {
-            background: #ffd400;
+            background: linear-gradient(90deg, #ffd400 30%, #ffe566 50%, #ffd400 70%);
+            background-size: 400px 100%;
+            animation: top-bar-shimmer 2.4s linear infinite;
             color: #000;
             text-align: center;
             font-size: 13px;
@@ -1075,16 +1081,17 @@
         }
 
         .ha-chip-btn:hover {
-            background: #e8f0fe;
-            border-color: #0071e3;
-            color: #0071e3;
+            background: #fff9e0;
+            border-color: #ffd400;
+            color: #7a5500;
         }
 
         .ha-chip-btn.active {
-            background: #0071e3;
-            border-color: #0071e3;
-            color: #fff;
-            box-shadow: 0 2px 8px rgba(0, 113, 227, 0.3);
+            background: linear-gradient(135deg, #ffd400 0%, #ffaa00 100%);
+            border-color: #ffaa00;
+            color: #5a3a00;
+            box-shadow: 0 2px 10px rgba(255, 180, 0, 0.40);
+            font-weight: 700;
         }
 
         .ha-fp-divider {
@@ -1142,6 +1149,62 @@
             color: #6e6e73;
             margin-left: auto;
             font-style: italic;
+        }
+
+
+        /* ════════════════════════════════════════════════
+           GOLD SPARKLE — ánh sáng vàng lấp lánh theo chuột
+        ════════════════════════════════════════════════ */
+
+        /* Vệt sáng vàng quét qua ảnh sản phẩm khi hover card */
+        #product-list-container .item .item-img,
+        #ha-deal-product-list .item .item-img {
+            position: relative !important;
+        }
+        #product-list-container .item .item-img::after,
+        #ha-deal-product-list .item .item-img::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: 12px;
+            background: linear-gradient(
+                115deg,
+                transparent 20%,
+                rgba(255, 230, 60, 0.0) 35%,
+                rgba(255, 230, 60, 0.55) 50%,
+                rgba(255, 255, 200, 0.35) 55%,
+                transparent 70%
+            );
+            background-size: 250% 100%;
+            background-position: -100% 0;
+            pointer-events: none;
+            z-index: 3;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+        #product-list-container .item:hover .item-img::after,
+        #ha-deal-product-list .item:hover .item-img::after {
+            opacity: 1;
+            animation: ha-gold-sweep 0.7s cubic-bezier(0.22,1,0.36,1) forwards;
+        }
+        @keyframes ha-gold-sweep {
+            0%   { background-position: -100% 0; opacity: 0; }
+            10%  { opacity: 1; }
+            100% { background-position: 200% 0; opacity: 0; }
+        }
+
+        /* Card lift shadow vàng khi hover */
+        #product-list-container .item:hover,
+        #ha-deal-product-list .item:hover {
+            transform: translateY(-4px) !important;
+        }
+
+        /* Transition nâng card mượt mà */
+        #product-list-container .item {
+            transition:
+                transform 0.30s cubic-bezier(0.34, 1.2, 0.64, 1),
+                box-shadow 0.30s ease,
+                border-color 0.22s ease !important;
         }
 
         /* ════ SKELETON LOADING ════ */
@@ -1384,11 +1447,12 @@
 
         #product-list-container .item:hover {
             z-index: 2 !important;
-            border-color: rgba(255, 100, 0, 0.55) !important;
+            border-color: rgba(255, 212, 0, 0.70) !important;
             box-shadow:
-                0 14px 32px rgba(232, 0, 13, 0.16),
-                0 4px 12px rgba(255, 126, 0, 0.14),
-                0 0 0 1.5px rgba(255, 126, 0, 0.35) !important;
+                0 16px 36px rgba(255, 180, 0, 0.22),
+                0 4px 14px rgba(255, 140, 0, 0.18),
+                0 0 0 1.5px rgba(255, 212, 0, 0.55),
+                0 0 28px rgba(255, 220, 0, 0.12) !important;
         }
 
         /* Lớp phủ "vệt dầu loang" bám theo vị trí chuột — chỉ tô sáng viền/góc, không che ảnh sản phẩm */
@@ -1401,9 +1465,9 @@
             border-radius: 15px;
             opacity: 0;
             background: radial-gradient(220px circle at var(--mx) var(--my),
-                    rgba(255, 145, 0, 0.55),
-                    rgba(255, 60, 20, 0.30) 32%,
-                    rgba(255, 0, 60, 0.10) 55%,
+                    rgba(255, 220, 0, 0.55),
+                    rgba(255, 180, 0, 0.32) 30%,
+                    rgba(255, 140, 0, 0.15) 55%,
                     transparent 72%);
             mix-blend-mode: plus-lighter;
             transition: opacity .35s ease;
@@ -1423,7 +1487,7 @@
             border-radius: 15px;
             padding: 1.5px;
             background: conic-gradient(from calc(var(--mx) * 0.01turn) at var(--mx) var(--my),
-                    #ff9100, #ff2d00, #ffd400, #ff2d00, #ff9100);
+                    #ffd400, #ffb300, #ffe566, #ffd400, #ffaa00, #ffe566, #ffd400);
             -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
             -webkit-mask-composite: xor;
             mask-composite: exclude;
@@ -1454,13 +1518,18 @@
             object-fit: contain !important;
             padding: 10px !important;
             border-radius: 12px !important;
-            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
+            /* GPU layer riêng — loại bỏ hoàn toàn lag/giật khi hover */
+            will-change: transform !important;
+            transform: translateZ(0) scale(1) !important;
+            transition: transform 0.42s cubic-bezier(0.22, 1, 0.36, 1) !important;
             display: block !important;
             box-sizing: border-box !important;
+            backface-visibility: hidden !important;
+            -webkit-backface-visibility: hidden !important;
         }
 
         #product-list-container .item:hover .item-img img {
-            transform: scale(1.08) !important;
+            transform: translateZ(0) scale(1.09) !important;
         }
 
         /* ── NỘI DUNG CARD — flex grow để tên dài cũng không vỡ layout */
@@ -23672,8 +23741,10 @@
 
         <div class="readmore" style="text-align: center; margin: 30px 0; width: 100%;">
             <button id="superBtn"
-                style="padding: 12px 40px; background: #288ad6; color: #fff; border: none; border-radius: 5px; cursor: pointer;">
-                XEM THÊM SẢN PHẨM
+                style="padding: 13px 44px; background: linear-gradient(135deg, #ffd400 0%, #ffaa00 100%); color: #111; font-weight: 800; font-size: 14px; border: none; border-radius: 50px; cursor: pointer; box-shadow: 0 4px 18px rgba(255,180,0,0.35); letter-spacing: 0.5px; transition: all 0.2s ease;"
+                onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 8px 24px rgba(255,180,0,0.5)';"
+                onmouseout="this.style.transform='';this.style.boxShadow='0 4px 18px rgba(255,180,0,0.35)';">
+                ✦ XEM THÊM SẢN PHẨM ✦
             </button>
         </div>
     </div>
@@ -23804,9 +23875,12 @@
         transition: transform .3s cubic-bezier(.34,1.2,.64,1), box-shadow .3s ease, border-color .3s ease !important;
     }
     #ha-deal-product-list .item:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 14px 28px rgba(208, 2, 28, 0.14);
-        border-color: #ffc9c9 !important;
+        transform: translateY(-5px);
+        box-shadow:
+            0 16px 36px rgba(255, 180, 0, 0.22),
+            0 4px 14px rgba(255, 140, 0, 0.18),
+            0 0 0 1.5px rgba(255, 212, 0, 0.55);
+        border-color: rgba(255, 212, 0, 0.70) !important;
         z-index: 2;
     }
     #ha-deal-product-list .item .item-img {
@@ -23837,13 +23911,17 @@
         object-fit: contain !important;
         padding: 14px !important;
         border-radius: 15px !important;
-        transition: transform .45s cubic-bezier(.4,0,.2,1) !important;
+        will-change: transform !important;
+        transform: translateZ(0) scale(1) !important;
+        transition: transform .42s cubic-bezier(0.22, 1, 0.36, 1) !important;
         display: block !important;
         box-sizing: border-box !important;
         position: relative; z-index: 1;
+        backface-visibility: hidden !important;
+        -webkit-backface-visibility: hidden !important;
     }
     #ha-deal-product-list .item:hover .item-img img {
-        transform: scale(1.09);
+        transform: translateZ(0) scale(1.09) !important;
     }
     /* ── Đệm lề cho tên / giá / quà — trước đây chữ dính sát mép trái do thiếu padding ── */
     #ha-deal-product-list .item .remain_quantity.main-contain,
@@ -26338,9 +26416,10 @@
             }
         }
 
-        // ── Hiệu ứng "loang dầu" cam-đỏ bám theo chuột trên khung sản phẩm (Flash Sale & lưới sản phẩm chính) ──
-        // Dùng event delegation nên áp dụng luôn cho card được thêm động (JS render lại vẫn hoạt động, không cần gắn lại).
+        // ── Hiệu ứng "loang dầu" vàng-cam lấp lánh bám theo chuột + tia sáng vàng nhấp nháy ──
+        // RAF-throttled, event delegation, zero layout thrashing.
         (function () {
+            // 1) Biến CSS --mx/--my cho gradient loang dầu trên card
             let rafId = null;
             let pendingCard = null, pendingX = 0, pendingY = 0;
 
@@ -26352,7 +26431,7 @@
             }
 
             function handlePointerMove(e) {
-                const card = e.target.closest('.listproduct .item, #ha-deal-product-list .item');
+                const card = e.target.closest('.listproduct .item, #ha-deal-product-list .item, #product-list-container .item');
                 if (!card) return;
                 const rect = card.getBoundingClientRect();
                 if (!rect.width || !rect.height) return;
@@ -26360,9 +26439,72 @@
                 pendingX = ((e.clientX - rect.left) / rect.width) * 100;
                 pendingY = ((e.clientY - rect.top) / rect.height) * 100;
                 if (!rafId) rafId = requestAnimationFrame(applyMouseVars);
+
+                // 2) Spawn hạt vàng lấp lánh tại vị trí chuột
+                spawnSparkle(e.clientX, e.clientY);
             }
 
             document.addEventListener('pointermove', handlePointerMove, { passive: true });
+
+            // ── GOLD SPARKLE PARTICLES ──
+            // Pool tái sử dụng DOM node để tránh GC pressure
+            const POOL_SIZE = 30;
+            const pool = [];
+            let poolIdx = 0;
+            let lastSpawn = 0;
+            const SPAWN_INTERVAL = 38; // ms giữa 2 lần sinh hạt (giảm = dày hơn)
+
+            // Tạo sẵn pool node
+            for (let i = 0; i < POOL_SIZE; i++) {
+                const el = document.createElement('span');
+                el.style.cssText = [
+                    'position:fixed',
+                    'pointer-events:none',
+                    'border-radius:50%',
+                    'z-index:99999',
+                    'will-change:transform,opacity',
+                    'display:block',
+                ].join(';');
+                document.body.appendChild(el);
+                pool.push(el);
+            }
+
+            function spawnSparkle(cx, cy) {
+                const now = performance.now();
+                if (now - lastSpawn < SPAWN_INTERVAL) return;
+                lastSpawn = now;
+
+                const el = pool[poolIdx % POOL_SIZE];
+                poolIdx++;
+
+                // Kích thước ngẫu nhiên 4–9px
+                const size = 4 + Math.random() * 5;
+                // Màu vàng — cam — trắng ngẫu nhiên
+                const colors = ['#ffd400','#ffb800','#ffe566','#fff3a0','#ffa500','#fffbe0','#ffc107'];
+                const color  = colors[Math.floor(Math.random() * colors.length)];
+                // Hướng bay ngẫu nhiên
+                const dx = (Math.random() - 0.5) * 60;
+                const dy = -30 - Math.random() * 50;
+                // Xoay
+                const rot = Math.random() * 360;
+
+                el.style.width  = size + 'px';
+                el.style.height = size + 'px';
+                el.style.left   = (cx - size/2) + 'px';
+                el.style.top    = (cy - size/2) + 'px';
+                el.style.background = color;
+                el.style.boxShadow  = '0 0 ' + (size+2) + 'px ' + color + ', 0 0 ' + (size*2) + 'px ' + color;
+                el.style.opacity    = '1';
+                el.style.transform  = 'translate(0,0) rotate(' + rot + 'deg) scale(1)';
+                el.style.transition = 'none';
+
+                // Kích hoạt animation bay lên + mờ dần
+                requestAnimationFrame(function() {
+                    el.style.transition = 'transform 0.65s cubic-bezier(0.22,1,0.36,1), opacity 0.65s ease-out';
+                    el.style.transform  = 'translate(' + dx + 'px,' + dy + 'px) rotate(' + (rot+180) + 'deg) scale(0.1)';
+                    el.style.opacity    = '0';
+                });
+            }
         })();
 
         // ── Section "Deal Đẹp Có Hạn": dùng chung dữ liệu/hành vi với grid sản phẩm chính ──
