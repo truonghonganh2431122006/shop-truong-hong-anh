@@ -536,6 +536,22 @@
             gap: 10px;
         }
 
+        .tgdd-title-flame {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 19px;
+            filter: drop-shadow(0 2px 4px rgba(255, 87, 34, 0.35));
+            animation: tgddFlameFlicker 1.6s ease-in-out infinite;
+        }
+
+        @keyframes tgddFlameFlicker {
+            0%, 100% { transform: scale(1) rotate(0deg); }
+            25%      { transform: scale(1.08) rotate(-4deg); }
+            50%      { transform: scale(0.96) rotate(3deg); }
+            75%      { transform: scale(1.05) rotate(-2deg); }
+        }
+
         .tgdd-promo-tabs-container {
             display: flex;
             align-items: center;
@@ -570,28 +586,74 @@
             background: #fff0f0;
             border-color: #fecdd3;
             color: #d0021c;
+            position: relative;
+            box-shadow: 0 0 0 0 rgba(208, 2, 28, 0.35);
+            animation: tgddTabPulse 2.4s ease-out infinite;
         }
 
         .tgdd-tab-btn.flashsale.active {
             background: #d0021c;
             color: #fff;
             border-color: #d0021c;
+            animation: none;
         }
 
+        @keyframes tgddTabPulse {
+            0%   { box-shadow: 0 0 0 0 rgba(208, 2, 28, 0.35); }
+            70%  { box-shadow: 0 0 0 8px rgba(208, 2, 28, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(208, 2, 28, 0); }
+        }
+
+        /* ── Đồng hồ đếm ngược kiểu digital-clock, có glow nhấp nháy để tạo cảm giác gấp gáp ── */
         .tgdd-countdown-box {
             background: linear-gradient(135deg, #ff9800 0%, #ed6c02 100%);
             border-radius: 24px;
-            padding: 10px 28px;
+            padding: 10px 24px;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 12px;
+            gap: 10px;
             color: #fff;
             font-weight: 800;
             font-size: 14px;
             margin: 0 auto 24px;
             width: fit-content;
             box-shadow: 0 4px 16px rgba(237, 108, 2, 0.35);
+            position: relative;
+            animation: tgddCdGlow 2s ease-in-out infinite;
+        }
+
+        @keyframes tgddCdGlow {
+            0%, 100% { box-shadow: 0 4px 16px rgba(237, 108, 2, 0.35); }
+            50%      { box-shadow: 0 4px 26px rgba(237, 108, 2, 0.65), 0 0 0 4px rgba(237, 108, 2, 0.12); }
+        }
+
+        .tgdd-cd-icon {
+            font-size: 15px;
+            line-height: 1;
+        }
+
+        .tgdd-cd-label {
+            font-size: 13px;
+            font-weight: 700;
+            opacity: 0.95;
+        }
+
+        .tgdd-cd-group {
+            display: flex;
+            align-items: center;
+            gap: 3px;
+        }
+
+        .tgdd-cd-sep {
+            font-weight: 900;
+            opacity: 0.85;
+            animation: tgddColonBlink 1s steps(1) infinite;
+        }
+
+        @keyframes tgddColonBlink {
+            0%, 49%   { opacity: 0.85; }
+            50%, 100% { opacity: 0.25; }
         }
 
         .tgdd-cd-num {
@@ -603,6 +665,9 @@
             font-size: 16px;
             font-weight: 900;
             box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+            min-width: 16px;
+            text-align: center;
+            font-variant-numeric: tabular-nums;
         }
 
         .tgdd-ai-badge {
@@ -22222,6 +22287,151 @@
             color: #a1a1aa;
             margin-top: 2px;
         }
+
+        /* ═══ Banner "FLASH SALE ĐANG DIỄN RA" — thiết kế lại chi tiết & cầu kỳ hơn ═══ */
+        .ha-flash-banner {
+            position: relative;
+            margin: 20px auto;
+            max-width: 1200px;
+            width: 96%;
+            border-radius: 22px;
+            padding: 24px 26px;
+            color: #fff;
+            overflow: hidden;
+            box-sizing: border-box;
+            background:
+                repeating-linear-gradient(115deg, rgba(255,255,255,0.07) 0 2px, transparent 2px 34px),
+                linear-gradient(135deg, #ff6a3d 0%, #ff2d55 45%, #c2003c 100%);
+            box-shadow: 0 14px 38px rgba(216, 0, 50, 0.32), 0 3px 10px rgba(216, 0, 50, 0.18);
+            animation: haFlashBannerGlow 2.6s ease-in-out infinite;
+        }
+
+        @keyframes haFlashBannerGlow {
+            0%, 100% { box-shadow: 0 14px 38px rgba(216, 0, 50, 0.32), 0 3px 10px rgba(216, 0, 50, 0.18); }
+            50%      { box-shadow: 0 18px 48px rgba(216, 0, 50, 0.48), 0 0 0 5px rgba(255, 90, 90, 0.14); }
+        }
+
+        /* Vệt sáng "quét" chéo qua banner, lặp lại — tạo cảm giác lấp lánh cao cấp */
+        .ha-flash-banner__glow {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            background: linear-gradient(100deg, transparent 20%, rgba(255,255,255,0.22) 34%, rgba(255,255,255,0.35) 38%, rgba(255,255,255,0.22) 42%, transparent 56%);
+            background-size: 250% 100%;
+            background-position: 120% 0;
+            animation: haFlashSweep 3.2s ease-in-out infinite;
+            mix-blend-mode: overlay;
+        }
+
+        @keyframes haFlashSweep {
+            0%   { background-position: 140% 0; }
+            60%  { background-position: -40% 0; }
+            100% { background-position: -40% 0; }
+        }
+
+        .ha-flash-banner__head {
+            position: relative;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 18px;
+        }
+
+        .ha-flash-banner__title {
+            margin: 0;
+            font-size: 23px;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            letter-spacing: 0.2px;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.18);
+        }
+
+        .ha-flash-banner__bolt {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 34px;
+            height: 34px;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.22);
+            backdrop-filter: blur(4px);
+            font-size: 18px;
+            animation: haBoltShake 2.2s ease-in-out infinite;
+        }
+
+        @keyframes haBoltShake {
+            0%, 100% { transform: rotate(0deg) scale(1); }
+            10%      { transform: rotate(-12deg) scale(1.08); }
+            20%      { transform: rotate(8deg) scale(1.05); }
+            30%      { transform: rotate(0deg) scale(1); }
+        }
+
+        .ha-flash-banner__timer-wrap {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 700;
+            font-size: 13.5px;
+            background: rgba(0, 0, 0, 0.24);
+            backdrop-filter: blur(6px);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            padding: 8px 16px;
+            border-radius: 20px;
+        }
+
+        .ha-flash-banner__timer {
+            display: inline;
+        }
+
+        .ha-flash-banner__dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #4ade80;
+            box-shadow: 0 0 0 0 rgba(74, 222, 128, 0.6);
+            animation: haDotPulse 1.4s ease-out infinite;
+            flex-shrink: 0;
+        }
+
+        @keyframes haDotPulse {
+            0%   { box-shadow: 0 0 0 0 rgba(74, 222, 128, 0.6); }
+            70%  { box-shadow: 0 0 0 7px rgba(74, 222, 128, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(74, 222, 128, 0); }
+        }
+
+        .ha-flash-banner__list {
+            position: relative;
+            display: flex;
+            gap: 16px;
+            overflow-x: auto;
+            padding-bottom: 10px;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(255, 255, 255, 0.45) transparent;
+        }
+
+        .ha-flash-banner__list::-webkit-scrollbar {
+            height: 6px;
+        }
+
+        .ha-flash-banner__list::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.4);
+            border-radius: 10px;
+        }
+
+        .ha-flash-banner__list::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.12);
+            border-radius: 10px;
+        }
+
+        @media (max-width: 640px) {
+            .ha-flash-banner { padding: 18px 16px; border-radius: 18px; }
+            .ha-flash-banner__title { font-size: 18px; }
+            .ha-flash-banner__bolt { width: 28px; height: 28px; font-size: 15px; }
+        }
     </style>
 </head>
 <!-- End Floating Banners -->
@@ -23271,7 +23481,7 @@
 <div class="main-container">
     <!-- 🔥 KHUYẾN MÃI ONLINE SECTION & COUNTDOWN TIMER -->
     <div class="tgdd-online-promo">
-        <div class="tgdd-online-title">Khuyến mãi online</div>
+        <div class="tgdd-online-title"><span class="tgdd-title-flame">🔥</span> Khuyến mãi online</div>
         <div class="tgdd-promo-tabs-container">
             <button class="tgdd-tab-btn flashsale active" onclick="tgddFilterTab('flashsale', this)">🔥 FLASH SALE GIÁ
                 SỐC</button>
@@ -23285,10 +23495,15 @@
             <button class="tgdd-tab-btn" onclick="tgddFilterTab('pc', this)">PC, Máy in</button>
         </div>
         <div class="tgdd-countdown-box">
-            <span>Chỉ còn:</span>
-            <span class="tgdd-cd-num" id="tgdd-cd-h">03</span> :
-            <span class="tgdd-cd-num" id="tgdd-cd-m">21</span> :
-            <span class="tgdd-cd-num" id="tgdd-cd-s">55</span>
+            <span class="tgdd-cd-icon">⏰</span>
+            <span class="tgdd-cd-label">Chỉ còn</span>
+            <span class="tgdd-cd-group">
+                <span class="tgdd-cd-num" id="tgdd-cd-h">03</span>
+                <span class="tgdd-cd-sep">:</span>
+                <span class="tgdd-cd-num" id="tgdd-cd-m">21</span>
+                <span class="tgdd-cd-sep">:</span>
+                <span class="tgdd-cd-num" id="tgdd-cd-s">55</span>
+            </span>
         </div>
     </div>
     <script>
@@ -23442,17 +23657,15 @@
     <!-- ════ END FILTER ════ -->
 
     <div class="box-common__content">
-        <div id="ha-flashsale-banner"
-            style="display:none;margin:20px 0;background:linear-gradient(135deg, #ff416c, #ff4b2b);border-radius:16px;padding:20px;color:#fff;box-shadow:0 8px 24px rgba(255,75,43,0.3);">
-            <div
-                style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px;">
-                <h2 style="margin:0;font-size:22px;font-weight:800;display:flex;align-items:center;gap:8px;">⚡ FLASH
-                    SALE ĐANG DIỄN RA</h2>
-                <div id="ha-banner-timer"
-                    style="font-weight:700;font-size:14px;background:rgba(0,0,0,0.3);padding:6px 14px;border-radius:20px;">
-                    ⏰ Đang diễn ra</div>
+        <div id="ha-flashsale-banner" class="ha-flash-banner" style="display:none">
+            <div class="ha-flash-banner__glow" aria-hidden="true"></div>
+            <div class="ha-flash-banner__head">
+                <h2 class="ha-flash-banner__title">
+                    <span class="ha-flash-banner__bolt">⚡</span> FLASH SALE ĐANG DIỄN RA
+                </h2>
+                <div class="ha-flash-banner__timer-wrap"><span class="ha-flash-banner__dot"></span><div id="ha-banner-timer" class="ha-flash-banner__timer">Đang diễn ra</div></div>
             </div>
-            <div id="ha-banner-products" style="display:flex;gap:16px;overflow-x:auto;padding-bottom:8px;"></div>
+            <div id="ha-banner-products" class="ha-flash-banner__list"></div>
         </div>
         <div id="product-list-container" class="listproduct slider-flashsale">
         </div>
