@@ -3101,6 +3101,7 @@ RAG_KB_DIR             = Path(__file__).parent / "knowledge-base"
 RAG_EMBEDDING_MODEL    = "gemini-embedding-001"
 RAG_GEN_MODELS         = ["gemini-3.8-flash", "gemini-3.5-flash", "gemini-2.5-flash"]
 RAG_SEARCH_MODELS      = ["gemini-3.8-flash", "gemini-3.5-flash", "gemini-2.5-flash"]  # models dùng khi bật googleSearch (câu hỏi ngoài lề)
+RAG_WEB_SEARCH_MODELS  = ["gemini-2.5-flash", "gemini-2.5-flash-lite"]  # Google Search Grounding: free tier hỗ trợ 500 RPD dùng chung
 
 
 RAG_TOP_K              = 5       # số chunk lấy ra khi tìm kiếm
@@ -3268,6 +3269,51 @@ def _is_shop_query(question: str) -> bool:
     return False
 
 
+def _build_live_shop_context(db: Session) -> str:
+    """
+    Lấy trực tiếp danh mục sản phẩm đang bán từ database để chatbot luôn có
+    tên / giá / tồn kho hiện tại, không phụ thuộc việc các thông tin này có
+    được đưa vào knowledge-base hay vector_store hay chưa.
+    """
+    try:
+        products = (
+            db.query(Product)
+            .filter(Product.is_active == True)
+            .order_by(Product.id.asc())
+            .all()
+        )
+    except Exception as e:
+        print(f"[RAG Shop DB] Không đọc được products: {e}")
+        return ""
+
+    if not products:
+        return ""
+
+    lines = []
+    for p in products:
+        category_name = ""
+        try:
+            category_name = p.category.name if p.category else ""
+        except Exception:
+            category_name = ""
+
+        desc = (p.description or "").replace("\n", " ").strip()
+        if len(desc) > 220:
+            desc = desc[:220].rstrip() + "..."
+
+        line = (
+            f"- ID {p.id} | {p.name} | Giá: {int(p.price):,}đ | "
+            f"Tồn kho: {int(p.stock or 0)}"
+        ).replace(",", ".")
+        if category_name:
+            line += f" | Danh mục: {category_name}"
+        if desc:
+            line += f" | Mô tả: {desc}"
+        lines.append(line)
+
+    return "\n".join(lines)
+
+
 def _extract_grounding_sources(candidate: dict) -> list[str]:
     """Lấy nguồn web thật từ groundingMetadata của Gemini Google Search."""
     metadata = candidate.get("groundingMetadata", {}) or {}
@@ -3285,6 +3331,144 @@ def _extract_grounding_sources(candidate: dict) -> list[str]:
         sources.append(f"{title} — {uri}" if title else uri)
 
     return sources
+
+
+async def _web_search_generate_interactions(system_prompt: str, user_question: str,
+                                            history: list[ChatMessage]) -> tuple[str, list[str]]:
+    """
+    Google Search Grounding cho câu hỏi ngoài shop bằng Interactions API.
+
+    Lý do dùng helper riêng:
+    - Interactions API là API Gemini mới cho built-in tool `google_search`.
+    - Citation được trả trực tiếp trong `url_citation` annotations nên dễ kiểm chứng.
+    - Chỉ thử Gemini 2.5 Flash / Flash-Lite vì Google Search Grounding còn có Free Tier.
+    """
+    api_key = os.getenv("GEMINI_API_KEY", "") or os.getenv("GOOGLE_API_KEY", "") or GEMINI_API_KEY
+    if not api_key:
+        raise HTTPException(status_code=500, detail="Chưa cấu hình GEMINI_API_KEY")
+
+    # Chỉ đưa vài lượt gần nhất vào prompt để giữ ngữ cảnh mà không làm request phình to.
+    history_lines = []
+    for msg in (history or [])[-6:]:
+        who = "Khách" if msg.role == "user" else "Trợ lý"
+        content = (msg.content or "").strip()
+        if content:
+            history_lines.append(f"{who}: {content}")
+    history_text = "\n".join(history_lines)
+
+    input_text = (
+        f"{system_prompt}\n\n"
+        "YÊU CẦU THỰC THI: Trước khi trả lời câu hỏi hiện tại, BẮT BUỘC dùng công cụ Google Search ít nhất một lần. "
+        "Chỉ khẳng định dữ liệu hiện tại khi đã có citation URL từ kết quả Search.\n"
+        + (f"\nLỊCH SỬ GẦN NHẤT:\n{history_text}\n" if history_text else "")
+        + f"\nCÂU HỎI HIỆN TẠI:\n{user_question}"
+    )
+
+    url = "https://generativelanguage.googleapis.com/v1beta/interactions"
+    headers = {
+        "x-goog-api-key": api_key,
+        "Content-Type": "application/json",
+    }
+
+    last_error = "Không thể kết nối Gemini Interactions API"
+    async with httpx.AsyncClient(timeout=60.0) as client:
+        for model in RAG_WEB_SEARCH_MODELS:
+            payload = {
+                "model": model,
+                "input": input_text,
+                "tools": [{"type": "google_search"}],
+            }
+
+            for attempt in range(3):
+                try:
+                    resp = await client.post(url, headers=headers, json=payload)
+
+                    if resp.status_code == 200:
+                        data = resp.json()
+                        steps = data.get("steps", []) or []
+
+                        answer_parts: list[str] = []
+                        sources: list[str] = []
+                        seen_urls: set[str] = set()
+                        search_used = False
+                        search_queries: list[str] = []
+
+                        for step in steps:
+                            step_type = (step or {}).get("type", "")
+                            if step_type == "google_search_call":
+                                search_used = True
+                                arguments = (step or {}).get("arguments", {}) or {}
+                                queries = arguments.get("queries", []) or []
+                                if isinstance(queries, list):
+                                    search_queries.extend(str(q) for q in queries if q)
+
+                            if step_type != "model_output":
+                                continue
+
+                            for block in (step or {}).get("content", []) or []:
+                                if (block or {}).get("type") != "text":
+                                    continue
+
+                                txt = ((block or {}).get("text") or "").strip()
+                                if txt:
+                                    answer_parts.append(txt)
+
+                                for ann in (block or {}).get("annotations", []) or []:
+                                    if (ann or {}).get("type") != "url_citation":
+                                        continue
+                                    uri = ((ann or {}).get("url") or "").strip()
+                                    title = ((ann or {}).get("title") or "").strip()
+                                    if not uri or uri in seen_urls:
+                                        continue
+                                    seen_urls.add(uri)
+                                    sources.append(f"{title} — {uri}" if title else uri)
+
+                        print(
+                            f"[RAG Search/Interactions] model={model} | search_used={search_used} "
+                            f"| citations={len(sources)} | queries={search_queries[:3]}"
+                        )
+
+                        if answer_parts and search_used and sources:
+                            return "\n".join(answer_parts), sources
+
+                        if not search_used:
+                            last_error = f"Gemini [{model}]: model không gọi google_search"
+                        elif not sources:
+                            last_error = f"Gemini [{model}]: Search chạy nhưng không trả url_citation"
+                        else:
+                            last_error = f"Gemini [{model}]: phản hồi text rỗng"
+                        print(f"[RAG] {last_error}")
+                        break
+
+                    if resp.status_code == 429:
+                        last_error = f"Gemini [{model}] HTTP 429: rate limit / hết quota Search"
+                        if attempt < 2:
+                            wait_time = 2 ** (attempt + 1)
+                            print(f"[RAG] {last_error}; thử lại sau {wait_time}s...")
+                            await asyncio.sleep(wait_time)
+                            continue
+                        print(f"[RAG] {last_error}; chuyển model...")
+                        break
+
+                    last_error = f"Gemini [{model}] HTTP {resp.status_code}: {resp.text[:500]}"
+                    print(f"[RAG] {last_error}")
+                    break
+
+                except httpx.TimeoutException:
+                    last_error = f"Gemini [{model}]: timeout sau 60s"
+                    print(f"[RAG] {last_error}")
+                    break
+                except Exception as e:
+                    last_error = f"Gemini [{model}]: {e}"
+                    print(f"[RAG] {last_error}")
+                    break
+
+    print(f"[RAG Search/Interactions] Tất cả model thất bại. Lỗi cuối: {last_error}")
+    return (
+        "Xin lỗi, hiện em chưa thể kiểm tra dữ liệu web theo thời gian thực nên em không muốn trả một số liệu có thể đã cũ. "
+        "Anh/chị vui lòng thử lại sau ít phút nhé! 🙏",
+        [],
+    )
 
 
 async def _rag_generate(system_prompt: str, user_question: str,
@@ -3429,7 +3613,7 @@ def _chunk_text(text: str, target_words: int = RAG_CHUNK_TARGET_WORDS,
 
 # ── Endpoint 1: POST /api/rag-chat ───────────────────────────────────────────
 @app.post("/api/rag-chat", response_model=RagChatResponse)
-async def rag_chat(req: RagChatRequest):
+async def rag_chat(req: RagChatRequest, db: Session = Depends(get_db)):
     """
     Chatbot AI hybrid:
     - Câu hỏi liên quan shop -> RAG knowledge-base.
@@ -3455,12 +3639,30 @@ async def rag_chat(req: RagChatRequest):
 
         if query_vector and store:
             top_chunks = _retrieve_top_k(query_vector, store, k=RAG_TOP_K)
-            sources = list({c.get("source", "") for c in top_chunks if c.get("source")})
-            context_text = "\n\n---\n\n".join(c["chunk"] for c in top_chunks)
+            rag_sources = list({c.get("source", "") for c in top_chunks if c.get("source")})
+            rag_context = "\n\n---\n\n".join(c["chunk"] for c in top_chunks)
         else:
             top_chunks = []
-            sources = []
-            context_text = ""
+            rag_sources = []
+            rag_context = ""
+
+        # QUAN TRỌNG: tên / giá / tồn kho lấy trực tiếp từ database thật của shop.
+        # vector_store chủ yếu là knowledge-base nên không được dùng làm nguồn duy nhất cho sản phẩm.
+        live_shop_context = _build_live_shop_context(db)
+
+        context_parts = []
+        sources = []
+        if live_shop_context:
+            context_parts.append(
+                "DỮ LIỆU SẢN PHẨM TRỰC TIẾP TỪ DATABASE (ƯU TIÊN CAO NHẤT):\n"
+                + live_shop_context
+            )
+            sources.append("CSDL sản phẩm shop")
+        if rag_context:
+            context_parts.append("TÀI LIỆU RAG / KNOWLEDGE-BASE:\n" + rag_context)
+            sources.extend(rag_sources)
+
+        context_text = "\n\n====================\n\n".join(context_parts)
 
         if context_text:
             system_prompt = (
@@ -3468,16 +3670,20 @@ async def rag_chat(req: RagChatRequest):
                 "chuyên về điện thoại, laptop, phụ kiện và đồng hồ thông minh chính hãng.\n\n"
                 "QUY TẮC QUAN TRỌNG:\n"
                 "1. Đây là câu hỏi liên quan đến shop. Chỉ trả lời dựa trên phần NGỮCẢNH bên dưới, không bịa thêm thông tin.\n"
-                "2. Nếu NGỮCẢNH không đủ để khẳng định một thông tin cụ thể, hãy nói rõ là shop chưa có dữ liệu chính xác cho nội dung đó.\n"
-                "3. Trả lời bằng tiếng Việt có dấu, thân thiện và ngắn gọn (2-5 câu).\n"
-                "4. Với các câu hỏi về SỐ LƯỢNG, THỐNG KÊ cụ thể, chỉ trả lời số liệu nếu có trong ngữ cảnh; tuyệt đối không ước lượng.\n\n"
+                "2. Phần 'DỮ LIỆU SẢN PHẨM TRỰC TIẾP TỪ DATABASE' là nguồn chuẩn cho TÊN, GIÁ và TỒN KHO hiện tại. "
+                "Nếu sản phẩm xuất hiện trong danh sách này thì PHẢI dùng đúng dữ liệu đó, không được nói là không có dữ liệu.\n"
+                "3. Với câu hỏi như 'sản phẩm đắt nhất/rẻ nhất', 'có bao nhiêu sản phẩm', hãy so sánh hoặc đếm trực tiếp từ toàn bộ danh sách DATABASE và trả lời kết quả chính xác.\n"
+                "4. Với câu hỏi giá một sản phẩm cụ thể, nếu tên sản phẩm có trong DATABASE thì trả lời đúng giá ghi trong DATABASE.\n"
+                "5. Tài liệu RAG dùng bổ sung cho chính sách, hướng dẫn và mô tả; nếu mâu thuẫn về giá/tồn kho với DATABASE thì ưu tiên DATABASE.\n"
+                "6. Chỉ khi thông tin thực sự không xuất hiện trong cả DATABASE lẫn RAG mới được nói chưa có dữ liệu.\n"
+                "7. Trả lời bằng tiếng Việt có dấu, thân thiện và ngắn gọn (2-5 câu).\n\n"
                 f"NGỮCẢNH:\n{context_text}"
             )
         else:
             system_prompt = (
                 "Bạn là Hồng Anh AI — trợ lý tư vấn của Shop Trương Hồng Anh.\n"
-                "Câu hỏi của khách liên quan đến shop nhưng hệ thống RAG hiện không tìm thấy dữ liệu đủ phù hợp. "
-                "Không được bịa giá, tồn kho, chính sách hay sản phẩm. Hãy nói ngắn gọn rằng hiện chưa có dữ liệu chính xác và gợi ý khách xem trực tiếp trên trang sản phẩm hoặc hỏi lại cụ thể hơn."
+                "Câu hỏi của khách liên quan đến shop nhưng hiện cả database sản phẩm và RAG đều không trả về dữ liệu. "
+                "Không được bịa giá, tồn kho, chính sách hay sản phẩm. Hãy nói ngắn gọn rằng hệ thống chưa đọc được dữ liệu shop và đề nghị thử lại sau."
             )
 
         answer, _ = await _rag_generate(
@@ -3507,11 +3713,10 @@ async def rag_chat(req: RagChatRequest):
         "5. Trả lời bằng tiếng Việt có dấu."
     )
 
-    answer, web_sources = await _rag_generate(
+    answer, web_sources = await _web_search_generate_interactions(
         system_prompt,
         question,
         req.history or [],
-        use_google_search=True,
     )
     return RagChatResponse(answer=answer, sources=web_sources)
 
