@@ -31271,36 +31271,72 @@ i[class^="hai-"], i[class*=" hai-"] {
     }
 
     // ── Voice Input ───────────────────────────────────────────
+    // Sửa lỗi "chỉ bấm được lần đầu":
+    //  1. Mỗi lần bấm tạo MỘT phiên nhận diện mới -> không bao giờ dính lỗi
+    //     InvalidStateError do gọi start() khi phiên cũ chưa kết thúc hẳn.
+    //  2. Luôn có onend để trả giao diện về trạng thái ban đầu trong MỌI tình huống
+    //     (nói xong, im lặng không nói, tắt giữa chừng, lỗi...).
+    //  3. Bấm lần nữa khi đang nghe = tắt micro (toggle), thay vì bị treo.
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (SpeechRecognition) {
-        const recognition = new SpeechRecognition();
-        recognition.lang = 'vi-VN';
-        recognition.interimResults = false;
-        recognition.maxAlternatives = 1;
+        let ragRec = null;          // phiên nhận diện hiện tại
+        let ragListening = false;   // đang nghe hay không
+
+        function ragResetVoiceUI() {
+            ragListening = false;
+            ragRec = null;
+            inputEl.placeholder = "Nhập câu hỏi...";
+            voiceBtn.classList.remove('rag-recording');
+        }
+
+        function ragStartVoice() {
+            const rec = new SpeechRecognition();
+            ragRec = rec;
+            rec.lang = 'vi-VN';
+            rec.continuous = false;
+            rec.interimResults = false;
+            rec.maxAlternatives = 1;
+
+            rec.onstart = () => {
+                ragListening = true;
+                inputEl.placeholder = "Đang nghe...";
+                voiceBtn.classList.add('rag-recording');
+            };
+
+            rec.onresult = (event) => {
+                const transcript = event.results[0][0].transcript;
+                inputEl.value = (inputEl.value + ' ' + transcript).trim();
+                autoResizeInput();
+            };
+
+            // onend LUÔN chạy khi phiên kết thúc -> chốt chặn cuối cùng để reset
+            rec.onend = ragResetVoiceUI;
+
+            rec.onerror = (event) => {
+                if (event.error === 'not-allowed' || event.error === 'permission-denied') {
+                    alert('Vui lòng cho phép truy cập micro trên trình duyệt để dùng nhập bằng giọng nói!');
+                } else if (event.error !== 'no-speech' && event.error !== 'aborted') {
+                    console.warn('[voice-chat] Lỗi nhận diện giọng nói:', event.error);
+                }
+                ragResetVoiceUI();
+            };
+
+            try {
+                rec.start();
+            } catch (e) {
+                console.warn('[voice-chat] Không khởi động được micro:', e);
+                ragResetVoiceUI();
+            }
+        }
 
         voiceBtn.addEventListener('click', () => {
-            recognition.start();
-            inputEl.placeholder = "Đang nghe...";
-            voiceBtn.classList.add('rag-recording');
+            if (ragListening) {          // đang nghe -> bấm lần nữa để tắt
+                try { ragRec && ragRec.stop(); } catch (e) { }
+                ragResetVoiceUI();
+                return;
+            }
+            ragStartVoice();
         });
-
-        recognition.onresult = (event) => {
-            const transcript = event.results[0][0].transcript;
-            inputEl.value = (inputEl.value + ' ' + transcript).trim();
-            autoResizeInput();
-        };
-
-        recognition.onspeechend = () => {
-            recognition.stop();
-            inputEl.placeholder = "Nhập câu hỏi...";
-            voiceBtn.classList.remove('rag-recording');
-        };
-
-        recognition.onerror = (event) => {
-            console.error('Speech recognition error', event.error);
-            inputEl.placeholder = "Nhập câu hỏi...";
-            voiceBtn.classList.remove('rag-recording');
-        };
     } else {
         voiceBtn.style.display = 'none';
         console.warn("Speech Recognition API not supported in this browser.");
