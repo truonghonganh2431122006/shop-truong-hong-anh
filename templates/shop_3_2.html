@@ -22563,6 +22563,87 @@
             .ha-flash-banner__bolt { width: 28px; height: 28px; font-size: 15px; }
         }
     </style>
+
+
+<style id="ha-icon-lib">
+/* ═══════════════════════════════════════════════════════════════
+   THƯ VIỆN ICON SVG DÙNG CHUNG (kiểu đường nét - chuẩn TMĐT)
+   Cách dùng:  <i class=hai-cart></i>
+   - Icon tự động ăn theo màu chữ (currentColor) và cỡ chữ (1em)
+   - Dùng được cả trong HTML tĩnh lẫn chuỗi JS (không chứa dấu nháy)
+   ═══════════════════════════════════════════════════════════════ */
+i[class^="hai-"], i[class*=" hai-"] {
+    display: inline-block;
+    width: 1em;
+    height: 1em;
+    vertical-align: -0.14em;
+    background-color: currentColor;
+    -webkit-mask-repeat: no-repeat;   mask-repeat: no-repeat;
+    -webkit-mask-position: center;    mask-position: center;
+    -webkit-mask-size: contain;       mask-size: contain;
+    flex-shrink: 0;
+}
+
+.hai-check{-webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M20 6 9 17l-5-5'/%3E%3C/svg%3E");mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M20 6 9 17l-5-5'/%3E%3C/svg%3E")}
+.hai-check-circle{-webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' cx='12' cy='12' r='9'/%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='m8.5 12.5 2.5 2.5 4.5-5'/%3E%3C/svg%3E");mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' cx='12' cy='12' r='9'/%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='m8.5 12.5 2.5 2.5 4.5-5'/%3E%3C/svg%3E")}
+.hai-alert{-webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z'/%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M12 9v4M12 17h.01'/%3E%3C/svg%3E");mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z'/%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M12 9v4M12 17h.01'/%3E%3C/svg%3E")}
+.hai-x{-webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M18 6 6 18M6 6l12 12'/%3E%3C/svg%3E");mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M18 6 6 18M6 6l12 12'/%3E%3C/svg%3E")}
+.hai-x-circle{-webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' cx='12' cy='12' r='9'/%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='m15 9-6 6M9 9l6 6'/%3E%3C/svg%3E");mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' cx='12' cy='12' r='9'/%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='m15 9-6 6M9 9l6 6'/%3E%3C/svg%3E")}
+.hai-info{-webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' cx='12' cy='12' r='9'/%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M12 16v-4M12 8h.01'/%3E%3C/svg%3E");mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' cx='12' cy='12' r='9'/%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M12 16v-4M12 8h.01'/%3E%3C/svg%3E")}
+.hai-cart{-webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle fill='currentColor' stroke='none' cx='9' cy='20' r='1.6'/%3E%3Ccircle fill='currentColor' stroke='none' cx='18' cy='20' r='1.6'/%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M2 3h2.2l2.3 11.4a2 2 0 0 0 2 1.6h8.6a2 2 0 0 0 2-1.6L21 7H5.4'/%3E%3C/svg%3E");mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle fill='currentColor' stroke='none' cx='9' cy='20' r='1.6'/%3E%3Ccircle fill='currentColor' stroke='none' cx='18' cy='20' r='1.6'/%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M2 3h2.2l2.3 11.4a2 2 0 0 0 2 1.6h8.6a2 2 0 0 0 2-1.6L21 7H5.4'/%3E%3C/svg%3E")}
+.hai-bag{-webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4ZM3 6h18'/%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M16 10a4 4 0 0 1-8 0'/%3E%3C/svg%3E");mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4ZM3 6h18'/%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M16 10a4 4 0 0 1-8 0'/%3E%3C/svg%3E")}
+.hai-tag{-webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.4 2.4 0 0 0 3.42 0l6.58-6.58a2.4 2.4 0 0 0 0-3.42z'/%3E%3Ccircle fill='currentColor' stroke='none' cx='7.5' cy='7.5' r='1.1'/%3E%3C/svg%3E");mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.4 2.4 0 0 0 3.42 0l6.58-6.58a2.4 2.4 0 0 0 0-3.42z'/%3E%3Ccircle fill='currentColor' stroke='none' cx='7.5' cy='7.5' r='1.1'/%3E%3C/svg%3E")}
+.hai-ticket{-webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z'/%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M13 5v2M13 11v2M13 17v2'/%3E%3C/svg%3E");mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z'/%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M13 5v2M13 11v2M13 17v2'/%3E%3C/svg%3E")}
+.hai-gift{-webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M20 12v10H4V12M2 7h20v5H2zM12 22V7'/%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7zM12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z'/%3E%3C/svg%3E");mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M20 12v10H4V12M2 7h20v5H2zM12 22V7'/%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7zM12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z'/%3E%3C/svg%3E")}
+.hai-percent{-webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M19 5 5 19'/%3E%3Ccircle fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' cx='7.5' cy='7.5' r='2.5'/%3E%3Ccircle fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' cx='16.5' cy='16.5' r='2.5'/%3E%3C/svg%3E");mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M19 5 5 19'/%3E%3Ccircle fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' cx='7.5' cy='7.5' r='2.5'/%3E%3Ccircle fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' cx='16.5' cy='16.5' r='2.5'/%3E%3C/svg%3E")}
+.hai-gem{-webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='m6 3h12l3 6-9 12L3 9Z'/%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M3 9h18M9 3 6 9l6 12 6-12-3-6'/%3E%3C/svg%3E");mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='m6 3h12l3 6-9 12L3 9Z'/%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M3 9h18M9 3 6 9l6 12 6-12-3-6'/%3E%3C/svg%3E")}
+.hai-coins{-webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' cx='8' cy='8' r='6'/%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M18.09 10.37A6 6 0 1 1 10.34 18M7 6h1v4m6.71 3.88.7.71-2.82 2.82'/%3E%3C/svg%3E");mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' cx='8' cy='8' r='6'/%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M18.09 10.37A6 6 0 1 1 10.34 18M7 6h1v4m6.71 3.88.7.71-2.82 2.82'/%3E%3C/svg%3E")}
+.hai-banknote{-webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' x='2' y='6' width='20' height='12' rx='2'/%3E%3Ccircle fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' cx='12' cy='12' r='2.5'/%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M6 12h.01M18 12h.01'/%3E%3C/svg%3E");mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' x='2' y='6' width='20' height='12' rx='2'/%3E%3Ccircle fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' cx='12' cy='12' r='2.5'/%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M6 12h.01M18 12h.01'/%3E%3C/svg%3E")}
+.hai-credit-card{-webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' x='2' y='5' width='20' height='14' rx='2'/%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M2 10h20M6 15h4'/%3E%3C/svg%3E");mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' x='2' y='5' width='20' height='14' rx='2'/%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M2 10h20M6 15h4'/%3E%3C/svg%3E")}
+.hai-truck{-webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2'/%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M15 18H9M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.62l-3.48-4.35A1 1 0 0 0 17.52 8H14'/%3E%3Ccircle fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' cx='17' cy='18' r='2'/%3E%3Ccircle fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' cx='7' cy='18' r='2'/%3E%3C/svg%3E");mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2'/%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M15 18H9M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.62l-3.48-4.35A1 1 0 0 0 17.52 8H14'/%3E%3Ccircle fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' cx='17' cy='18' r='2'/%3E%3Ccircle fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' cx='7' cy='18' r='2'/%3E%3C/svg%3E")}
+.hai-box{-webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z'/%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='m3.3 7 8.7 5 8.7-5M12 22V12'/%3E%3C/svg%3E");mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z'/%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='m3.3 7 8.7 5 8.7-5M12 22V12'/%3E%3C/svg%3E")}
+.hai-map-pin{-webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M20 10c0 5-5.54 10.2-7.4 11.8a1 1 0 0 1-1.2 0C9.54 20.2 4 15 4 10a8 8 0 0 1 16 0'/%3E%3Ccircle fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' cx='12' cy='10' r='3'/%3E%3C/svg%3E");mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M20 10c0 5-5.54 10.2-7.4 11.8a1 1 0 0 1-1.2 0C9.54 20.2 4 15 4 10a8 8 0 0 1 16 0'/%3E%3Ccircle fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' cx='12' cy='10' r='3'/%3E%3C/svg%3E")}
+.hai-globe{-webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' cx='12' cy='12' r='10'/%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20M2 12h20'/%3E%3C/svg%3E");mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' cx='12' cy='12' r='10'/%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20M2 12h20'/%3E%3C/svg%3E")}
+.hai-shield{-webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z'/%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='m9 12 2 2 4-4'/%3E%3C/svg%3E");mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z'/%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='m9 12 2 2 4-4'/%3E%3C/svg%3E")}
+.hai-lock{-webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' x='3' y='11' width='18' height='11' rx='2'/%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M7 11V7a5 5 0 0 1 10 0v4'/%3E%3C/svg%3E");mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' x='3' y='11' width='18' height='11' rx='2'/%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M7 11V7a5 5 0 0 1 10 0v4'/%3E%3C/svg%3E")}
+.hai-refresh{-webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8'/%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M21 3v5h-5'/%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16'/%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M8 16H3v5'/%3E%3C/svg%3E");mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8'/%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M21 3v5h-5'/%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16'/%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M8 16H3v5'/%3E%3C/svg%3E")}
+.hai-undo{-webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M3 7v6h6'/%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13'/%3E%3C/svg%3E");mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M3 7v6h6'/%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13'/%3E%3C/svg%3E")}
+.hai-scale{-webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z'/%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z'/%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M7 21h10M12 3v18M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2'/%3E%3C/svg%3E");mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z'/%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z'/%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M7 21h10M12 3v18M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2'/%3E%3C/svg%3E")}
+.hai-clock{-webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' cx='12' cy='12' r='9'/%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M12 7v5l3.5 2'/%3E%3C/svg%3E");mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' cx='12' cy='12' r='9'/%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M12 7v5l3.5 2'/%3E%3C/svg%3E")}
+.hai-alarm{-webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' cx='12' cy='13' r='8'/%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M12 9v4l2.5 1.5M5 3 2 6M19 3l3 3'/%3E%3C/svg%3E");mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' cx='12' cy='13' r='8'/%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M12 9v4l2.5 1.5M5 3 2 6M19 3l3 3'/%3E%3C/svg%3E")}
+.hai-hourglass{-webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M6 2h12M6 22h12'/%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M8 2v4.5c0 1.4 4 3.6 4 5.5 0-1.9 4-4.1 4-5.5V2M8 22v-4.5c0-1.4 4-3.6 4-5.5 0 1.9 4 4.1 4 5.5V22'/%3E%3C/svg%3E");mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M6 2h12M6 22h12'/%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M8 2v4.5c0 1.4 4 3.6 4 5.5 0-1.9 4-4.1 4-5.5V2M8 22v-4.5c0-1.4 4-3.6 4-5.5 0 1.9 4 4.1 4 5.5V22'/%3E%3C/svg%3E")}
+.hai-heart{-webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z'/%3E%3C/svg%3E");mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z'/%3E%3C/svg%3E")}
+.hai-heart-fill{-webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='currentColor' stroke='none' d='M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z'/%3E%3C/svg%3E");mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='currentColor' stroke='none' d='M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z'/%3E%3C/svg%3E")}
+.hai-heart-crack{-webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z'/%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='m12 13-1-1 2-2-3-3 2-2'/%3E%3C/svg%3E");mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z'/%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='m12 13-1-1 2-2-3-3 2-2'/%3E%3C/svg%3E")}
+.hai-star{-webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M11.5 2.3a.5.5 0 0 1 1 0l2.3 4.7a2.1 2.1 0 0 0 1.6 1.2l5.2.7a.53.53 0 0 1 .3.9l-3.8 3.7a2.1 2.1 0 0 0-.6 1.9l.9 5.1a.53.53 0 0 1-.8.6L13 19.3a2.1 2.1 0 0 0-2 0L6.4 21a.53.53 0 0 1-.8-.6l.9-5.1a2.1 2.1 0 0 0-.6-1.9L2.2 9.8a.53.53 0 0 1 .3-.9l5.2-.8a2.1 2.1 0 0 0 1.6-1.2z'/%3E%3C/svg%3E");mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M11.5 2.3a.5.5 0 0 1 1 0l2.3 4.7a2.1 2.1 0 0 0 1.6 1.2l5.2.7a.53.53 0 0 1 .3.9l-3.8 3.7a2.1 2.1 0 0 0-.6 1.9l.9 5.1a.53.53 0 0 1-.8.6L13 19.3a2.1 2.1 0 0 0-2 0L6.4 21a.53.53 0 0 1-.8-.6l.9-5.1a2.1 2.1 0 0 0-.6-1.9L2.2 9.8a.53.53 0 0 1 .3-.9l5.2-.8a2.1 2.1 0 0 0 1.6-1.2z'/%3E%3C/svg%3E")}
+.hai-star-fill{-webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='currentColor' stroke='none' d='M11.5 2.3a.5.5 0 0 1 1 0l2.3 4.7a2.1 2.1 0 0 0 1.6 1.2l5.2.7a.53.53 0 0 1 .3.9l-3.8 3.7a2.1 2.1 0 0 0-.6 1.9l.9 5.1a.53.53 0 0 1-.8.6L13 19.3a2.1 2.1 0 0 0-2 0L6.4 21a.53.53 0 0 1-.8-.6l.9-5.1a2.1 2.1 0 0 0-.6-1.9L2.2 9.8a.53.53 0 0 1 .3-.9l5.2-.8a2.1 2.1 0 0 0 1.6-1.2z'/%3E%3C/svg%3E");mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='currentColor' stroke='none' d='M11.5 2.3a.5.5 0 0 1 1 0l2.3 4.7a2.1 2.1 0 0 0 1.6 1.2l5.2.7a.53.53 0 0 1 .3.9l-3.8 3.7a2.1 2.1 0 0 0-.6 1.9l.9 5.1a.53.53 0 0 1-.8.6L13 19.3a2.1 2.1 0 0 0-2 0L6.4 21a.53.53 0 0 1-.8-.6l.9-5.1a2.1 2.1 0 0 0-.6-1.9L2.2 9.8a.53.53 0 0 1 .3-.9l5.2-.8a2.1 2.1 0 0 0 1.6-1.2z'/%3E%3C/svg%3E")}
+.hai-thumbs-up{-webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M7 10v12'/%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2a3.13 3.13 0 0 1 3 3.88Z'/%3E%3C/svg%3E");mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M7 10v12'/%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2a3.13 3.13 0 0 1 3 3.88Z'/%3E%3C/svg%3E")}
+.hai-smile{-webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' cx='12' cy='12' r='10'/%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M8 14s1.5 2 4 2 4-2 4-2M9 9h.01M15 9h.01'/%3E%3C/svg%3E");mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' cx='12' cy='12' r='10'/%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M8 14s1.5 2 4 2 4-2 4-2M9 9h.01M15 9h.01'/%3E%3C/svg%3E")}
+.hai-wave{-webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M18 11V6a2 2 0 0 0-2-2a2 2 0 0 0-2 2'/%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M14 10V4a2 2 0 0 0-2-2a2 2 0 0 0-2 2v2'/%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M10 10.5V6a2 2 0 0 0-2-2a2 2 0 0 0-2 2v8'/%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15'/%3E%3C/svg%3E");mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M18 11V6a2 2 0 0 0-2-2a2 2 0 0 0-2 2'/%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M14 10V4a2 2 0 0 0-2-2a2 2 0 0 0-2 2v2'/%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M10 10.5V6a2 2 0 0 0-2-2a2 2 0 0 0-2 2v8'/%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15'/%3E%3C/svg%3E")}
+.hai-sparkle{-webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='m12 3 2.1 5.9L20 11l-5.9 2.1L12 19l-2.1-5.9L4 11l5.9-2.1Z'/%3E%3C/svg%3E");mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='m12 3 2.1 5.9L20 11l-5.9 2.1L12 19l-2.1-5.9L4 11l5.9-2.1Z'/%3E%3C/svg%3E")}
+.hai-flame{-webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z'/%3E%3C/svg%3E");mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z'/%3E%3C/svg%3E")}
+.hai-zap{-webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M13 2 4 14h7l-1 8 9-12h-7Z'/%3E%3C/svg%3E");mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M13 2 4 14h7l-1 8 9-12h-7Z'/%3E%3C/svg%3E")}
+.hai-rocket{-webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M5 15c-1.5 1.5-2 6-2 6s4.5-.5 6-2a3 3 0 0 0-4-4Z'/%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M9.5 14.5 6 11a14 14 0 0 1 9-9c3.5 0 6 2.5 6 6a14 14 0 0 1-9 9Z'/%3E%3Ccircle fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' cx='15' cy='9' r='2'/%3E%3C/svg%3E");mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M5 15c-1.5 1.5-2 6-2 6s4.5-.5 6-2a3 3 0 0 0-4-4Z'/%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M9.5 14.5 6 11a14 14 0 0 1 9-9c3.5 0 6 2.5 6 6a14 14 0 0 1-9 9Z'/%3E%3Ccircle fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' cx='15' cy='9' r='2'/%3E%3C/svg%3E")}
+.hai-trophy{-webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M6 9H4.5a2.5 2.5 0 0 1 0-5H6M18 9h1.5a2.5 2.5 0 0 0 0-5H18M4 22h16'/%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M10 14.7V17c0 .6-.5 1-1 1.2C7.9 18.8 7 20.2 7 22M14 14.7V17c0 .6.5 1 1 1.2 1.1.6 2 2 2 3.8'/%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M18 2H6v7a6 6 0 0 0 12 0V2Z'/%3E%3C/svg%3E");mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M6 9H4.5a2.5 2.5 0 0 1 0-5H6M18 9h1.5a2.5 2.5 0 0 0 0-5H18M4 22h16'/%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M10 14.7V17c0 .6-.5 1-1 1.2C7.9 18.8 7 20.2 7 22M14 14.7V17c0 .6.5 1 1 1.2 1.1.6 2 2 2 3.8'/%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M18 2H6v7a6 6 0 0 0 12 0V2Z'/%3E%3C/svg%3E")}
+.hai-search{-webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' cx='11' cy='11' r='7'/%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='m20 20-3.6-3.6'/%3E%3C/svg%3E");mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' cx='11' cy='11' r='7'/%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='m20 20-3.6-3.6'/%3E%3C/svg%3E")}
+.hai-filter{-webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M3 5h18l-7 8v6l-4 2v-8Z'/%3E%3C/svg%3E");mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M3 5h18l-7 8v6l-4 2v-8Z'/%3E%3C/svg%3E")}
+.hai-trash{-webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M3 6h18M8 6V4h8v2M6 6l1 14a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1l1-14'/%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M10 11v6M14 11v6'/%3E%3C/svg%3E");mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M3 6h18M8 6V4h8v2M6 6l1 14a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1l1-14'/%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M10 11v6M14 11v6'/%3E%3C/svg%3E")}
+.hai-edit{-webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M12 20h9'/%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z'/%3E%3C/svg%3E");mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M12 20h9'/%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z'/%3E%3C/svg%3E")}
+.hai-clipboard{-webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' x='8' y='2' width='8' height='4' rx='1'/%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2'/%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M9 12h6M9 16h4'/%3E%3C/svg%3E");mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' x='8' y='2' width='8' height='4' rx='1'/%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2'/%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M9 12h6M9 16h4'/%3E%3C/svg%3E")}
+.hai-list{-webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M8 6h13M8 12h13M8 18h13M3.5 6h.01M3.5 12h.01M3.5 18h.01'/%3E%3C/svg%3E");mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M8 6h13M8 12h13M8 18h13M3.5 6h.01M3.5 12h.01M3.5 18h.01'/%3E%3C/svg%3E")}
+.hai-book{-webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M4 4.5A2.5 2.5 0 0 1 6.5 2H20v18H6.5A2.5 2.5 0 0 0 4 22Z'/%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M4 19.5A2.5 2.5 0 0 1 6.5 17H20'/%3E%3C/svg%3E");mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M4 4.5A2.5 2.5 0 0 1 6.5 2H20v18H6.5A2.5 2.5 0 0 0 4 22Z'/%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M4 19.5A2.5 2.5 0 0 1 6.5 17H20'/%3E%3C/svg%3E")}
+.hai-link{-webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71'/%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71'/%3E%3C/svg%3E");mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71'/%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71'/%3E%3C/svg%3E")}
+.hai-chat{-webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M21 12a8 8 0 0 1-8 8H7l-4 3v-5.5A8 8 0 0 1 11 4h2a8 8 0 0 1 8 8Z'/%3E%3C/svg%3E");mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M21 12a8 8 0 0 1-8 8H7l-4 3v-5.5A8 8 0 0 1 11 4h2a8 8 0 0 1 8 8Z'/%3E%3C/svg%3E")}
+.hai-mic{-webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' x='9' y='2' width='6' height='13' rx='3'/%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M19 10v2a7 7 0 0 1-14 0v-2M12 19v3'/%3E%3C/svg%3E");mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' x='9' y='2' width='6' height='13' rx='3'/%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M19 10v2a7 7 0 0 1-14 0v-2M12 19v3'/%3E%3C/svg%3E")}
+.hai-camera{-webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z'/%3E%3Ccircle fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' cx='12' cy='13' r='3'/%3E%3C/svg%3E");mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z'/%3E%3Ccircle fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' cx='12' cy='13' r='3'/%3E%3C/svg%3E")}
+.hai-phone{-webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' x='5' y='2' width='14' height='20' rx='2'/%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M12 18h.01'/%3E%3C/svg%3E");mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' x='5' y='2' width='14' height='20' rx='2'/%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M12 18h.01'/%3E%3C/svg%3E")}
+.hai-user{-webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2'/%3E%3Ccircle fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' cx='12' cy='7' r='4'/%3E%3C/svg%3E");mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2'/%3E%3Ccircle fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' cx='12' cy='7' r='4'/%3E%3C/svg%3E")}
+.hai-grad{-webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='m12 4 10 5-10 5L2 9Z'/%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M6 11v5c0 1.7 2.7 3 6 3s6-1.3 6-3v-5'/%3E%3C/svg%3E");mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='m12 4 10 5-10 5L2 9Z'/%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M6 11v5c0 1.7 2.7 3 6 3s6-1.3 6-3v-5'/%3E%3C/svg%3E")}
+.hai-run{-webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' cx='16' cy='4.5' r='2'/%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='m5 20 3-5 3.5-2-1-5.5L7 9.5 5.5 13'/%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='m10.5 7.5 4-1 2.5 4 3 1M13 13l2 2 .5 5'/%3E%3C/svg%3E");mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' cx='16' cy='4.5' r='2'/%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='m5 20 3-5 3.5-2-1-5.5L7 9.5 5.5 13'/%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='m10.5 7.5 4-1 2.5 4 3 1M13 13l2 2 .5 5'/%3E%3C/svg%3E")}
+.hai-apple{-webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M12 8c-1-2-3.5-2.5-5 0-2 3.3 0 12 2.5 12 1 0 1.5-.7 2.5-.7s1.5.7 2.5.7c2.5 0 4.5-8.7 2.5-12-1.5-2.5-4-2-5 0Z'/%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M12 8c0-2 1-3.5 3-4'/%3E%3C/svg%3E");mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M12 8c-1-2-3.5-2.5-5 0-2 3.3 0 12 2.5 12 1 0 1.5-.7 2.5-.7s1.5.7 2.5.7c2.5 0 4.5-8.7 2.5-12-1.5-2.5-4-2-5 0Z'/%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M12 8c0-2 1-3.5 3-4'/%3E%3C/svg%3E")}
+.hai-arrow-up{-webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M12 20V5M6 11l6-6 6 6'/%3E%3C/svg%3E");mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M12 20V5M6 11l6-6 6 6'/%3E%3C/svg%3E")}
+.hai-chevron-down{-webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='m6 9 6 6 6-6'/%3E%3C/svg%3E");mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='m6 9 6 6 6-6'/%3E%3C/svg%3E")}
+</style>
 </head>
 <!-- End Floating Banners -->
 
@@ -22581,7 +22662,7 @@
 </svg>
 
 <div class="tgdd-top-bar">
-    <span>🎓 LAPTOP TỰU TRƯỜNG - Học Gì Cũng Mượt</span>
+    <span><i class=hai-grad></i> LAPTOP TỰU TRƯỜNG - Học Gì Cũng Mượt</span>
     <span style="color:#ea580c">•</span>
     <span>TÂN SINH VIÊN ĐỔI ĐIỂM GIẢM THÊM ĐẾN 3 TRIỆU</span>
     <span class="badge-btn">MUA NGAY</span>
@@ -23581,11 +23662,11 @@
 </header>
 <input type="hidden" data-location-twolevel="True" />
 
-<!-- ⚡ TGDD PAYLATER & CREDIT CARD NOTICE BANNER -->
+<!-- TGDD PAYLATER & CREDIT CARD NOTICE BANNER -->
 <div class="tgdd-paylater-banner">
     <div style="display:flex;align-items:center;gap:6px;">
         <span
-            style="background:#ffd400;color:#000;border-radius:50%;width:22px;height:22px;display:inline-flex;align-items:center;justify-content:center;font-weight:bold;font-size:11px;">🏃</span>
+            style="background:#ffd400;color:#000;border-radius:50%;width:22px;height:22px;display:inline-flex;align-items:center;justify-content:center;font-weight:bold;font-size:11px;"><i class=hai-run></i></span>
         <span>MWG Paylater hạn mức đến <strong style="color:#0071e3">40 triệu</strong></span>
     </div>
     <span style="color:#ddd">•</span>
@@ -23596,7 +23677,7 @@
     </div>
 </div>
 
-<!-- 📍 TGDD STICKY SIDE BANNERS -->
+<!-- TGDD STICKY SIDE BANNERS -->
 <div class="tgdd-side-banner left">
     <img src="/static/Banner-trai.jpg" alt="Banner trái"
         style="width:100%; border-radius:12px; box-shadow:0 4px 12px rgba(0,0,0,0.15);"
@@ -23609,14 +23690,14 @@
 </div>
 
 <div class="main-container">
-    <!-- 🔥 KHUYẾN MÃI ONLINE SECTION & COUNTDOWN TIMER -->
+    <!-- KHUYẾN MÃI ONLINE SECTION & COUNTDOWN TIMER -->
     <div class="tgdd-online-promo">
-        <div class="tgdd-online-title"><span class="tgdd-title-flame">🔥</span> Khuyến mãi online</div>
+        <div class="tgdd-online-title"><span class="tgdd-title-flame"><i class=hai-flame></i></span> Khuyến mãi online</div>
         <div class="tgdd-promo-tabs-container">
-            <button class="tgdd-tab-btn flashsale active" onclick="tgddFilterTab('flashsale', this)">🔥 FLASH SALE GIÁ
+            <button class="tgdd-tab-btn flashsale active" onclick="tgddFilterTab('flashsale', this)"><i class=hai-flame></i> FLASH SALE GIÁ
                 SỐC</button>
-            <button class="tgdd-tab-btn" onclick="tgddFilterTab('50', this)">🏷️ GIẢM ĐẾN 50%</button>
-            <button class="tgdd-tab-btn" onclick="tgddFilterTab('online', this)">⚡ ONLINE ONLY GIẢM ĐẾN 50%</button>
+            <button class="tgdd-tab-btn" onclick="tgddFilterTab('50', this)"><i class=hai-tag></i> GIẢM ĐẾN 50%</button>
+            <button class="tgdd-tab-btn" onclick="tgddFilterTab('online', this)"><i class=hai-zap></i> ONLINE ONLY GIẢM ĐẾN 50%</button>
             <button class="tgdd-tab-btn" onclick="tgddFilterTab('điện thoại', this)">Điện thoại</button>
             <button class="tgdd-tab-btn" onclick="tgddFilterTab('apple', this)">Apple</button>
             <button class="tgdd-tab-btn" onclick="tgddFilterTab('laptop', this)">Laptop</button>
@@ -23625,7 +23706,7 @@
             <button class="tgdd-tab-btn" onclick="tgddFilterTab('pc', this)">PC, Máy in</button>
         </div>
         <div class="tgdd-countdown-box">
-            <span class="tgdd-cd-icon">⏰</span>
+            <span class="tgdd-cd-icon"><i class=hai-alarm></i></span>
             <span class="tgdd-cd-label">Chỉ còn</span>
             <span class="tgdd-cd-group">
                 <span class="tgdd-cd-num" id="tgdd-cd-h">03</span>
@@ -23725,7 +23806,7 @@
                 <line x1="8" y1="12" x2="16" y2="12" />
                 <line x1="11" y1="18" x2="13" y2="18" />
             </svg>
-            🔍 Lọc sản phẩm
+            <i class=hai-search></i> Lọc sản phẩm
             <span class="ha-filter-count" id="ha-filter-count">0</span>
         </button>
 
@@ -23735,7 +23816,7 @@
                 <div class="ha-fp-group">
                     <div class="ha-fp-label">Hãng</div>
                     <div class="ha-fp-chips" id="ha-brand-chips">
-                        <button class="ha-chip-btn" data-group="brand" data-val="apple" onclick="haToggleChip(this)">🍎
+                        <button class="ha-chip-btn" data-group="brand" data-val="apple" onclick="haToggleChip(this)"><i class=hai-apple></i>
                             Apple</button>
                         <button class="ha-chip-btn" data-group="brand" data-val="samsung"
                             onclick="haToggleChip(this)">Samsung</button>
@@ -23769,17 +23850,17 @@
                 <div class="ha-fp-group">
                     <div class="ha-fp-label">Sắp xếp</div>
                     <div class="ha-fp-chips" id="ha-sort-chips">
-                        <button class="ha-chip-btn" data-group="sort" data-val="asc" onclick="haToggleChip(this)">💰 Giá
+                        <button class="ha-chip-btn" data-group="sort" data-val="asc" onclick="haToggleChip(this)"><i class=hai-coins></i> Giá
                             thấp → cao</button>
-                        <button class="ha-chip-btn" data-group="sort" data-val="desc" onclick="haToggleChip(this)">💎
+                        <button class="ha-chip-btn" data-group="sort" data-val="desc" onclick="haToggleChip(this)"><i class=hai-gem></i>
                             Giá cao → thấp</button>
                     </div>
                 </div>
             </div>
 
             <div class="ha-fp-actions">
-                <button id="ha-filter-apply" onclick="haApplyFilter()">✅ Áp dụng</button>
-                <button id="ha-filter-reset" onclick="haResetFilter()">↩ Bỏ lọc</button>
+                <button id="ha-filter-apply" onclick="haApplyFilter()"><i class=hai-check-circle></i> Áp dụng</button>
+                <button id="ha-filter-reset" onclick="haResetFilter()"><i class=hai-undo></i> Bỏ lọc</button>
                 <span id="ha-filter-result-msg"></span>
             </div>
         </div>
@@ -23949,7 +24030,7 @@
             <div class="ha-flash-banner__glow" aria-hidden="true"></div>
             <div class="ha-flash-banner__head">
                 <h2 class="ha-flash-banner__title">
-                    <span class="ha-flash-banner__bolt">⚡</span> FLASH SALE ĐANG DIỄN RA
+                    <span class="ha-flash-banner__bolt"><i class=hai-zap></i></span> FLASH SALE ĐANG DIỄN RA
                 </h2>
                 <div class="ha-flash-banner__timer-wrap"><span class="ha-flash-banner__dot"></span><div id="ha-banner-timer" class="ha-flash-banner__timer">Đang diễn ra</div></div>
             </div>
@@ -23963,7 +24044,7 @@
                 style="padding: 13px 44px; background: linear-gradient(135deg, #ffd400 0%, #ffaa00 100%); color: #111; font-weight: 800; font-size: 14px; border: none; border-radius: 50px; cursor: pointer; box-shadow: 0 4px 18px rgba(255,180,0,0.35); letter-spacing: 0.5px; transition: all 0.2s ease;"
                 onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 8px 24px rgba(255,180,0,0.5)';"
                 onmouseout="this.style.transform='';this.style.boxShadow='0 4px 18px rgba(255,180,0,0.35)';">
-                ✦ XEM THÊM SẢN PHẨM ✦
+                <i class=hai-sparkle></i> XEM THÊM SẢN PHẨM <i class=hai-sparkle></i>
             </button>
         </div>
     </div>
@@ -24017,7 +24098,7 @@
 </section>
 <section id="ha-recently-viewed-section"
     style="display:none;margin:40px auto;padding:20px;background:var(--ha-white);border-radius:var(--ha-radius);box-shadow:var(--ha-shadow);max-width:1200px;width:100%;box-sizing:border-box;">
-    <h2 style="font-size:20px;font-weight:700;margin-bottom:16px;color:var(--ha-text);">🕒 Sản phẩm đã xem gần đây</h2>
+    <h2 style="font-size:20px;font-weight:700;margin-bottom:16px;color:var(--ha-text);"><i class=hai-clock></i> Sản phẩm đã xem gần đây</h2>
     <div id="ha-recently-viewed-list" class="listproduct" style="display:flex;flex-wrap:wrap;gap:16px;justify-content:flex-start;"></div>
 </section>
 
@@ -24075,7 +24156,7 @@
     <div id="ha-deal-product-list" class="listproduct" style="min-height:80px;"></div>
 
     <div style="text-align:center;margin-top:20px;">
-        <button id="ha-deal-loadmore" type="button" style="background:linear-gradient(135deg, var(--ha-yellow), #ff9d00);border:none;color:#111;font-weight:700;padding:10px 28px;border-radius:24px;cursor:pointer;box-shadow:var(--ha-shadow);">Xem thêm Deal ▼</button>
+        <button id="ha-deal-loadmore" type="button" style="background:linear-gradient(135deg, var(--ha-yellow), #ff9d00);border:none;color:#111;font-weight:700;padding:10px 28px;border-radius:24px;cursor:pointer;box-shadow:var(--ha-shadow);">Xem thêm Deal <i class=hai-chevron-down></i></button>
     </div>
 </section>
 <style>
@@ -24925,9 +25006,9 @@
                     <h2 id="modalName"></h2>
                     <!-- Badges tin tưởng -->
                     <div class="ha-trust-badges">
-                        <span class="ha-trust-badge green">✅ Chính hãng 100%</span>
-                        <span class="ha-trust-badge">🛡️ BH 12 tháng</span>
-                        <span class="ha-trust-badge red">🔄 Đổi trả 30 ngày</span>
+                        <span class="ha-trust-badge green"><i class=hai-check-circle></i> Chính hãng 100%</span>
+                        <span class="ha-trust-badge"><i class=hai-shield></i> BH 12 tháng</span>
+                        <span class="ha-trust-badge red"><i class=hai-refresh></i> Đổi trả 30 ngày</span>
                     </div>
                     <!-- Giá -->
                     <div id="modalPrice"></div>
@@ -24939,10 +25020,10 @@
                     </div>
                     <!-- Nút mua -->
                     <button class="modal-buy-btn" id="modalBuyBtn" style="margin-bottom:10px!important;background:linear-gradient(135deg,#ffd400,#ffb800)!important;color:#333!important;border:none!important;">
-                        ⚡&nbsp; Mua ngay
+                        <i class=hai-zap></i>&nbsp; Mua ngay
                     </button>
                     <button id="modalAddCartBtn" style="width:100%;padding:13px 22px;background:linear-gradient(135deg,#ff7e00,#e8000d);border:none;border-radius:12px;font-size:14px;font-weight:800;cursor:pointer;color:#fff;transition:all 0.22s;box-sizing:border-box;margin-bottom:10px;" onmouseover="this.style.opacity='0.88'" onmouseout="this.style.opacity='1'">
-                        🛒&nbsp; Thêm vào giỏ hàng
+                        <i class=hai-cart></i>&nbsp; Thêm vào giỏ hàng
                     </button>
                     <!-- Nút "Thêm vào yêu thích" (kết nối backend /wishlist/toggle) được JS tự chèn ngay bên dưới nút Thêm vào giỏ hàng ở trên -->
                 </div>
@@ -24999,13 +25080,13 @@
             setTimeout(updateCartCount, 300);
             window.addToCart = addToCart; // Cho phép nút "Thêm vào giỏ hàng" trong modal (script khác) gọi được hàm giỏ hàng thật này
             window.updateCartCount = updateCartCount;
-            function showToast(msg) { var t = document.getElementById('toastMsg'); if (!t) return; t.textContent = msg; t.style.display = 'block'; clearTimeout(t._timer); t._timer = setTimeout(function () { t.style.display = 'none'; }, 2500); }
+            function showToast(msg) { var t = document.getElementById('toastMsg'); if (!t) return; t.innerHTML = msg; t.style.display = 'block'; clearTimeout(t._timer); t._timer = setTimeout(function () { t.style.display = 'none'; }, 2500); }
             function parsePrice(str) { if (!str) return 0; return parseInt(str.replace(/[^\d]/g, '')) || 0; }
             function formatPrice(n) { return n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.') + ' ₫'; }
 
             function addToCart(id, name, price, img) {
                 if (!localStorage.getItem('access_token')) {
-                    alert('⚠️ Vui lòng đăng nhập để thêm vào giỏ hàng!');
+ alert('Vui lòng đăng nhập để thêm vào giỏ hàng!');
                     window.location.href = '/login';
                     return;
                 }
@@ -25105,13 +25186,13 @@
                 const tk = localStorage.getItem('access_token') || (JSON.parse(localStorage.getItem('currentUser') || '{}').token) || '';
 
                 if (!tk) {
-                    if (sel) sel.innerHTML = '<option value="">🔒 Đăng nhập để xem mã giảm giá của bạn</option>';
-                    if (selQo) selQo.innerHTML = '<option value="">🔒 Đăng nhập để xem mã giảm giá của bạn</option>';
+ if (sel) sel.innerHTML = '<option value=""> Đăng nhập để xem mã giảm giá của bạn</option>';
+ if (selQo) selQo.innerHTML = '<option value=""> Đăng nhập để xem mã giảm giá của bạn</option>';
                     return;
                 }
 
-                if (sel) sel.innerHTML = '<option value="">⏳ Đang tải mã giảm giá...</option>';
-                if (selQo) selQo.innerHTML = '<option value="">⏳ Đang tải mã giảm giá...</option>';
+ if (sel) sel.innerHTML = '<option value=""> Đang tải mã giảm giá...</option>';
+ if (selQo) selQo.innerHTML = '<option value=""> Đang tải mã giảm giá...</option>';
 
                 try {
                     const res = await fetch('/coupons/mine', { headers: { 'Authorization': 'Bearer ' + tk } });
@@ -25125,7 +25206,7 @@
 
                             coupons.forEach(c => {
                                 const valStr = c.discount_type === 'percent' ? `${c.discount_value}%` : `${cleanPrice(c.discount_value)}đ`;
-                                const prefix = c.personal ? '🎁 [Dành riêng cho bạn] ' : '🌐 ';
+                                const prefix = c.personal ? '<i class=hai-gift></i> [Dành riêng cho bạn] ' : '<i class=hai-globe></i> ';
                                 optionsCart += `<option value="${c.code}">${prefix}${c.code} – ${c.label} (Giảm ${valStr})</option>`;
                                 optionsQo += `<option value="${c.code}" data-type="${c.discount_type}" data-value="${c.discount_value}">${prefix}${c.code} – ${c.label} (Giảm ${valStr})</option>`;
                             });
@@ -25190,11 +25271,11 @@
                     const v = await res.json();
                     appliedVoucher = { code: v.code, type: v.discount_type, value: v.discount_value, label: v.label };
                     var msgEl = document.getElementById('voucherMsg');
-                    if (msgEl) msgEl.innerHTML = '<span style="color:green">✅ Áp dụng thành công: ' + v.label + '</span>';
+                    if (msgEl) msgEl.innerHTML = '<span style="color:green"><i class=hai-check-circle></i> Áp dụng thành công: ' + v.label + '</span>';
                 } catch (e) {
                     appliedVoucher = null;
                     var msgEl = document.getElementById('voucherMsg');
-                    if (msgEl) msgEl.innerHTML = '<span style="color:red">❌ ' + e.message + '</span>';
+                    if (msgEl) msgEl.innerHTML = '<span style="color:red"><i class=hai-x-circle></i> ' + e.message + '</span>';
                 }
                 updateCartSummary();
             }
@@ -25238,15 +25319,15 @@
 
             function renderCart() {
                 var el = document.getElementById('cartContent'); if (!el) return;
-                if (cart.length === 0) { el.innerHTML = '<h2>🛒 Giỏ hàng</h2><div class="empty-cart" style="padding:40px 20px;text-align:center;color:#64748b;font-size:15px">Giỏ hàng của bạn đang trống.<br><a href="/" id="haGoShopBtn" style="display:inline-block;margin-top:12px;padding:8px 20px;background:#3b82f6;color:#fff;border-radius:8px;text-decoration:none;font-weight:600">Khám phá sản phẩm</a></div>'; return; }
+                if (cart.length === 0) { el.innerHTML = '<h2><i class=hai-cart></i> Giỏ hàng</h2><div class="empty-cart" style="padding:40px 20px;text-align:center;color:#64748b;font-size:15px">Giỏ hàng của bạn đang trống.<br><a href="/" id="haGoShopBtn" style="display:inline-block;margin-top:12px;padding:8px 20px;background:#3b82f6;color:#fff;border-radius:8px;text-decoration:none;font-weight:600">Khám phá sản phẩm</a></div>'; return; }
 
-                var html = '<h2>🛒 Giỏ hàng (' + getTotalQty() + ' sản phẩm)</h2>';
+                var html = '<h2><i class=hai-cart></i> Giỏ hàng (' + getTotalQty() + ' sản phẩm)</h2>';
 
                 // Nút chọn tất cả
                 html += '<div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;padding:10px 14px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px">';
                 html += '<input type="checkbox" id="checkAll" onchange="window._toggleAll(this.checked)" checked style="width:18px;height:18px;cursor:pointer;accent-color:#2563eb">';
                 html += '<label for="checkAll" style="cursor:pointer;font-size:13.5px;font-weight:600;color:#1e293b">Chọn tất cả</label>';
-                html += '<button onclick="window._clearCart()" style="margin-left:auto;background:#fef2f2;border:1px solid #fecaca;color:#dc2626;padding:5px 12px;border-radius:8px;cursor:pointer;font-size:12px;font-weight:600;transition:all 0.2s">🗑 Xóa tất cả</button>';
+                html += '<button onclick="window._clearCart()" style="margin-left:auto;background:#fef2f2;border:1px solid #fecaca;color:#dc2626;padding:5px 12px;border-radius:8px;cursor:pointer;font-size:12px;font-weight:600;transition:all 0.2s"><i class=hai-trash></i> Xóa tất cả</button>';
                 html += '</div>';
 
                 // Danh sách sản phẩm với checkbox
@@ -25264,17 +25345,17 @@
                     html += '<span style="font-weight:600;color:#0f172a">' + item.name + '</span></td>';
                     html += '<td style="text-align:center;white-space:nowrap;padding:10px 8px;vertical-align:middle"><button onclick="window._changeQty(' + i + ',-1)" style="width:26px;height:26px;border:1px solid #cbd5e1;background:#f8fafc;cursor:pointer;border-radius:6px;font-size:14px;font-weight:bold;color:#475569;transition:all 0.15s">−</button> <span style="display:inline-block;min-width:24px;text-align:center;font-weight:700;font-size:14px;color:#0f172a">' + qty + '</span> <button onclick="window._changeQty(' + i + ',1)" style="width:26px;height:26px;border:1px solid #cbd5e1;background:#f8fafc;cursor:pointer;border-radius:6px;font-size:14px;font-weight:bold;color:#475569;transition:all 0.15s">+</button></td>';
                     html += '<td style="color:#dc2626;font-weight:700;white-space:nowrap;text-align:right;padding:10px 8px;font-size:14px;vertical-align:middle">' + formatPrice(lt) + '</td>';
-                    html += '<td style="padding:10px 6px;vertical-align:middle;text-align:center"><button class="btn-remove" onclick="window._removeFromCart(' + i + ')" style="background:#fef2f2;border:none;color:#ef4444;width:26px;height:26px;border-radius:50%;cursor:pointer;font-size:13px;font-weight:bold;transition:all 0.15s" title="Xóa">✕</button></td>';
+                    html += '<td style="padding:10px 6px;vertical-align:middle;text-align:center"><button class="btn-remove" onclick="window._removeFromCart(' + i + ')" style="background:#fef2f2;border:none;color:#ef4444;width:26px;height:26px;border-radius:50%;cursor:pointer;font-size:13px;font-weight:bold;transition:all 0.15s" title="Xóa"><i class=hai-x></i></button></td>';
                     html += '</tr>';
                 });
                 html += '</table>';
 
                 // Voucher Box
                 html += '<div style="margin:16px 0;padding:14px;background:linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);border:1px solid #fde68a;border-radius:12px;box-shadow:0 2px 8px rgba(245,158,11,0.06);box-sizing:border-box">';
-                html += '<div style="font-size:13.5px;font-weight:700;color:#92400e;margin-bottom:10px;display:flex;align-items:center;gap:6px">🎁 Mã giảm giá cho đơn hàng</div>';
+                html += '<div style="font-size:13.5px;font-weight:700;color:#92400e;margin-bottom:10px;display:flex;align-items:center;gap:6px"><i class=hai-gift></i> Mã giảm giá cho đơn hàng</div>';
                 html += '<div style="display:flex;gap:8px;align-items:center;width:100%;box-sizing:border-box">';
                 html += '<select id="voucherInput" onchange="window._applyVoucher()" style="flex:1;min-width:0;width:100%;max-width:100%;padding:10px 12px;border:1.5px solid #fcd34d;border-radius:8px;font-size:13.5px;background:#fff;color:#1e293b;outline:none;text-overflow:ellipsis;white-space:nowrap;overflow:hidden;box-sizing:border-box">';
-                html += '<option value="">⏳ Đang tải mã giảm giá...</option>';
+ html += '<option value=""> Đang tải mã giảm giá...</option>';
                 html += '</select>';
                 html += '<button onclick="window._applyVoucher()" style="flex-shrink:0;white-space:nowrap;padding:10px 16px;background:linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);border:none;border-radius:8px;font-weight:700;color:#78350f;cursor:pointer;font-size:13.5px;box-shadow:0 3px 8px rgba(245,158,11,0.25);transition:all 0.2s">Áp dụng</button>';
                 html += '</div>';
@@ -25285,7 +25366,7 @@
                 html += '<div id="cartSummary" style="background:#f8fafc;padding:12px 16px;border-radius:10px;border:1px solid #e2e8f0;margin-bottom:16px"></div>';
 
                 // Form thông tin người nhận
-                html += '<h3 class="cart-form-section-title">📍 Thông tin giao hàng & Người nhận</h3>';
+                html += '<h3 class="cart-form-section-title"><i class=hai-map-pin></i> Thông tin giao hàng & Người nhận</h3>';
                 html += '<div class="cart-form" style="display:flex;flex-direction:column;gap:12px">';
                 
                 // Hàng 1: Họ tên + SĐT (2 cột trên desktop)
@@ -25311,16 +25392,16 @@
                 html += '<div><label style="font-size:12px;font-weight:600;color:#475569;margin-bottom:4px;display:block">Số nhà, Tên đường cụ thể *</label><input type="text" id="coAddress" placeholder="Số nhà, tên đường, tòa nhà..." required></div>';
 
                 // Phương thức thanh toán
-                html += '<div style="margin-top:6px;text-align:left"><label style="font-size:13.5px;font-weight:700;color:#1e293b;display:block;margin-bottom:8px">💳 Phương thức thanh toán</label>';
+                html += '<div style="margin-top:6px;text-align:left"><label style="font-size:13.5px;font-weight:700;color:#1e293b;display:block;margin-bottom:8px"><i class=hai-credit-card></i> Phương thức thanh toán</label>';
                 html += '<div class="pay-method-group">';
                 html += '<div class="pay-card" onclick="document.getElementById(\'pCod\').checked=true;document.getElementById(\'qrArea\').style.display=\'none\';this.parentNode.querySelectorAll(\'.pay-card\').forEach(c=>c.classList.remove(\'active\'));this.classList.add(\'active\')">';
                 html += '<input type="radio" name="payMethod" value="COD" checked id="pCod" onclick="event.stopPropagation();document.getElementById(\'qrArea\').style.display=\'none\';this.closest(\'.pay-method-group\').querySelectorAll(\'.pay-card\').forEach(c=>c.classList.remove(\'active\'));this.closest(\'.pay-card\').classList.add(\'active\')">';
-                html += '<label for="pCod">💵 Tiền mặt (COD)</label>';
+                html += '<label for="pCod"><i class=hai-banknote></i> Tiền mặt (COD)</label>';
                 html += '</div>';
 
                 html += '<div class="pay-card" onclick="document.getElementById(\'pBank\').checked=true;document.getElementById(\'qrArea\').style.display=\'block\';this.parentNode.querySelectorAll(\'.pay-card\').forEach(c=>c.classList.remove(\'active\'));this.classList.add(\'active\')">';
                 html += '<input type="radio" name="payMethod" value="BANK" id="pBank" onclick="event.stopPropagation();document.getElementById(\'qrArea\').style.display=\'block\';this.closest(\'.pay-method-group\').querySelectorAll(\'.pay-card\').forEach(c=>c.classList.remove(\'active\'));this.closest(\'.pay-card\').classList.add(\'active\')">';
-                html += '<label for="pBank">📱 Chuyển khoản (QR)</label>';
+                html += '<label for="pBank"><i class=hai-phone></i> Chuyển khoản (QR)</label>';
                 html += '</div>';
                 html += '</div>';
 
@@ -25330,7 +25411,7 @@
                 html += '</div></div>';
 
                 // Nút Xác nhận đặt hàng
-                html += '<button class="btn-checkout" onclick="if(!localStorage.getItem(\'access_token\')){ alert(\'⚠️ Vui lòng đăng nhập để hoàn tất đặt hàng!\'); window.location.href=\'/login\'; } else { window._confirmOrder(); }"><span>✓</span> XÁC NHẬN ĐẶT HÀNG</button>';
+ html += '<button class="btn-checkout"onclick="if(!localStorage.getItem(\'access_token\')){ alert(\'Vui lòng đăng nhập để hoàn tất đặt hàng!\'); window.location.href=\'/login\'; } else { window._confirmOrder(); }"><span></span> XÁC NHẬN ĐẶT HÀNG</button>';
                 html += '</div>';
 
                 el.innerHTML = html;
@@ -25348,7 +25429,7 @@
                     var vi = document.getElementById('voucherInput');
                     if (vi) vi.value = appliedVoucher.code;
                     var vm = document.getElementById('voucherMsg');
-                    if (vm) vm.innerHTML = '<span style="color:green">✅ Đang áp dụng: ' + appliedVoucher.label + '</span>';
+                    if (vm) vm.innerHTML = '<span style="color:green"><i class=hai-check-circle></i> Đang áp dụng: ' + appliedVoucher.label + '</span>';
                 }
             }
 
@@ -25530,7 +25611,7 @@
                         if (contentEl) {
                             contentEl.innerHTML = `
                                 <div style="text-align:center; padding:30px 10px;">
-                                    <div style="font-size: 50px; color: #4CAF50; margin-bottom: 10px;">✓</div>
+                                    <div style="font-size: 50px; color: #4CAF50; margin-bottom: 10px;"><i class=hai-check></i></div>
                                     <h3 style="color:#2c3e50; font-size:20px; margin-bottom:10px;">ĐẶT HÀNG THÀNH CÔNG!</h3>
                                     <p style="color:#7f8c8d; margin-bottom:20px;">Mã đơn hàng của bạn: <b>#${result.id}</b></p>
                                     <button onclick="window.location.href='/order-history.html'" 
@@ -25754,7 +25835,7 @@
 
                     if (href === '' || href === '#' || href.indexOf('javascript:') === 0) { e.preventDefault(); e.stopImmediatePropagation(); return false; }
 
-                    // ★ CHO PHÉP NAVIGATION đến các trang quan trọng (login, register, admin, order-history, v.v.)
+                    // <i class=hai-star-fill></i> CHO PHÉP NAVIGATION đến các trang quan trọng (login, register, admin, order-history, v.v.)
                     var allowedPaths = ['/login', '/register', '/verify-otp', '/admin', '/order-history', '/shop', '/staff', '/don-hang', '/my-orders'];
                     var isAllowed = allowedPaths.some(function(p) { return href === p || href.indexOf(p) === 0; });
                     // Cho phép link bên ngoài (http:// hoặc https://) và các trang nội bộ trong whitelist
@@ -25777,7 +25858,7 @@
             var noResultsEl = document.createElement('div');
             noResultsEl.id = 'noResultsMsg';
             noResultsEl.style.cssText = 'display:none;text-align:center;padding:40px 20px;font-size:16px;color:#666;width:100%;';
-            noResultsEl.innerHTML = '<div style="font-size:48px;margin-bottom:12px">🔍</div><b style="font-size:18px;color:#333">Không tìm thấy sản phẩm</b><p style="margin-top:8px">Thử tìm kiếm với từ khóa khác</p>';
+            noResultsEl.innerHTML = '<div style="font-size:48px;margin-bottom:12px"><i class=hai-search></i></div><b style="font-size:18px;color:#333">Không tìm thấy sản phẩm</b><p style="margin-top:8px">Thử tìm kiếm với từ khóa khác</p>';
             var mainContent = document.querySelector('.homeproducts-block') || document.querySelector('.hot-promotion') || document.querySelector('.box-common');
             if (mainContent && mainContent.parentNode) mainContent.parentNode.insertBefore(noResultsEl, mainContent);
 
@@ -25914,7 +25995,7 @@
                     noRes.id = 'ha-no-results';
                     noRes.style.cssText = 'grid-column:1/-1;text-align:center;padding:48px 20px;' +
                         'color:#6e6e73;font-size:15px;font-weight:500;display:none;';
-                    noRes.innerHTML = '<div style="font-size:40px;margin-bottom:12px">🔍</div>' +
+                    noRes.innerHTML = '<div style="font-size:40px;margin-bottom:12px"><i class=hai-search></i></div>' +
                         'Không tìm thấy sản phẩm phù hợp.<br>' +
                         '<span style="font-size:13px;color:#aaa">Thử từ khoá khác hoặc bỏ bộ lọc.</span>';
                     var plc = document.getElementById('product-list-container');
@@ -25943,7 +26024,7 @@
                     + '<h3>' + displayName + '</h3>'
                     + '<div class="price"><strong>' + formatPrice(price) + '</strong></div>'
                     + '</a>'
-                    + '<a href="javascript:void(0)" class="btn-buy" style="display:block;text-align:center;background:#ffd400;color:#333;padding:8px;border-radius:4px;margin-top:8px;font-weight:bold;text-decoration:none;font-size:13px">🛒Giỏ hàng</a>';
+                    + '<a href="javascript:void(0)" class="btn-buy" style="display:block;text-align:center;background:#ffd400;color:#333;padding:8px;border-radius:4px;margin-top:8px;font-weight:bold;text-decoration:none;font-size:13px"><i class=hai-cart></i>Giỏ hàng</a>';
                 container.appendChild(itemDiv);
 
                 var newImg = itemDiv.querySelector('img');
@@ -26191,7 +26272,7 @@
                 noRes = document.createElement('div');
                 noRes.id = 'ha-no-results';
                 noRes.style.cssText = 'grid-column:1/-1;text-align:center;padding:48px 20px;color:#6e6e73;font-size:15px;font-weight:500;display:none;';
-                noRes.innerHTML = '<div style="font-size:40px;margin-bottom:12px">🔍</div>Không tìm thấy sản phẩm phù hợp.<br><span style="font-size:13px;color:#aaa">Thử bỏ bộ lọc hoặc chọn tiêu chí khác.</span>';
+                noRes.innerHTML = '<div style="font-size:40px;margin-bottom:12px"><i class=hai-search></i></div>Không tìm thấy sản phẩm phù hợp.<br><span style="font-size:13px;color:#aaa">Thử bỏ bộ lọc hoặc chọn tiêu chí khác.</span>';
                 container.appendChild(noRes);
             }
             // ── Ẩn thông báo ngay, chỉ hiện SAU KHI duyệt hết và không có kết quả ──
@@ -26420,11 +26501,11 @@
                 });
 
                 if (response.ok) {
-                    alert("✅ ĐÃ ĐẶT HÀNG THÀNH CÔNG!\nSản phẩm ID: " + id);
+ alert("ĐÃ ĐẶT HÀNG THÀNH CÔNG!\nSản phẩm ID: "+ id);
                     if (typeof updateOrderBadge === 'function') updateOrderBadge();
                 } else {
                     const err = await response.json();
-                    alert("❌ Lỗi: " + (err.detail || "Không thể đặt hàng"));
+ alert("Lỗi: "+ (err.detail || "Không thể đặt hàng"));
                 }
             } catch (e) {
                 alert("Lỗi kết nối Server! Kiểm tra lại Render nhé.");
@@ -26516,8 +26597,8 @@
                     // Badge FLASH SALE/DEAL ĐẸP đứng ĐÚNG vị trí của HOT (không dùng vị trí thứ 2 nữa)
                     // để tránh vướng, đè lên nhau — nếu có deal thật thì badge HOT/SALE gốc sẽ bị ẩn đi.
                     const fsBadge = !isRealDeal ? '' : (fsPct >= 50
-                        ? '<span class="ha-badge" style="background:var(--ha-red,#d0021c);">⚡ FLASH SALE</span>'
-                        : '<span class="ha-badge" style="background:#f59e0b;">🏷️ DEAL ĐẸP</span>');
+                        ? '<span class="ha-badge" style="background:var(--ha-red,#d0021c);"><i class=hai-zap></i> FLASH SALE</span>'
+                        : '<span class="ha-badge" style="background:#f59e0b;"><i class=hai-tag></i> DEAL ĐẸP</span>');
 
                     // Tạo thẻ div sản phẩm
                     const itemDiv = document.createElement('div');
@@ -26552,17 +26633,17 @@
                         ? '<span class="ha-badge">HOT</span>'
                         : isSale ? '<span class="ha-badge" style="background:#0071e3">SALE</span>' : '');
 
-                    const aiBadge = (p.id % 2 === 0 || /samsung|apple|iphone|watch|ultra/i.test(p.name)) ? '<span class="tgdd-ai-badge">✦ AI</span>' : '';
+                    const aiBadge = (p.id % 2 === 0 || /samsung|apple|iphone|watch|ultra/i.test(p.name)) ? '<span class="tgdd-ai-badge"><i class=hai-sparkle></i> AI</span>' : '';
 
                     const safeName = p.name.replace(/'/g, "\\'").replace(/"/g, '&quot;');
 
-                    // Dòng giá ⚡ (giá gốc gạch ngang + giá deal + đếm ngược) — hiện với MỌI deal thật đang active,
+                    // Dòng giá <i class=hai-zap></i> (giá gốc gạch ngang + giá deal + đếm ngược) — hiện với MỌI deal thật đang active,
                     // bất kể % bao nhiêu (kể cả dưới 20%). Badge màu DEAL ĐẸP/FLASH SALE mới là thứ giới hạn ở 20%.
                     let fsTimerHtml = '';
                     if (isFsActive) {
                         fsTimerHtml = `<div id="fs-box-${p.id}" style="margin-top:4px;font-size:12px;color:var(--ha-red);font-weight:700;">
-                            ⚡ <span style="text-decoration:line-through;color:#888;font-size:11px;margin-right:4px;">${cleanPrice(p.price)} ₫</span> ${cleanPrice(fs.sale_price)} ₫
-                            <div id="fs-timer-${p.id}" style="display:inline-block;background:var(--ha-red);color:#fff;padding:1px 5px;border-radius:4px;font-size:10px;margin-left:4px;">⏰ --:--:--</div>
+                            <i class=hai-zap></i> <span style="text-decoration:line-through;color:#888;font-size:11px;margin-right:4px;">${cleanPrice(p.price)} ₫</span> ${cleanPrice(fs.sale_price)} ₫
+                            <div id="fs-timer-${p.id}" style="display:inline-block;background:var(--ha-red);color:#fff;padding:1px 5px;border-radius:4px;font-size:10px;margin-left:4px;"><i class=hai-alarm></i> --:--:--</div>
                         </div>`;
                     }
 
@@ -26598,7 +26679,7 @@
                             const h = String(Math.floor(diff / 3600000)).padStart(2, '0');
                             const m = String(Math.floor((diff % 3600000) / 60000)).padStart(2, '0');
                             const s = String(Math.floor((diff % 60000) / 1000)).padStart(2, '0');
-                            if (timerEl) timerEl.textContent = `⏰ ${h}:${m}:${s}`;
+                            if (timerEl) timerEl.innerHTML = `<i class=hai-alarm></i> ${h}:${m}:${s}`;
                         };
                         updateTimer();
                         setInterval(updateTimer, 1000);
@@ -26747,7 +26828,7 @@
                 const badge = isHot
                     ? '<span class="ha-badge">HOT</span>'
                     : isSale ? '<span class="ha-badge" style="background:#0071e3">SALE</span>' : '';
-                const aiBadge = (seed % 2 === 0 || /samsung|apple|iphone|watch|ultra/i.test(p.name || '')) ? '<span class="tgdd-ai-badge">✦ AI</span>' : '';
+                const aiBadge = (seed % 2 === 0 || /samsung|apple|iphone|watch|ultra/i.test(p.name || '')) ? '<span class="tgdd-ai-badge"><i class=hai-sparkle></i> AI</span>' : '';
 
                 const stars = (4.5 + (seed % 5) * 0.1).toFixed(1);
                 const soldList = [27.9, 313, 45, 12, 8.2, 156, 89, 34];
@@ -26773,7 +26854,7 @@
                     <a href="javascript:void(0)" class="remain_quantity main-contain">
                         <div class="item-img"><img src="${imgUrl}" alt="${safeName}" loading="lazy" onerror="this.onerror=null;this.src='https://placehold.co/200x200?text=No+Image'"></div>
                         <h3>${p.name}</h3>
-                        <div class="tgdd-rating">★ ${stars}<span>• Đã bán ${sold}k</span></div>
+                        <div class="tgdd-rating"><i class=hai-star-fill></i> ${stars}<span>• Đã bán ${sold}k</span></div>
                         <strong class="price">${displayPrice} ₫</strong>
                         <div class="tgdd-price-row"><span class="tgdd-old-price">${oldPriceFmt}</span><span class="tgdd-discount-pct">-${discountPct}%</span></div>
                         ${installmentHtml}
@@ -26812,7 +26893,7 @@
                         moreBtn.textContent = 'Đã hiển thị tất cả';
                         moreBtn.disabled = true;
                     } else {
-                        moreBtn.textContent = 'Xem thêm Deal ▼';
+                        moreBtn.innerHTML = 'Xem thêm Deal <i class=hai-chevron-down></i>';
                         moreBtn.disabled = false;
                     }
                 }
@@ -26895,8 +26976,8 @@
                     shareBox.id = 'ha-social-share-box';
                     shareBox.style.cssText = 'display:flex;gap:8px;margin-top:12px;';
                     shareBox.innerHTML = `
-                <button onclick="window.open('https://www.facebook.com/sharer/sharer.php?u='+encodeURIComponent(window.location.href))" style="background:#1877f2;color:#fff;border:none;padding:6px 12px;border-radius:6px;font-size:12px;cursor:pointer;">👍 Chia sẻ Facebook</button>
-                <button onclick="navigator.clipboard.writeText(window.location.href);if(typeof showToast==='function')showToast('Đã copy link!');else alert('Đã copy link!');" style="background:var(--ha-blue,#0071e3);color:#fff;border:none;padding:6px 12px;border-radius:6px;font-size:12px;cursor:pointer;">🔗 Copy Link</button>
+                <button onclick="window.open('https://www.facebook.com/sharer/sharer.php?u='+encodeURIComponent(window.location.href))" style="background:#1877f2;color:#fff;border:none;padding:6px 12px;border-radius:6px;font-size:12px;cursor:pointer;"><i class=hai-thumbs-up></i> Chia sẻ Facebook</button>
+ <button onclick="navigator.clipboard.writeText(window.location.href);if(typeof showToast==='function')showToast('Đã copy link!');else alert('Đã copy link!');"style="background:var(--ha-blue,#0071e3);color:#fff;border:none;padding:6px 12px;border-radius:6px;font-size:12px;cursor:pointer;"> Copy Link</button>
             `;
                     btnBuyDiv.appendChild(shareBox);
                 }
@@ -26949,7 +27030,7 @@
 
                     if (related.length) {
                         relBox.innerHTML = `
-                    <h4 style="margin:0 0 10px;font-size:14px;color:var(--ha-text,#333);">🛍️ Sản phẩm tương tự</h4>
+                    <h4 style="margin:0 0 10px;font-size:14px;color:var(--ha-text,#333);"><i class=hai-bag></i> Sản phẩm tương tự</h4>
                     <div style="display:flex;gap:10px;overflow-x:auto;">
                         ${related.map(r => {
                             const rImg = r.image_url || 'https://placehold.co/100x100?text=SP';
@@ -27422,14 +27503,14 @@
                 <div id="ha-hdr-name">Hồng Anh AI</div>
                 <div id="ha-hdr-status">● Đang hoạt động</div>
             </div>
-            <button id="ha-x" onclick="haChatToggle()">✕</button>
+            <button id="ha-x" onclick="haChatToggle()"><i class=hai-x></i></button>
         </div>
         <div id="ha-msgs"></div>
         <div id="ha-chips">
-            <button class="ha-chip" onclick="haQ('Chính sách bảo hành')">🛡️ Bảo hành</button>
-            <button class="ha-chip" onclick="haQ('Đổi trả như thế nào?')">🔄 Đổi trả</button>
-            <button class="ha-chip" onclick="haQ('Hỗ trợ đơn hàng')">📦 Đơn hàng</button>
-            <button class="ha-chip" onclick="haQ('Phương thức thanh toán')">💳 Thanh toán</button>
+            <button class="ha-chip" onclick="haQ('Chính sách bảo hành')"><i class=hai-shield></i> Bảo hành</button>
+            <button class="ha-chip" onclick="haQ('Đổi trả như thế nào?')"><i class=hai-refresh></i> Đổi trả</button>
+            <button class="ha-chip" onclick="haQ('Hỗ trợ đơn hàng')"><i class=hai-box></i> Đơn hàng</button>
+            <button class="ha-chip" onclick="haQ('Phương thức thanh toán')"><i class=hai-credit-card></i> Thanh toán</button>
         </div>
         <div id="ha-inp-area">
             <textarea id="ha-inp" rows="1" placeholder="Nhập câu hỏi..."></textarea>
@@ -27474,7 +27555,7 @@
                 ].join(' ');
             }
 
-            var GREET = 'Xin chào bạn! 👋 Mình là <b>Hồng Anh AI</b> — hỗ trợ khách hàng của shop Trương Hồng Anh.<br><span style="color:#888;font-size:11px">Bảo hành · Đổi trả · Tư vấn · Đơn hàng · Khiếu nại...</span>';
+            var GREET = 'Xin chào bạn! <i class=hai-wave></i> Mình là <b>Hồng Anh AI</b> — hỗ trợ khách hàng của shop Trương Hồng Anh.<br><span style="color:#888;font-size:11px">Bảo hành · Đổi trả · Tư vấn · Đơn hàng · Khiếu nại...</span>';
 
             // hist theo định dạng OpenAI: [{role:'user',content:'...'},{role:'assistant',content:'...'}]
             var isOpen = false, isBusy = false, hist = [], started = false;
@@ -27525,7 +27606,7 @@
                 dot.remove();
 
                 if (!reply) {
-                    errMsg('⚠️ AI đang bận hoặc gián đoạn kết nối. Vui lòng thử lại sau vài giây!');
+                    errMsg('<i class=hai-alert></i> AI đang bận hoặc gián đoạn kết nối. Vui lòng thử lại sau vài giây!');
                     if (hist.length && hist[hist.length - 1].role === 'user') hist.pop();
                     isBusy = false;
                     return;
@@ -27541,7 +27622,7 @@
 
                 botMsg(md(cleanReply));
 
-                // 🌟 Tự động nhận diện nhu cầu sản phẩm kể cả khi AI quên trả SEARCH: directive
+                // <i class=hai-sparkle></i> Tự động nhận diện nhu cầu sản phẩm kể cả khi AI quên trả SEARCH: directive
                 if (!searchKw && hist.length) {
                     var lastUsrTxt = (hist[hist.length - 2] && hist[hist.length - 2].content || '').toLowerCase();
                     var botTxt = reply.toLowerCase();
@@ -27571,7 +27652,7 @@
                 isBusy = false;
             }
 
-            // 🛒 Hàm hiển thị sản phẩm với nút ⚡ MUA NGAY trực tiếp trong Chatbot
+            // <i class=hai-cart></i> Hàm hiển thị sản phẩm với nút <i class=hai-zap></i> MUA NGAY trực tiếp trong Chatbot
             function haShowProducts(kw) {
                 var prods = window.allProducts || [];
                 if (!prods.length) return;
@@ -27599,7 +27680,7 @@
 
                 var cardWrap = document.createElement('div');
                 cardWrap.style.cssText = 'margin:14px 0;padding:14px;background:#f8fafc;border-radius:18px;border:1px solid #e2e8f0;box-shadow:0 3px 12px rgba(0,0,0,0.05);';
-                cardWrap.innerHTML = '<div style="font-size:13.5px;font-weight:800;color:#0f172a;margin-bottom:12px;display:flex;align-items:center;gap:6px;">🛍️ Sản phẩm phù hợp dành cho bạn:</div>';
+                cardWrap.innerHTML = '<div style="font-size:13.5px;font-weight:800;color:#0f172a;margin-bottom:12px;display:flex;align-items:center;gap:6px;"><i class=hai-bag></i> Sản phẩm phù hợp dành cho bạn:</div>';
 
                 var scrollBox = document.createElement('div');
                 scrollBox.style.cssText = 'display:flex;gap:14px;overflow-x:auto;padding-bottom:10px;scroll-behavior:smooth;-webkit-overflow-scrolling:touch;';
@@ -27627,7 +27708,7 @@
                     var btn = document.createElement('button');
                     btn.type = 'button';
                     btn.style.cssText = 'background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff;border:none;padding:8px 12px;border-radius:10px;font-size:12px;font-weight:800;cursor:pointer;width:100%;display:flex;align-items:center;justify-content:center;gap:5px;box-shadow:0 3px 10px rgba(245,158,11,0.4);transition:all 0.2s;';
-                    btn.innerHTML = '⚡ MUA NGAY';
+                    btn.innerHTML = '<i class=hai-zap></i> MUA NGAY';
                     
                     btn.onclick = function (e) {
                         if (e) { e.preventDefault(); e.stopPropagation(); }
@@ -27655,7 +27736,7 @@
                 scroll();
             }
 
-            // 🛒 Hàm Toggle Form Thanh Toán Trực Tiếp Nhỏ ngay TRONG khung chat
+            // <i class=hai-cart></i> Hàm Toggle Form Thanh Toán Trực Tiếp Nhỏ ngay TRONG khung chat
             function haToggleInlineCheckout(p, cardWrap) {
                 var formId = 'ha-ic-form-' + p.id;
                 var existingForm = document.getElementById(formId);
@@ -27692,8 +27773,8 @@
 
                 formBox.innerHTML = [
                     '<div style="font-size:13px;font-weight:800;color:#0f172a;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #f1f5f9;padding-bottom:8px">',
-                    '  <span>📝 Form Đặt Mua Nhanh: <span style="color:#e11d48">' + p.name + '</span> (' + fmtPrice + ')</span>',
-                    '  <button type="button" onclick="document.getElementById(\'' + formId + '\').style.display=\'none\'" style="background:none;border:none;color:#94a3b8;font-size:16px;cursor:pointer;padding:0 4px">✖</button>',
+                    '  <span><i class=hai-edit></i> Form Đặt Mua Nhanh: <span style="color:#e11d48">' + p.name + '</span> (' + fmtPrice + ')</span>',
+                    '  <button type="button" onclick="document.getElementById(\'' + formId + '\').style.display=\'none\'" style="background:none;border:none;color:#94a3b8;font-size:16px;cursor:pointer;padding:0 4px"><i class=hai-x></i></button>',
                     '</div>',
                     '<div style="display:flex;flex-direction:column;gap:9px">',
                     '  <div>',
@@ -27714,8 +27795,8 @@
                     '  </div>',
                     '  <div id="ha-ic-err-' + p.id + '" style="display:none;color:#dc2626;font-size:12px;font-weight:600;padding:2px 4px"></div>',
                     '  <div style="display:flex;gap:10px;margin-top:6px">',
-                    '    <button type="button" onclick="document.getElementById(\'' + formId + '\').style.display=\'none\'" style="flex:1;background:#f1f5f9;color:#475569;border:1px solid #cbd5e1;padding:10px;border-radius:10px;font-size:12.5px;font-weight:700;cursor:pointer">✖ Đóng</button>',
-                    '    <button type="button" id="ha-ic-btn-' + p.id + '" style="flex:2;background:linear-gradient(135deg,#16a34a,#15803d);color:#fff;border:none;padding:10px;border-radius:10px;font-size:13px;font-weight:800;cursor:pointer;box-shadow:0 3px 10px rgba(22,163,74,0.35)">✅ XÁC NHẬN MUA NGAY</button>',
+                    '    <button type="button" onclick="document.getElementById(\'' + formId + '\').style.display=\'none\'" style="flex:1;background:#f1f5f9;color:#475569;border:1px solid #cbd5e1;padding:10px;border-radius:10px;font-size:12.5px;font-weight:700;cursor:pointer"><i class=hai-x></i> Đóng</button>',
+                    '    <button type="button" id="ha-ic-btn-' + p.id + '" style="flex:2;background:linear-gradient(135deg,#16a34a,#15803d);color:#fff;border:none;padding:10px;border-radius:10px;font-size:13px;font-weight:800;cursor:pointer;box-shadow:0 3px 10px rgba(22,163,74,0.35)"><i class=hai-check-circle></i> XÁC NHẬN MUA NGAY</button>',
                     '  </div>',
                     '</div>'
                 ].join('');
@@ -27729,7 +27810,7 @@
                 };
             }
 
-            // 🚀 Hàm xử lý Đặt hàng qua API POST /orders ngay trong Chatbot
+            // <i class=hai-rocket></i> Hàm xử lý Đặt hàng qua API POST /orders ngay trong Chatbot
             async function haSubmitInlineOrder(p, formId) {
                 var nameEl = document.getElementById('ha-ic-name-' + p.id);
                 var phoneEl = document.getElementById('ha-ic-phone-' + p.id);
@@ -27744,23 +27825,23 @@
                 var voucherVal = (voucherEl ? voucherEl.value : '').trim();
 
                 if (!nameVal) {
-                    if (errEl) { errEl.textContent = '⚠️ Vui lòng nhập Họ và tên người nhận!'; errEl.style.display = 'block'; }
+                    if (errEl) { errEl.innerHTML = '<i class=hai-alert></i> Vui lòng nhập Họ và tên người nhận!'; errEl.style.display = 'block'; }
                     if (nameEl) nameEl.focus();
                     return;
                 }
                 if (!phoneVal || phoneVal.length < 9) {
-                    if (errEl) { errEl.textContent = '⚠️ Vui lòng nhập Số điện thoại liên hệ hợp lệ!'; errEl.style.display = 'block'; }
+                    if (errEl) { errEl.innerHTML = '<i class=hai-alert></i> Vui lòng nhập Số điện thoại liên hệ hợp lệ!'; errEl.style.display = 'block'; }
                     if (phoneEl) phoneEl.focus();
                     return;
                 }
                 if (!addrVal) {
-                    if (errEl) { errEl.textContent = '⚠️ Vui lòng nhập Địa chỉ chi tiết nhận hàng!'; errEl.style.display = 'block'; }
+                    if (errEl) { errEl.innerHTML = '<i class=hai-alert></i> Vui lòng nhập Địa chỉ chi tiết nhận hàng!'; errEl.style.display = 'block'; }
                     if (addrEl) addrEl.focus();
                     return;
                 }
 
                 if (errEl) errEl.style.display = 'none';
-                if (btnEl) { btnEl.disabled = true; btnEl.innerHTML = '⏳ Đang tạo đơn...'; }
+                if (btnEl) { btnEl.disabled = true; btnEl.innerHTML = '<i class=hai-hourglass></i> Đang tạo đơn...'; }
 
                 var userToken = localStorage.getItem('access_token') || localStorage.getItem('token') || (function () {
                     try { return JSON.parse(localStorage.getItem('user') || '{}').token || JSON.parse(localStorage.getItem('user') || '{}').access_token; } catch (e) { return null; }
@@ -27793,26 +27874,26 @@
                         if (formBox) {
                             formBox.style.cssText = 'margin-top:12px;padding:14px;background:#f0fdf4;border-radius:16px;border:2px solid #22c55e;box-shadow:0 4px 18px rgba(34,197,94,0.18);text-align:left;animation:ha-pop 0.25s cubic-bezier(.34,1.56,.64,1);';
                             formBox.innerHTML = [
-                                '<div style="font-size:14.5px;font-weight:800;color:#15803d;margin-bottom:8px">🎉 ĐẶT HÀNG THÀNH CÔNG!</div>',
+                                '<div style="font-size:14.5px;font-weight:800;color:#15803d;margin-bottom:8px"><i class=hai-sparkle></i> ĐẶT HÀNG THÀNH CÔNG!</div>',
                                 '<div style="font-size:13px;color:#1e293b;line-height:1.55">',
                                 '  Mã đơn hàng: <b style="color:#2563eb">' + orderCode + '</b><br>',
                                 '  Sản phẩm: <b>' + p.name + '</b><br>',
                                 '  Người nhận: <b>' + nameVal + '</b> (' + phoneVal + ')<br>',
                                 '  Địa chỉ giao: ' + addrVal + '<br>',
-                                '  <div style="margin-top:10px;padding:8px 10px;background:#dcfce7;border-radius:8px;color:#166534;font-weight:700">✅ Cảm ơn bạn! Shop Trương Hồng Anh sẽ gọi điện xác nhận và giao hàng ngay cho bạn nhé.</div>',
+                                '  <div style="margin-top:10px;padding:8px 10px;background:#dcfce7;border-radius:8px;color:#166534;font-weight:700"><i class=hai-check-circle></i> Cảm ơn bạn! Shop Trương Hồng Anh sẽ gọi điện xác nhận và giao hàng ngay cho bạn nhé.</div>',
                                 '</div>'
                             ].join('');
                         }
 
-                        botMsg('✅ Cảm ơn <b>' + nameVal + '</b>! Đơn hàng mua <b>' + p.name + '</b> (' + orderCode + ') của bạn đã được khởi tạo thành công. Shop sẽ liên hệ qua SĐT ' + phoneVal + ' để giao hàng nhé!');
+                        botMsg('<i class=hai-check-circle></i> Cảm ơn <b>' + nameVal + '</b>! Đơn hàng mua <b>' + p.name + '</b> (' + orderCode + ') của bạn đã được khởi tạo thành công. Shop sẽ liên hệ qua SĐT ' + phoneVal + ' để giao hàng nhé!');
                     } else {
                         var msg = data.detail || data.message || 'Đặt hàng không thành công. Vui lòng kiểm tra lại.';
-                        if (errEl) { errEl.textContent = '❌ ' + msg; errEl.style.display = 'block'; }
-                        if (btnEl) { btnEl.disabled = false; btnEl.innerHTML = '✅ XÁC NHẬN MUA NGAY'; }
+                        if (errEl) { errEl.innerHTML = '<i class=hai-x-circle></i> ' + msg; errEl.style.display = 'block'; }
+                        if (btnEl) { btnEl.disabled = false; btnEl.innerHTML = '<i class=hai-check-circle></i> XÁC NHẬN MUA NGAY'; }
                     }
                 } catch (err) {
-                    if (errEl) { errEl.textContent = '❌ Lỗi kết nối: ' + err.message; errEl.style.display = 'block'; }
-                    if (btnEl) { btnEl.disabled = false; btnEl.innerHTML = '✅ XÁC NHẬN MUA NGAY'; }
+                    if (errEl) { errEl.innerHTML = '<i class=hai-x-circle></i> Lỗi kết nối: ' + err.message; errEl.style.display = 'block'; }
+                    if (btnEl) { btnEl.disabled = false; btnEl.innerHTML = '<i class=hai-check-circle></i> XÁC NHẬN MUA NGAY'; }
                 }
             }
 
@@ -28343,8 +28424,8 @@
 
             <!-- Header -->
             <div id="haQoHeader">
-                <h3>⚡ Đặt hàng nhanh</h3>
-                <button id="haQoCloseBtn" onclick="window.haQoClose()" aria-label="Đóng">✕</button>
+                <h3><i class=hai-zap></i> Đặt hàng nhanh</h3>
+                <button id="haQoCloseBtn" onclick="window.haQoClose()" aria-label="Đóng"><i class=hai-x></i></button>
             </div>
 
             <!-- Preview sản phẩm -->
@@ -28357,7 +28438,7 @@
                     <div id="haQoFinalPrice"></div>
                     <!-- Luôn chứa giá THỰC TẾ cuối cùng (sau voucher) để confirmOrder đọc -->
                     <span id="quick-order-total" style="display:none;"></span>
-                    <span class="ha-qo-badge">🚀 Giao hàng tận nơi</span>
+                    <span class="ha-qo-badge"><i class=hai-rocket></i> Giao hàng tận nơi</span>
                 </div>
             </div>
 
@@ -28365,26 +28446,26 @@
             <div id="haQoFormSection">
 
                 <!-- Voucher -->
-                <div class="ha-qo-section-label">🎟️ Mã ưu đãi</div>
+                <div class="ha-qo-section-label"><i class=hai-ticket></i> Mã ưu đãi</div>
                 <select class="ha-qo-select" id="haQoVoucher" onchange="window.haQoApplyVoucher()">
                     <option value="">-- Chọn mã giảm giá (nếu có) --</option>
                 </select>
                 <div class="ha-qo-voucher-applied" id="haQoVoucherApplied">
-                    <span id="haQoVoucherMsg">✅ Đã áp dụng mã giảm giá</span>
-                    <button onclick="window.haQoRemoveVoucher()" title="Bỏ voucher">✕</button>
+                    <span id="haQoVoucherMsg"><i class=hai-check-circle></i> Đã áp dụng mã giảm giá</span>
+                    <button onclick="window.haQoRemoveVoucher()" title="Bỏ voucher"><i class=hai-x></i></button>
                 </div>
 
                 <div class="ha-qo-divider"></div>
 
                 <!-- Thông tin cá nhân -->
-                <div class="ha-qo-section-label">👤 Thông tin người nhận</div>
+                <div class="ha-qo-section-label"><i class=hai-user></i> Thông tin người nhận</div>
                 <input class="ha-qo-input" id="haQoName" type="text" placeholder="Họ và tên *" autocomplete="name">
                 <input class="ha-qo-input" id="haQoPhone" type="tel" placeholder="Số điện thoại *" autocomplete="tel">
 
                 <div class="ha-qo-divider"></div>
 
                 <!-- Địa chỉ 3 cấp -->
-                <div class="ha-qo-section-label">📍 Địa chỉ giao hàng</div>
+                <div class="ha-qo-section-label"><i class=hai-map-pin></i> Địa chỉ giao hàng</div>
                 <select class="ha-qo-select" id="haQoCity" onchange="window.haQoLoadDistrict()">
                     <option value="">-- Chọn Tỉnh / Thành phố *--</option>
                 </select>
@@ -28402,15 +28483,15 @@
                 <div class="ha-qo-divider"></div>
 
                 <!-- Phương thức thanh toán -->
-                <div class="ha-qo-section-label">💳 Phương thức thanh toán</div>
+                <div class="ha-qo-section-label"><i class=hai-credit-card></i> Phương thức thanh toán</div>
                 <div class="ha-qo-pay-group">
                     <button class="ha-qo-pay-btn cod active" id="haQoPayCOD" onclick="window.haQoSelectPay('cod')">
-                        <span class="pay-icon">💵</span>
+                        <span class="pay-icon"><i class=hai-banknote></i></span>
                         <span>COD</span>
                         <span style="font-size:10px;font-weight:500;color:inherit;opacity:0.8">Nhận hàng trả tiền</span>
                     </button>
                     <button class="ha-qo-pay-btn" id="haQoPayOnline" onclick="window.haQoSelectPay('online')">
-                        <span class="pay-icon">📱</span>
+                        <span class="pay-icon"><i class=hai-phone></i></span>
                         <span>Chuyển khoản</span>
                         <span style="font-size:10px;font-weight:500;color:inherit;opacity:0.8">Quét mã QR</span>
                     </button>
@@ -28418,7 +28499,7 @@
 
                 <!-- QR Code (hiện khi chọn Online) -->
                 <div id="haQoQrSection">
-                    <p>📲 Quét mã QR để thanh toán chuyển khoản</p>
+                    <p><i class=hai-phone></i> Quét mã QR để thanh toán chuyển khoản</p>
                     <img id="haQoQrImg" src="/static/QR.jpg" alt="Mã QR thanh toán"
                         onerror="this.src='https://placehold.co/180x180?text=QR+Code'">
                     <div class="qr-note">Nội dung chuyển khoản: <b id="haQoQrNote">Tên + SĐT + Mã SP</b><br>Đơn hàng sẽ
@@ -28427,17 +28508,17 @@
 
                 <!-- Nút xác nhận -->
                 <button id="haQoConfirmBtn" onclick="window.haQoSubmit()">
-                    ✅ XÁC NHẬN ĐẶT HÀNG
+                    <i class=hai-check-circle></i> XÁC NHẬN ĐẶT HÀNG
                 </button>
             </div>
 
             <!-- Màn thành công -->
             <div id="haQoSuccess">
-                <div class="ha-qo-ok-icon">🎉</div>
+                <div class="ha-qo-ok-icon"><i class=hai-sparkle></i></div>
                 <h3>Đặt hàng thành công!</h3>
                 <p id="haQoSuccessMsg"></p>
                 <div class="ha-qo-success-btns">
-                    <button onclick="window.location.href='/order-history.html'">📦 Xem lịch sử đơn</button>
+                    <button onclick="window.location.href='/order-history.html'"><i class=hai-box></i> Xem lịch sử đơn</button>
                     <button class="secondary" onclick="window.haQoClose()">Tiếp tục mua sắm</button>
                 </div>
             </div>
@@ -28610,9 +28691,9 @@
                 var msg = document.getElementById('haQoVoucherMsg');
                 if (applied) applied.style.display = 'flex';
                 if (type === 'freeship') {
-                    if (msg) msg.textContent = '✅ FREESHIP — Miễn phí vận chuyển đã áp dụng';
+                    if (msg) msg.innerHTML = '<i class=hai-check-circle></i> FREESHIP — Miễn phí vận chuyển đã áp dụng';
                 } else {
-                    if (msg) msg.textContent = '✅ ' + _voucherCode + ' — Giảm ' + new Intl.NumberFormat('vi-VN').format(_discount) + '₫';
+                    if (msg) msg.innerHTML = '<i class=hai-check-circle></i> ' + _voucherCode + ' — Giảm ' + new Intl.NumberFormat('vi-VN').format(_discount) + '₫';
                 }
                 haQoUpdateFinalPrice();
             };
@@ -28679,7 +28760,7 @@
                 })();
 
                 if (!userToken) {
-                    alert('⚠️ Vui lòng đăng nhập để mua hàng!');
+ alert('Vui lòng đăng nhập để mua hàng!');
                     window.location.href = '/login';
                     return;
                 }
@@ -28759,7 +28840,7 @@
                 if (wEl) { wEl.innerHTML = '<option value="">-- Phường / Xã *--</option>'; wEl.disabled = true; }
 
                 var btn = document.getElementById('haQoConfirmBtn');
-                if (btn) { btn.disabled = false; btn.textContent = '✅ XÁC NHẬN ĐẶT HÀNG'; }
+                if (btn) { btn.disabled = false; btn.innerHTML = '<i class=hai-check-circle></i> XÁC NHẬN ĐẶT HÀNG'; }
 
                 /* Ẩn màn thành công, hiện form */
                 var suc = document.getElementById('haQoSuccess'); if (suc) suc.style.display = 'none';
@@ -28821,7 +28902,7 @@
                 var finalPrice = finalPriceToSave;
 
                 var btn = document.getElementById('haQoConfirmBtn');
-                if (btn) { btn.disabled = true; btn.textContent = '⏳ Đang xử lý...'; }
+                if (btn) { btn.disabled = true; btn.innerHTML = '<i class=hai-hourglass></i> Đang xử lý...'; }
 
                 var token = (typeof localStorage !== 'undefined') ? (localStorage.getItem('access_token') || localStorage.getItem('token')) : null;
                 if (!token && typeof currentUser !== 'undefined' && currentUser && currentUser.token) {
@@ -28896,8 +28977,8 @@
                             var errMsg = (result.detail && typeof result.detail === 'string') ? result.detail :
                                 (result.detail && result.detail[0] && result.detail[0].msg) ? result.detail[0].msg :
                                     'Vui lòng thử lại!';
-                            alert('❌ Lỗi đặt hàng: ' + errMsg);
-                            if (btn) { btn.disabled = false; btn.textContent = '✅ XÁC NHẬN ĐẶT HÀNG'; }
+ alert('Lỗi đặt hàng: '+ errMsg);
+                            if (btn) { btn.disabled = false; btn.innerHTML = '<i class=hai-check-circle></i> XÁC NHẬN ĐẶT HÀNG'; }
                         }
                     } catch (e) {
                         console.error('Quick order error:', e);
@@ -28949,14 +29030,14 @@
                 if (prev) prev.style.display = 'none';
                 var orderRef = orderId ? '#' + orderId : 'QO' + Date.now().toString().slice(-6);
                 if (msg) msg.innerHTML =
-                    '✅ Đặt hàng thành công! Đơn hàng của bạn đã được lưu vào Lịch sử.<br>' +
+                    '<i class=hai-check-circle></i> Đặt hàng thành công! Đơn hàng của bạn đã được lưu vào Lịch sử.<br>' +
                     '<b style="color:#e65c00">' + _name + '</b><br>' +
                     '<span style="font-size:12.5px;color:#276749;font-weight:700">Tổng: ' + new Intl.NumberFormat('vi-VN').format(finalPrice) + '₫</span>' +
                     (_discount > 0 ? ' <span style="font-size:11px;color:#888">(đã giảm ' + new Intl.NumberFormat('vi-VN').format(_discount) + '₫)</span>' : '') + '<br>' +
                     '<span style="font-size:12px;color:#888">Mã đơn: <b>' + orderRef + '</b> · Shop liên hệ qua SĐT: ' + qPhone + '</span>';
                 if (suc) suc.style.display = 'block';
                 var btn = document.getElementById('haQoConfirmBtn');
-                if (btn) { btn.disabled = false; btn.textContent = '✅ XÁC NHẬN ĐẶT HÀNG'; }
+                if (btn) { btn.disabled = false; btn.innerHTML = '<i class=hai-check-circle></i> XÁC NHẬN ĐẶT HÀNG'; }
             }
 
             /* ── Đóng bằng Escape ── */
@@ -29094,17 +29175,17 @@
             const safeDesc = (desc || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
 
             box.innerHTML = `
-        <h4 style="margin:0 0 10px;font-size:14px;color:var(--ha-text,#111827);display:flex;align-items:center;gap:6px;">📋 Thông số kỹ thuật</h4>
+        <h4 style="margin:0 0 10px;font-size:14px;color:var(--ha-text,#111827);display:flex;align-items:center;gap:6px;"><i class=hai-clipboard></i> Thông số kỹ thuật</h4>
         <table style="width:100%;border-collapse:collapse;margin-bottom:12px;background:#fff;border-radius:8px;overflow:hidden;">
             ${rows}
         </table>
         <div style="display:flex;flex-direction:column;gap:8px;">
             <label style="font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:8px;color:var(--ha-text,#1f2937);">
                 <input type="checkbox" id="ha-spec-chk-${id}" onchange="toggleCompare(${id}, '${safeN}', ${price}, '${img}', '${safeDesc}', this.checked)" ${isChecked ? 'checked' : ''}>
-                ⚖️ Chọn sản phẩm này để so sánh
+                <i class=hai-scale></i> Chọn sản phẩm này để so sánh
             </label>
             <button id="ha-spec-compare-btn" onclick="openCompareModal()" style="display:${compareList.length >= 2 ? 'block' : 'none'};background:var(--ha-yellow,#ffc107);color:#000;border:none;padding:10px 16px;border-radius:8px;font-weight:700;cursor:pointer;width:100%;font-size:13px;">
-                ⚖️ So sánh ngay (${compareList.length})
+                <i class=hai-scale></i> So sánh ngay (${compareList.length})
             </button>
         </div>
     `;
@@ -29150,7 +29231,7 @@
             let btn = document.getElementById('ha-spec-compare-btn');
             if (btn) {
                 btn.style.display = compareList.length >= 2 ? 'block' : 'none';
-                btn.innerText = `⚖️ So sánh ngay (${compareList.length})`;
+                btn.innerHTML = `<i class=hai-scale></i> So sánh ngay (${compareList.length})`;
             }
             compareList.forEach(c => {
                 let chkModal = document.getElementById(`ha-spec-chk-${c.id}`);
@@ -29174,7 +29255,7 @@
             }
             bar.style.display = 'flex';
             bar.innerHTML = `
-        <div style="font-weight:600;">⚖️ Đã chọn ${compareList.length}/3 sản phẩm để so sánh</div>
+        <div style="font-weight:600;"><i class=hai-scale></i> Đã chọn ${compareList.length}/3 sản phẩm để so sánh</div>
         <div style="display:flex;gap:12px;">
             <button onclick="openCompareModal()" style="background:var(--ha-yellow,#ffc107);color:#000;border:none;padding:8px 18px;border-radius:6px;font-weight:700;cursor:pointer;">So sánh ngay (${compareList.length})</button>
             <button onclick="compareList=[];updateCompareBar();syncSpecCompareUI();if(typeof displayProducts==='function')displayProducts();" style="background:none;border:1px solid #fff;color:#fff;padding:8px 12px;border-radius:6px;cursor:pointer;">Clear</button>
@@ -29243,14 +29324,14 @@
 
             modal.innerHTML = `
         <div style="background:var(--ha-white,#fff);border-radius:16px;padding:24px;max-width:960px;width:100%;max-height:90vh;overflow-y:auto;position:relative;">
-            <button onclick="let m=document.getElementById('ha-compare-modal');if(m){m.classList.remove('show');m.style.display='none';}" style="position:absolute;top:16px;right:16px;border:none;background:none;font-size:24px;cursor:pointer;">✕</button>
-            <h2 style="margin-top:0;margin-bottom:20px;font-size:20px;color:var(--ha-text,#333);">⚖️ Bảng so sánh sản phẩm chi tiết</h2>
+            <button onclick="let m=document.getElementById('ha-compare-modal');if(m){m.classList.remove('show');m.style.display='none';}" style="position:absolute;top:16px;right:16px;border:none;background:none;font-size:24px;cursor:pointer;"><i class=hai-x></i></button>
+            <h2 style="margin-top:0;margin-bottom:20px;font-size:20px;color:var(--ha-text,#333);"><i class=hai-scale></i> Bảng so sánh sản phẩm chi tiết</h2>
             
             <table style="width:100%;border-collapse:collapse;margin-bottom:20px;background:#fff;border:1px solid var(--ha-border,#ddd);">
                 <tr>${topCols}</tr>
             </table>
 
-            <h3 style="font-size:16px;margin:20px 0 12px;color:var(--ha-text,#111);">📋 So sánh Thông số kỹ thuật</h3>
+            <h3 style="font-size:16px;margin:20px 0 12px;color:var(--ha-text,#111);"><i class=hai-clipboard></i> So sánh Thông số kỹ thuật</h3>
             <table style="width:100%;border-collapse:collapse;border:1px solid var(--ha-border,#ddd);">
                 ${specRows}
             </table>
@@ -29264,7 +29345,7 @@
             if (!btn) {
                 btn = document.createElement('button');
                 btn.id = 'ha-back-to-top';
-                btn.innerHTML = '⬆️';
+                btn.innerHTML = '<i class=hai-arrow-up></i>';
                 btn.title = 'Về đầu trang';
                 btn.style.cssText = 'position:fixed;bottom:24px;right:24px;width:44px;height:44px;border-radius:50%;background:var(--ha-blue,#0071e3);color:#fff;border:none;font-size:20px;cursor:pointer;box-shadow:var(--ha-shadow);display:none;z-index:9999;align-items:center;justify-content:center;transition:all 0.3s;';
                 btn.onclick = () => window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -29290,11 +29371,11 @@
                     modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:10000;display:flex;align-items:center;justify-content:center;padding:20px;';
                     modal.innerHTML = `
                 <div style="background:var(--ha-white,#fff);border-radius:16px;padding:32px;max-width:440px;width:100%;text-align:center;position:relative;box-shadow:var(--ha-shadow);">
-                    <button onclick="this.closest('.modal-overlay').remove();" style="position:absolute;top:12px;right:16px;border:none;background:none;font-size:24px;cursor:pointer;">✕</button>
-                    <div style="font-size:48px;margin-bottom:12px;">🎉</div>
+                    <button onclick="this.closest('.modal-overlay').remove();" style="position:absolute;top:12px;right:16px;border:none;background:none;font-size:24px;cursor:pointer;"><i class=hai-x></i></button>
+                    <div style="font-size:48px;margin-bottom:12px;"><i class=hai-sparkle></i></div>
                     <h2 style="margin:0 0 8px;font-size:22px;color:var(--ha-text,#333);">Chào mừng bạn đến với Shop!</h2>
                     <p style="color:var(--ha-sub,#666);font-size:14px;margin-bottom:16px;">Nhập mã <b style="color:var(--ha-red,#e60023);font-size:16px;">WELCOME10</b> tại giỏ hàng để được <b>giảm 10%</b> cho đơn hàng đầu tiên!</p>
-                    <button onclick="this.closest('.modal-overlay').remove();" style="background:var(--ha-blue,#0071e3);color:#fff;border:none;padding:10px 24px;border-radius:8px;font-weight:700;cursor:pointer;">Mua sắm ngay 🛒</button>
+                    <button onclick="this.closest('.modal-overlay').remove();" style="background:var(--ha-blue,#0071e3);color:#fff;border:none;padding:10px 24px;border-radius:8px;font-weight:700;cursor:pointer;">Mua sắm ngay <i class=hai-cart></i></button>
                 </div>
             `;
                     document.body.appendChild(modal);
@@ -29324,12 +29405,12 @@
                     const updateTimer = () => {
                         const diff = new Date(firstSale.end_time) - new Date();
                         if (diff <= 0) {
-                            if (timerEl) timerEl.innerText = '⏰ Kết thúc';
+                            if (timerEl) timerEl.innerHTML = '<i class=hai-alarm></i> Kết thúc';
                         } else {
                             const h = String(Math.floor(diff / 3600000)).padStart(2, '0');
                             const m = String(Math.floor((diff % 3600000) / 60000)).padStart(2, '0');
                             const s = String(Math.floor((diff % 60000) / 1000)).padStart(2, '0');
-                            if (timerEl) timerEl.innerText = `⏳ Kết thúc trong: ${h}:${m}:${s}`;
+                            if (timerEl) timerEl.innerHTML = `<i class=hai-hourglass></i> Kết thúc trong: ${h}:${m}:${s}`;
                         }
                     };
                     updateTimer();
@@ -29344,7 +29425,7 @@
                     const pct = s.discount_percent || Math.max(0, Math.round((1 - s.sale_price / p.price) * 100));
                     return `
                 <div class="ha-fs-card" onclick="showProductModal('${safeN}', ${s.sale_price}, '${img}', '${(p.description || '').replace(/'/g, "\\'").replace(/"/g, '&quot;')}', ${p.id})">
-                    <span class="ha-fs-badge">⚡ SALE</span>
+                    <span class="ha-fs-badge"><i class=hai-zap></i> SALE</span>
                     ${pct > 0 ? `<span class="ha-fs-pct">-${pct}%</span>` : ''}
                     <div class="ha-fs-imgwrap"><img src="${img}" alt="${p.name}" style="width:100%!important;height:100%!important;max-height:140px!important;object-fit:contain!important;display:block!important;margin:0 auto!important;" onerror="this.onerror=null;this.src='https://placehold.co/150x150?text=SP'"></div>
                     <div class="ha-fs-name">${p.name}</div>
@@ -29455,7 +29536,7 @@
     addCartBtn.addEventListener('click', function(e) {
       e.stopPropagation();
       if (!localStorage.getItem('access_token')) {
-        alert('⚠️ Vui lòng đăng nhập để thêm vào giỏ hàng!');
+ alert('Vui lòng đăng nhập để thêm vào giỏ hàng!');
         window.location.href = '/login';
         return;
       }
@@ -29468,7 +29549,7 @@
         // Toast
         var t = document.createElement('div');
         t.style.cssText = 'position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:#111;color:#fff;padding:10px 22px;border-radius:30px;font-size:13px;font-weight:700;z-index:99999;white-space:nowrap;';
-        t.textContent = '🛒 Đã thêm vào giỏ hàng!';
+        t.innerHTML = '<i class=hai-cart></i> Đã thêm vào giỏ hàng!';
         document.body.appendChild(t);
         setTimeout(function(){ t.remove(); }, 2000);
       }
@@ -29495,7 +29576,7 @@
       } else {
         // fallback: đổi màu xanh
         var isOn = btn.classList.toggle('wl-active');
-        btn.innerHTML = isOn ? '💙&nbsp; Đã yêu thích' : '🤍&nbsp; Thêm vào yêu thích';
+        btn.innerHTML = isOn ? '<i class=hai-heart-fill></i>&nbsp; Đã yêu thích' : '<i class=hai-heart></i>&nbsp; Thêm vào yêu thích';
         btn.style.borderColor = isOn ? '#3b82f6' : '#d1d5db';
         btn.style.color = isOn ? '#3b82f6' : '#374151';
       }
@@ -29529,7 +29610,7 @@
         var sold  = [27.9, 313, 45, 12, 8.2, 156, 89, 34][idx % 8];
         var rating = document.createElement('div');
         rating.className = 'tgdd-rating';
-        rating.innerHTML = '★ ' + stars + '<span>• Đã bán ' + sold + 'k</span>';
+        rating.innerHTML = '<i class=hai-star-fill></i> ' + stars + '<span>• Đã bán ' + sold + 'k</span>';
         priceEl.before(rating);
       }
 
@@ -29824,19 +29905,19 @@
     }
 </style>
 
-<button id="wl-fab" onclick="wlOpen()">❤️<span id="wl-fab-badge"></span></button>
+<button id="wl-fab" onclick="wlOpen()"><i class=hai-heart-fill></i><span id="wl-fab-badge"></span></button>
 
 <div id="wl-page">
     <div class="wl-hdr">
         <button class="wl-back" onclick="wlClose()">←</button>
         <div>
-            <div class="wl-ttl">❤️ Sản phẩm yêu thích</div>
+            <div class="wl-ttl"><i class=hai-heart-fill></i> Sản phẩm yêu thích</div>
             <div class="wl-sub" id="wl-sub"></div>
         </div>
     </div>
     <div class="wl-grid" id="wl-grid">
         <div class="wl-empty">
-            <div class="wl-empty-icon">⏳</div>
+            <div class="wl-empty-icon"><i class=hai-hourglass></i></div>
             <div>Đang tải...</div>
         </div>
     </div>
@@ -29865,7 +29946,7 @@
         /* toggle */
         async function doToggle(pid, name) {
             pid = String(pid);
-            if (!loggedIn()) { toast('⚠️ Vui lòng đăng nhập!', 1); return null; }
+            if (!loggedIn()) { toast('<i class=hai-alert></i> Vui lòng đăng nhập!', 1); return null; }
             try {
                 var r = await fetch('/wishlist/toggle', {
                     method: 'POST',
@@ -29873,26 +29954,26 @@
                     body: JSON.stringify({ product_id: parseInt(pid) })
                 });
                 var d = await r.json();
-                if (!r.ok) { toast('❌ ' + (d.detail || 'Lỗi'), 1); return null; }
-                if (d.action === 'added') { ids.add(pid); toast('❤️ Đã thêm vào yêu thích!'); }
-                else { ids.delete(pid); toast('🤍 Đã bỏ khỏi yêu thích'); }
+                if (!r.ok) { toast('<i class=hai-x-circle></i> ' + (d.detail || 'Lỗi'), 1); return null; }
+                if (d.action === 'added') { ids.add(pid); toast('<i class=hai-heart-fill></i> Đã thêm vào yêu thích!'); }
+                else { ids.delete(pid); toast('<i class=hai-heart></i> Đã bỏ khỏi yêu thích'); }
                 syncAll();
                 updateBadge();
                 return d.action;
-            } catch (e) { toast('❌ Lỗi kết nối!', 1); return null; }
+            } catch (e) { toast('<i class=hai-x-circle></i> Lỗi kết nối!', 1); return null; }
         }
 
         /* sync nút trên page */
         function syncAll() {
             document.querySelectorAll('.item-wl-btn[data-wpid]').forEach(function (b) {
                 var w = ids.has(String(b.dataset.wpid));
-                b.textContent = w ? '❤️' : '🤍';
+                b.innerHTML = w ? '<i class=hai-heart-fill></i>' : '<i class=hai-heart></i>';
                 b.classList.toggle('wl-on', w);
             });
             var mb = document.getElementById('modal-wl-btn-x');
             if (mb) {
                 var w = ids.has(String(mb.dataset.wpid));
-                mb.textContent = w ? '❤️ Đã yêu thích' : '🤍 Thêm vào yêu thích';
+                mb.innerHTML = w ? '<i class=hai-heart-fill></i> Đã yêu thích' : '<i class=hai-heart></i> Thêm vào yêu thích';
                 mb.classList.toggle('wl-on', w);
             }
         }
@@ -29920,7 +30001,7 @@
             var btn = document.createElement('button');
             btn.className = 'item-wl-btn' + (ids.has(String(pid)) ? ' wl-on' : '');
             btn.dataset.wpid = pid;
-            btn.textContent = ids.has(String(pid)) ? '❤️' : '🤍';
+            btn.innerHTML = ids.has(String(pid)) ? '<i class=hai-heart-fill></i>' : '<i class=hai-heart></i>';
             btn.title = 'Yêu thích';
             btn.onclick = async function (e) {
                 e.stopPropagation();
@@ -29944,11 +30025,11 @@
             btn.className = 'modal-wl-btn' + (ids.has(String(pid)) ? ' wl-on' : '');
             btn.id = 'modal-wl-btn-x';
             btn.dataset.wpid = String(pid);
-            btn.textContent = ids.has(String(pid)) ? '❤️ Đã yêu thích' : '🤍 Thêm vào yêu thích';
+            btn.innerHTML = ids.has(String(pid)) ? '<i class=hai-heart-fill></i> Đã yêu thích' : '<i class=hai-heart></i> Thêm vào yêu thích';
             btn.onclick = async function () {
                 await doToggle(String(pid), name);
                 var w = ids.has(String(pid));
-                btn.textContent = w ? '❤️ Đã yêu thích' : '🤍 Thêm vào yêu thích';
+                btn.innerHTML = w ? '<i class=hai-heart-fill></i> Đã yêu thích' : '<i class=hai-heart></i> Thêm vào yêu thích';
                 btn.classList.toggle('wl-on', w);
             };
             anchor.after(btn);
@@ -29969,7 +30050,7 @@
             document.body.style.overflow = 'hidden';
             if (!loggedIn()) {
                 grid.innerHTML = '<div class="wl-empty">'
-                    + '<div class="wl-empty-icon">🔐</div>'
+                    + '<div class="wl-empty-icon"><i class=hai-lock></i></div>'
                     + '<div style="font-size:15px;font-weight:700;color:#374151;margin-bottom:8px;">Vui lòng đăng nhập</div>'
                     + '<div style="font-size:13px;color:#9ca3af;margin-bottom:14px;">để xem sản phẩm yêu thích</div>'
                     + '<a href="/login" style="padding:10px 26px;background:linear-gradient(135deg,#f43f5e,#e11d48);color:#fff;border-radius:30px;font-weight:700;text-decoration:none;font-size:13px;">Đăng nhập</a>'
@@ -29977,16 +30058,16 @@
                 document.getElementById('wl-sub').textContent = '';
                 return;
             }
-            grid.innerHTML = '<div class="wl-empty"><div class="wl-empty-icon">⏳</div><div>Đang tải...</div></div>';
+            grid.innerHTML = '<div class="wl-empty"><div class="wl-empty-icon"><i class=hai-hourglass></i></div><div>Đang tải...</div></div>';
             try {
                 var r = await fetch('/wishlist', { headers: { 'Authorization': 'Bearer ' + tok() } });
                 var items = await r.json();
                 document.getElementById('wl-sub').textContent = items.length + ' sản phẩm';
                 if (!items.length) {
                     grid.innerHTML = '<div class="wl-empty">'
-                        + '<div class="wl-empty-icon">💔</div>'
+                        + '<div class="wl-empty-icon"><i class=hai-heart-crack></i></div>'
                         + '<div style="font-size:14px;font-weight:700;color:#374151;margin-bottom:6px;">Chưa có sản phẩm yêu thích</div>'
-                        + '<div style="font-size:12px;color:#9ca3af;">Nhấn ❤️ trên sản phẩm để lưu</div>'
+                        + '<div style="font-size:12px;color:#9ca3af;">Nhấn <i class=hai-heart-fill></i> trên sản phẩm để lưu</div>'
                         + '</div>';
                     return;
                 }
@@ -29994,14 +30075,14 @@
                 items.forEach(function (p) {
                     var effP = (typeof getEffectivePrice === 'function') ? getEffectivePrice(p) : p.price;
                     var fmt = Number(effP).toLocaleString('vi-VN');
-                    var stk = p.stock < 1 ? '<span style="color:#ef4444">❌ Hết hàng</span>'
-                        : p.stock < 10 ? '<span style="color:#ef4444">🔥 Còn ' + p.stock + ' sp</span>'
-                            : '<span style="color:#059669">✅ Còn hàng</span>';
+                    var stk = p.stock < 1 ? '<span style="color:#ef4444"><i class=hai-x-circle></i> Hết hàng</span>'
+                        : p.stock < 10 ? '<span style="color:#ef4444"><i class=hai-flame></i> Còn ' + p.stock + ' sp</span>'
+                            : '<span style="color:#059669"><i class=hai-check-circle></i> Còn hàng</span>';
                     var c = document.createElement('div');
                     c.className = 'wl-card';
                     c.innerHTML = '<div class="wl-cimg">'
                         + '<img src="' + (p.image_url || '') + '" onerror="this.src=\'https://placehold.co/130?text=SP\'">'
-                        + '<button class="wl-rm" onclick="event.stopPropagation();wlRm(' + p.id + ',this.closest(\'.wl-card\'))">🗑️</button>'
+                        + '<button class="wl-rm" onclick="event.stopPropagation();wlRm(' + p.id + ',this.closest(\'.wl-card\'))"><i class=hai-trash></i></button>'
                         + '</div>'
                         + '<div class="wl-cbody">'
                         + '<div class="wl-cname">' + (p.name || '') + '</div>'
@@ -30018,7 +30099,7 @@
                     grid.appendChild(c);
                 });
             } catch (e) {
-                grid.innerHTML = '<div class="wl-empty"><div>❌ Lỗi tải dữ liệu</div></div>';
+                grid.innerHTML = '<div class="wl-empty"><div><i class=hai-x-circle></i> Lỗi tải dữ liệu</div></div>';
             }
         };
 
@@ -30042,7 +30123,7 @@
             el.style.cssText = 'position:fixed;bottom:88px;left:50%;transform:translateX(-50%);'
                 + 'background:' + (err ? '#e11d48' : '#111') + ';color:#fff;padding:9px 18px;border-radius:30px;'
                 + 'font-size:12px;font-weight:700;z-index:99999;box-shadow:0 4px 14px rgba(0,0,0,.25);white-space:nowrap;';
-            el.textContent = msg;
+            el.innerHTML = msg;
             document.body.appendChild(el);
             setTimeout(function () { el.style.opacity = '0'; el.style.transition = 'opacity .3s'; setTimeout(function () { el.remove(); }, 300); }, 2000);
         }
@@ -30206,9 +30287,9 @@
 <div id="haImgSearchModal">
     <div id="haImgSearchBox">
         <div id="haImgSearchHead">
-            <h3>📷 Kết quả tìm bằng hình ảnh</h3>
+            <h3><i class=hai-camera></i> Kết quả tìm bằng hình ảnh</h3>
             <button onclick="document.getElementById('haImgSearchModal').classList.remove('show')"
-                style="border:none;background:none;font-size:22px;cursor:pointer;">✕</button>
+                style="border:none;background:none;font-size:22px;cursor:pointer;"><i class=hai-x></i></button>
         </div>
         <div id="haImgSearchBody">
             <div style="text-align:center;padding:40px 0;color:#888;">Đang tải...</div>
@@ -30226,7 +30307,7 @@
         var listenDot = document.getElementById('haVoiceListenDot');
 
         if (!SpeechRecognitionCtor) {
-            if (typeof showToast === 'function') showToast('⚠️ Trình duyệt của bạn chưa hỗ trợ Voice Search. Vui lòng thử Chrome hoặc Edge!');
+            if (typeof showToast === 'function') showToast('<i class=hai-alert></i> Trình duyệt của bạn chưa hỗ trợ Voice Search. Vui lòng thử Chrome hoặc Edge!');
             else alert('Trình duyệt của bạn chưa hỗ trợ Voice Search. Vui lòng thử Chrome hoặc Edge!');
             return;
         }
@@ -30238,7 +30319,7 @@
             recognition.maxAlternatives = 1;
 
             if (listenDot) listenDot.classList.add('show');
-            if (typeof showToast === 'function') showToast('🎤 Đang nghe... Hãy nói tên sản phẩm!');
+            if (typeof showToast === 'function') showToast('<i class=hai-mic></i> Đang nghe... Hãy nói tên sản phẩm!');
 
             recognition.onstart = function () {
                 if (listenDot) listenDot.classList.add('show');
@@ -30251,7 +30332,7 @@
             recognition.onerror = function (e) {
                 if (listenDot) listenDot.classList.remove('show');
                 if (e.error === 'not-allowed' || e.error === 'permission-denied') {
-                    alert('⚠️ Vui lòng cho phép truy cập micro trên trình duyệt để sử dụng tìm kiếm giọng nói!');
+ alert('Vui lòng cho phép truy cập micro trên trình duyệt để sử dụng tìm kiếm giọng nói!');
                 } else if (e.error !== 'no-speech') {
                     console.warn('[voice-search] Lỗi:', e.error);
                 }
@@ -30264,7 +30345,7 @@
                 if (input && transcript.trim()) {
                     input.value = transcript.trim();
                     input.focus();
-                    if (typeof showToast === 'function') showToast('🔍 Đã nhận diện: "' + transcript.trim() + '"');
+                    if (typeof showToast === 'function') showToast('<i class=hai-search></i> Đã nhận diện: "' + transcript.trim() + '"');
                     if (typeof window.tgddFilterTab === 'function') {
                         window.tgddFilterTab(transcript.trim(), null);
                     }
@@ -30297,7 +30378,7 @@
             var imgModal = document.getElementById('haImgSearchModal');
             var imgBody = document.getElementById('haImgSearchBody');
             if (imgModal) imgModal.classList.add('show');
-            if (imgBody) imgBody.innerHTML = '<div style="text-align:center;padding:40px 0;color:#888;">⏳ Đang phân tích hình ảnh sản phẩm, vui lòng đợi...</div>';
+            if (imgBody) imgBody.innerHTML = '<div style="text-align:center;padding:40px 0;color:#888;"><i class=hai-hourglass></i> Đang phân tích hình ảnh sản phẩm, vui lòng đợi...</div>';
 
             var formData = new FormData();
             formData.append('file', file);
@@ -30307,13 +30388,13 @@
                 var data = await res.json();
 
                 if (!res.ok) {
-                    if (imgBody) imgBody.innerHTML = '<div style="text-align:center;padding:40px 0;color:#d0021c;">❌ ' + (data.detail || 'Không thể tìm kiếm bằng ảnh lúc này') + '</div>';
+                    if (imgBody) imgBody.innerHTML = '<div style="text-align:center;padding:40px 0;color:#d0021c;"><i class=hai-x-circle></i> ' + (data.detail || 'Không thể tìm kiếm bằng ảnh lúc này') + '</div>';
                     return;
                 }
 
                 var results = data.results || [];
                 if (results.length === 0) {
-                    if (imgBody) imgBody.innerHTML = '<div style="text-align:center;padding:40px 0;color:#888;">🔍 Không tìm thấy sản phẩm tương tự trong ảnh này.</div>';
+                    if (imgBody) imgBody.innerHTML = '<div style="text-align:center;padding:40px 0;color:#888;"><i class=hai-search></i> Không tìm thấy sản phẩm tương tự trong ảnh này.</div>';
                     return;
                 }
 
@@ -30333,7 +30414,7 @@
                 html += '</div>';
                 if (imgBody) imgBody.innerHTML = html;
             } catch (e) {
-                if (imgBody) imgBody.innerHTML = '<div style="text-align:center;padding:40px 0;color:#d0021c;">❌ Lỗi kết nối khi tìm kiếm ảnh, vui lòng thử lại.</div>';
+                if (imgBody) imgBody.innerHTML = '<div style="text-align:center;padding:40px 0;color:#d0021c;"><i class=hai-x-circle></i> Lỗi kết nối khi tìm kiếm ảnh, vui lòng thử lại.</div>';
             }
         });
     })();
@@ -30344,12 +30425,12 @@
         style="max-width: 580px; max-height: 80vh; border-radius: 20px; overflow: hidden; display: flex; flex-direction: column; background: #fff;">
         <div
             style="background:#ffd400; padding:16px 20px; display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid #e0c000;">
-            <h3 style="margin:0; font-size:16px; font-weight:800; color:#111;">📍 Chọn Tỉnh / Thành phố giao hàng</h3>
+            <h3 style="margin:0; font-size:16px; font-weight:800; color:#111;"><i class=hai-map-pin></i> Chọn Tỉnh / Thành phố giao hàng</h3>
             <button onclick="closeProvinceSelectModal()"
                 style="background:none; border:none; font-size:24px; cursor:pointer; color:#111; font-weight:bold;">&times;</button>
         </div>
         <div style="padding:14px 20px 8px; background:#f8f9fa; border-bottom:1px solid #eee;">
-            <input type="text" id="ha-province-search" placeholder="🔍 Tìm nhanh Tỉnh / Thành phố..."
+ <input type="text"id="ha-province-search"placeholder="Tìm nhanh Tỉnh / Thành phố..."
                 onkeyup="filterProvinceList()"
                 style="width:100%; padding:10px 14px; border-radius:10px; border:1px solid #ddd; font-size:13.5px; outline:none; box-sizing:border-box;">
         </div>
@@ -30419,7 +30500,7 @@
         if (el) el.textContent = pName;
         closeProvinceSelectModal();
         if (typeof showToast === 'function') {
-            showToast('📍 Đã đổi vị trí giao hàng: ' + pName);
+            showToast('<i class=hai-map-pin></i> Đã đổi vị trí giao hàng: ' + pName);
         }
     }
 
@@ -30808,7 +30889,7 @@
             <svg viewBox="0 0 24 24"><path d="M12 2a5 5 0 1 1 0 10A5 5 0 0 1 12 2zm0 12c5.33 0 8 2.67 8 4v2H4v-2c0-1.33 2.67-4 8-4z"/></svg>
         </div>
         <div class="rag-info">
-            <div class="rag-name">Hồng Anh AI ✦ RAG</div>
+            <div class="rag-name">Hồng Anh AI <i class=hai-sparkle></i> RAG</div>
             <div class="rag-status">
                 <span class="dot"></span>
                 Trợ lý thông minh của Shop
@@ -30889,11 +30970,11 @@
     let currentImageMime = null;
 
     const SUGGESTIONS = [
-        '📋 Chính sách bảo hành?',
-        '🔄 Đổi trả hàng như thế nào?',
-        '🛒 Làm sao đặt hàng?',
-        '💳 Phương thức thanh toán?',
-        '🚚 Phí ship bao nhiêu?',
+        '<i class=hai-clipboard></i> Chính sách bảo hành?',
+        '<i class=hai-refresh></i> Đổi trả hàng như thế nào?',
+        '<i class=hai-cart></i> Làm sao đặt hàng?',
+        '<i class=hai-credit-card></i> Phương thức thanh toán?',
+        '<i class=hai-truck></i> Phí ship bao nhiêu?',
     ];
 
     // ── Open / Close ──────────────────────────────────────────
@@ -31004,8 +31085,8 @@
             </div>
             <div>
                 <div class="rag-bubble" style="text-align:left;">
-                    👋 Xin chào! Tôi là <strong>Hồng Anh AI</strong> — trợ lý thông minh của Shop Trương Hồng Anh.<br><br>
-                    Tôi có thể giúp bạn về <strong>chính sách bảo hành, đổi trả, hướng dẫn đặt hàng</strong> và nhiều hơn nữa. Hỏi tôi đi! 😊
+                    <i class=hai-wave></i> Xin chào! Tôi là <strong>Hồng Anh AI</strong> — trợ lý thông minh của Shop Trương Hồng Anh.<br><br>
+                    Tôi có thể giúp bạn về <strong>chính sách bảo hành, đổi trả, hướng dẫn đặt hàng</strong> và nhiều hơn nữa. Hỏi tôi đi! <i class=hai-smile></i>
                 </div>
                 <div class="rag-suggestions" id="rag-suggestions-area">
                     ${SUGGESTIONS.map(s => `<button class="rag-chip" type="button">${s}</button>`).join('')}
@@ -31046,7 +31127,7 @@
             .replace(/\n/g, '<br>');
 
         const sourcesHTML = (!isUser && sources && sources.length)
-            ? `<div class="rag-sources">📚 Nguồn: ${sources.map(s => `<span>${s}</span>`).join('')}</div>`
+            ? `<div class="rag-sources"><i class=hai-book></i> Nguồn: ${sources.map(s => `<span>${s}</span>`).join('')}</div>`
             : '';
             
         const imageHTML = imageBase64 ? `<div style="margin-bottom: 8px;"><img src="data:image/jpeg;base64,${imageBase64}" style="max-width: 100%; border-radius: 8px;"></div>` : '';
@@ -31159,7 +31240,7 @@
         })
         .catch(function (err) {
             hideLoading();
-            const errMsg = '⚠️ Xin lỗi, có lỗi xảy ra: ' + (err.message || 'Không kết nối được server. Vui lòng thử lại sau.');
+            const errMsg = '<i class=hai-alert></i> Xin lỗi, có lỗi xảy ra: ' + (err.message || 'Không kết nối được server. Vui lòng thử lại sau.');
             appendMessage('bot', errMsg, []);
         })
         .finally(function () {
