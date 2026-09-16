@@ -3206,10 +3206,91 @@ async def _rag_embed_text(text: str, task_type: str = "RETRIEVAL_QUERY") -> list
         return None
 
 
+def _normalize_router_text(text: str) -> str:
+    """Chuẩn hoá tiếng Việt để router intent so khớp ổn định mà không cần gọi thêm AI."""
+    import re as _re
+    import unicodedata as _unicodedata
+
+    normalized = _unicodedata.normalize("NFD", (text or "").lower())
+    normalized = "".join(ch for ch in normalized if _unicodedata.category(ch) != "Mn")
+    normalized = normalized.replace("đ", "d")
+    return _re.sub(r"\s+", " ", normalized).strip()
+
+
+def _is_shop_query(question: str) -> bool:
+    """
+    Router nhẹ, chạy local:
+    - Câu hỏi về shop / sản phẩm / chính sách -> RAG nội bộ.
+    - Câu hỏi ngoài shop -> Google Search grounding.
+
+    Không dùng cosine similarity để quyết định intent nữa, tránh câu ngoài lề
+    (ví dụ Ronaldo) vô tình match một chunk trong knowledge-base rồi tắt Search.
+    """
+    q = _normalize_router_text(question)
+    if not q:
+        return False
+
+    # Các intent chắc chắn thuộc dữ liệu/nội quy của shop.
+    shop_service_terms = (
+        "shop", "cua hang", "san pham", "bao hanh", "doi tra", "doi hang",
+        "dat hang", "don hang", "gio hang", "thanh toan", "giao hang",
+        "phi ship", "phi giao", "van chuyen", "ma giam gia", "coupon",
+        "khuyen mai", "flash sale", "ton kho", "con hang", "het hang",
+        "tra hang", "hoan tien", "mua hang", "tu van mua", "gia trong shop",
+    )
+    if any(term in q for term in shop_service_terms):
+        return True
+
+    # Nhóm thiết bị / thương hiệu mà shop đang kinh doanh.
+    product_terms = (
+        "dien thoai", "smartphone", "iphone", "samsung", "xiaomi", "oppo",
+        "realme", "vivo", "nokia", "pixel", "laptop", "macbook", "may tinh",
+        "tablet", "ipad", "airpods", "tai nghe", "dong ho thong minh",
+        "smartwatch", "apple watch", "sac", "cap sac", "cu sac", "op lung",
+        "phu kien", "man hinh", "may in",
+    )
+
+    if any(term in q for term in product_terms):
+        # Nếu chỉ hỏi tin tức / sự kiện / ngày ra mắt của ngành công nghệ và không
+        # hề hỏi shop, ưu tiên web để lấy dữ liệu thời gian thực.
+        live_info_terms = (
+            "tin moi", "tin tuc", "moi nhat", "vua ra mat", "ra mat khi nao",
+            "ngay ra mat", "su kien", "cong bo", "phat hanh khi nao",
+        )
+        commerce_terms = (
+            "shop", "cua hang", "mua", "gia", "ban", "con hang", "het hang",
+            "khuyen mai", "tu van", "bao hanh", "doi tra", "dat hang",
+        )
+        if any(term in q for term in live_info_terms) and not any(term in q for term in commerce_terms):
+            return False
+        return True
+
+    return False
+
+
+def _extract_grounding_sources(candidate: dict) -> list[str]:
+    """Lấy nguồn web thật từ groundingMetadata của Gemini Google Search."""
+    metadata = candidate.get("groundingMetadata", {}) or {}
+    chunks = metadata.get("groundingChunks", []) or []
+
+    sources: list[str] = []
+    seen: set[str] = set()
+    for chunk in chunks:
+        web = (chunk or {}).get("web", {}) or {}
+        uri = (web.get("uri") or "").strip()
+        title = (web.get("title") or "").strip()
+        if not uri or uri in seen:
+            continue
+        seen.add(uri)
+        sources.append(f"{title} — {uri}" if title else uri)
+
+    return sources
+
+
 async def _rag_generate(system_prompt: str, user_question: str,
                          history: list[ChatMessage],
-                         has_context: bool = True) -> str:
-    """Gọi Gemini Generate Content API để sinh câu trả lời."""
+                         use_google_search: bool = False) -> tuple[str, list[str]]:
+    """Gọi Gemini Generate Content; khi cần dữ liệu ngoài shop thì bắt buộc Google Search grounding."""
     api_key = os.getenv("GEMINI_API_KEY", "") or os.getenv("GOOGLE_API_KEY", "") or GEMINI_API_KEY
     if not api_key:
         raise HTTPException(status_code=500, detail="Chưa cấu hình GEMINI_API_KEY")
@@ -3219,9 +3300,8 @@ async def _rag_generate(system_prompt: str, user_question: str,
     for msg in (history or []):
         role = "user" if msg.role == "user" else "model"
         contents.append({"role": role, "parts": [{"text": msg.content}]})
-    
-    user_parts = [{"text": user_question}]
-    contents.append({"role": "user", "parts": user_parts})
+
+    contents.append({"role": "user", "parts": [{"text": user_question}]})
 
     base_payload = {
         "systemInstruction": {"parts": [{"text": system_prompt}]},
@@ -3232,36 +3312,27 @@ async def _rag_generate(system_prompt: str, user_question: str,
         },
     }
 
-    # Chiến lược thử:
-    # Lượt 1 (câu hỏi ngoài lề): thử TẤT CẢ models VỚI googleSearch
-    # Lượt 2 (fallback): nếu lượt 1 thất bại, thử lại KHÔNG dùng googleSearch
-    #         (model trả lời bằng kiến thức sẵn có — vẫn tốt hơn báo lỗi)
-    # Lượt RAG (có context): chỉ cần 1 lượt, không cần googleSearch
-    if not has_context:
-        rounds = [
-            (RAG_SEARCH_MODELS, True),   # Lượt 1: có googleSearch
-            (RAG_GEN_MODELS, False),     # Lượt 2: fallback không tool
-        ]
-    else:
-        rounds = [
-            (RAG_GEN_MODELS, False),     # RAG thường: không cần tool
-        ]
+    # Shop/RAG: không search web. Ngoài shop: bắt buộc Search, không fallback sang
+    # kiến thức model cũ vì có thể sinh số liệu lỗi thời.
+    rounds = [
+        (RAG_SEARCH_MODELS, True),
+    ] if use_google_search else [
+        (RAG_GEN_MODELS, False),
+    ]
 
     last_error = "Không thể kết nối Gemini API"
     async with httpx.AsyncClient(timeout=60.0) as client:
         for models, use_search in rounds:
             for model in models:
-                # Tạo payload cho lượt này
                 payload = dict(base_payload)
                 if use_search:
                     payload["tools"] = [{"google_search": {}}]
-                elif "tools" in payload:
-                    payload = {k: v for k, v in payload.items() if k != "tools"}
 
                 url = (
                     f"https://generativelanguage.googleapis.com/v1beta/models/"
                     f"{model}:generateContent?key={api_key}"
                 )
+
                 for attempt in range(3):
                     try:
                         resp = await client.post(url, json=payload)
@@ -3269,11 +3340,32 @@ async def _rag_generate(system_prompt: str, user_question: str,
                             data = resp.json()
                             candidates = data.get("candidates", [])
                             if candidates:
-                                parts = candidates[0].get("content", {}).get("parts", [])
-                                if parts and parts[0].get("text", "").strip():
-                                    return parts[0]["text"].strip()
+                                candidate = candidates[0]
+                                parts = candidate.get("content", {}).get("parts", [])
+                                answer_parts = [
+                                    part.get("text", "").strip()
+                                    for part in parts
+                                    if part.get("text", "").strip()
+                                ]
+                                if answer_parts:
+                                    sources = _extract_grounding_sources(candidate) if use_search else []
+                                    if use_search:
+                                        queries = (candidate.get("groundingMetadata", {}) or {}).get("webSearchQueries", []) or []
+                                        print(
+                                            f"[RAG Search] model={model} | grounded_sources={len(sources)} "
+                                            f"| queries={queries[:3]}"
+                                        )
+                                        # Tool được bật nhưng model không tạo grounding -> không chấp nhận
+                                        # câu trả lời từ trí nhớ; thử model tiếp để tránh dữ liệu cũ.
+                                        if not sources:
+                                            last_error = f"Gemini [{model}]: Search không trả grounding sources"
+                                            print(f"[RAG] {last_error}")
+                                            break
+                                    return "\n".join(answer_parts), sources
+
                             last_error = f"Gemini [{model}]: phản hồi rỗng"
                             break
+
                         elif resp.status_code == 429:
                             last_error = f"Gemini [{model}] HTTP 429: rate limit"
                             if attempt < 2:
@@ -3284,9 +3376,10 @@ async def _rag_generate(system_prompt: str, user_question: str,
                                 print(f"[RAG] 429 hết retry cho {model}, chuyển model tiếp...")
                                 break
                         else:
-                            last_error = f"Gemini [{model}] HTTP {resp.status_code}: {resp.text[:200]}"
+                            last_error = f"Gemini [{model}] HTTP {resp.status_code}: {resp.text[:300]}"
                             print(f"[RAG] {last_error}")
                             break
+
                     except httpx.TimeoutException:
                         last_error = f"Gemini [{model}]: timeout sau 60s"
                         print(f"[RAG] Timeout khi gọi {model}")
@@ -3296,10 +3389,14 @@ async def _rag_generate(system_prompt: str, user_question: str,
                         print(f"[RAG] Lỗi khi gọi {model}: {e}")
                         break
 
-    # Trả message thân thiện thay vì hiện lỗi kỹ thuật cho khách hàng
     print(f"[RAG] Tất cả model thất bại. Lỗi cuối: {last_error}")
-    return "Xin lỗi, hệ thống AI đang bận. Vui lòng thử lại sau vài giây nhé! 🙏"
-
+    if use_google_search:
+        return (
+            "Xin lỗi, hiện em chưa thể kiểm tra dữ liệu web theo thời gian thực nên em không muốn trả một số liệu có thể đã cũ. "
+            "Anh/chị vui lòng thử lại sau ít phút nhé! 🙏",
+            [],
+        )
+    return "Xin lỗi, hệ thống AI đang bận. Vui lòng thử lại sau vài giây nhé! 🙏", []
 
 # ── Helpers: Chunking (dùng cho /api/reindex) ─────────────────────────────────
 def _split_sentences(text: str) -> list[str]:
@@ -3334,86 +3431,89 @@ def _chunk_text(text: str, target_words: int = RAG_CHUNK_TARGET_WORDS,
 @app.post("/api/rag-chat", response_model=RagChatResponse)
 async def rag_chat(req: RagChatRequest):
     """
-    Chatbot AI với RAG:
-    1. Embed câu hỏi bằng Gemini Embedding.
-    2. Tìm top-K chunk gần nhất trong vector_store.
-    3. Tạo system prompt chứa context tìm được.
-    4. Gọi Gemini để sinh câu trả lời.
+    Chatbot AI hybrid:
+    - Câu hỏi liên quan shop -> RAG knowledge-base.
+    - Câu hỏi ngoài shop -> Gemini Google Search grounding để lấy dữ liệu mới.
     """
     question = req.question.strip()
     if not question:
         raise HTTPException(status_code=400, detail="Câu hỏi không được để trống")
 
-    # ── 1. Load vector store ──────────────────────────────────────────────────
-    store = _load_rag_store()
+    is_shop_query = _is_shop_query(question)
+    print(f"[RAG Router] route={'SHOP_RAG' if is_shop_query else 'WEB_SEARCH'} | q={question[:120]}")
 
-    # ── 2. Embed câu hỏi ─────────────────────────────────────────────────────
-    if store:
-        query_vector = await _rag_embed_text(question, task_type="RETRIEVAL_QUERY")
-    else:
-        query_vector = None
+    # ======================================================================
+    # NHÁNH 1: CÂU HỎI LIÊN QUAN SHOP -> RAG NỘI BỘ
+    # ======================================================================
+    if is_shop_query:
+        store = _load_rag_store()
 
-    # ── 3. Retrieve top-K ─────────────────────────────────────────────────────
-    if query_vector and store:
-        top_chunks = _retrieve_top_k(query_vector, store, k=RAG_TOP_K)
-        sources = list({c.get("source", "") for c in top_chunks if c.get("source")})
-        context_text = "\n\n---\n\n".join(c["chunk"] for c in top_chunks)
-    else:
-        # Fallback: không có vector store → trả lời chung
-        top_chunks = []
-        sources = []
-        context_text = ""
+        if store:
+            query_vector = await _rag_embed_text(question, task_type="RETRIEVAL_QUERY")
+        else:
+            query_vector = None
 
-    # ── 4. Tạo system prompt ──────────────────────────────────────────────────
-    if context_text:
-        system_prompt = (
-            "Bạn là Hồng Anh AI — trợ lý tư vấn của Shop Trương Hồng Anh, "
-            "chuyên về điện thoại, laptop, phụ kiện và đồng hồ thông minh chính hãng.\n\n"
-            "QUY TẮC QUAN TRỌNG:\n"
-            "1. Nếu câu hỏi liên quan đến sản phẩm, dịch vụ của shop: Chỉ trả lời dựa trên thông tin trong phần NGỮCẢNH bên dưới. Không bịa thêm thông tin.\n"
-            "2. Nếu khách hỏi những câu NGOÀI LỀ (ví dụ: thời tiết, chủ tịch nước, kiến thức chung...) không có trong ngữ cảnh: HÃY TRẢ LỜI chính xác dựa trên kiến thức của bạn. Ngay sau khi trả lời, PHẢI có một câu chuyển ý khéo léo để mời khách mua sắm các sản phẩm của shop (điện thoại, laptop...) và hỏi xem họ có nhu cầu gì không.\n"
-            "3. Trả lời bằng tiếng Việt có dấu, thân thiện và ngắn gọn (2-5 câu).\n"
-            "4. Với các câu hỏi về SỐ LƯỢNG, THỐNG KÊ cụ thể (ví dụ: có bao nhiêu sản phẩm, bao nhiêu mẫu...), "
-            "CHỈ trả lời số liệu chính xác nếu số đó CÓ TRONG ngữ cảnh. Tuyệt đối KHÔNG ước lượng hay dùng từ "
-            "mơ hồ như 'hàng trăm', 'rất nhiều', 'đa dạng'. Nếu không có số liệu "
-            "chính xác, hãy nói: 'Hiện em chưa có số liệu chính xác, anh/chị có thể xem trực tiếp "
-            "trên trang sản phẩm của shop ạ.'\n\n"
-            f"NGỮCẢNH:\n{context_text}"
+        if query_vector and store:
+            top_chunks = _retrieve_top_k(query_vector, store, k=RAG_TOP_K)
+            sources = list({c.get("source", "") for c in top_chunks if c.get("source")})
+            context_text = "\n\n---\n\n".join(c["chunk"] for c in top_chunks)
+        else:
+            top_chunks = []
+            sources = []
+            context_text = ""
+
+        if context_text:
+            system_prompt = (
+                "Bạn là Hồng Anh AI — trợ lý tư vấn của Shop Trương Hồng Anh, "
+                "chuyên về điện thoại, laptop, phụ kiện và đồng hồ thông minh chính hãng.\n\n"
+                "QUY TẮC QUAN TRỌNG:\n"
+                "1. Đây là câu hỏi liên quan đến shop. Chỉ trả lời dựa trên phần NGỮCẢNH bên dưới, không bịa thêm thông tin.\n"
+                "2. Nếu NGỮCẢNH không đủ để khẳng định một thông tin cụ thể, hãy nói rõ là shop chưa có dữ liệu chính xác cho nội dung đó.\n"
+                "3. Trả lời bằng tiếng Việt có dấu, thân thiện và ngắn gọn (2-5 câu).\n"
+                "4. Với các câu hỏi về SỐ LƯỢNG, THỐNG KÊ cụ thể, chỉ trả lời số liệu nếu có trong ngữ cảnh; tuyệt đối không ước lượng.\n\n"
+                f"NGỮCẢNH:\n{context_text}"
+            )
+        else:
+            system_prompt = (
+                "Bạn là Hồng Anh AI — trợ lý tư vấn của Shop Trương Hồng Anh.\n"
+                "Câu hỏi của khách liên quan đến shop nhưng hệ thống RAG hiện không tìm thấy dữ liệu đủ phù hợp. "
+                "Không được bịa giá, tồn kho, chính sách hay sản phẩm. Hãy nói ngắn gọn rằng hiện chưa có dữ liệu chính xác và gợi ý khách xem trực tiếp trên trang sản phẩm hoặc hỏi lại cụ thể hơn."
+            )
+
+        answer, _ = await _rag_generate(
+            system_prompt,
+            question,
+            req.history or [],
+            use_google_search=False,
         )
-    else:
-        import datetime
-        current_date = datetime.datetime.now().strftime("%d/%m/%Y")
-        system_prompt = (
-            f"Bạn là Hồng Anh AI — trợ lý tư vấn thân thiện của Shop Trương Hồng Anh.\n"
-            f"Hôm nay là ngày {current_date}.\n\n"
-            "Khách vừa hỏi một câu NẰM NGOÀI phạm vi sản phẩm/chính sách của shop "
-            "(ví dụ: thời sự, chính trị, kiến thức chung, thể thao, v.v.). BẠN PHẢI TUÂN THỦ ĐÚNG CẤU TRÚC SAU:\n"
-            "1. Trả lời chính xác, dứt khoát, tối đa 1-2 câu, dựa trên thông tin cập nhật nhất của bạn hoặc công cụ tìm kiếm. "
-            "Không thêm disclaimer (ví dụ không nói 'tôi là AI nên...').\n"
-            "2. Ngay sau câu trả lời, chuyển ý tự nhiên trong 1 câu, liên kết chủ đề vừa hỏi với sản phẩm/dịch vụ của shop.\n"
-            "3. Kết thúc bằng 1 câu hỏi mở, gợi ý khách cho biết nhu cầu để tư vấn sản phẩm.\n\n"
-            "Ví dụ mẫu:\n"
-            "\"Dạ, thời tiết hôm nay khá mát mẻ với nhiệt độ khoảng 25 độ C ạ. "
-            "Tiết trời này rất thích hợp để mang theo một chiếc laptop mỏng nhẹ hoặc đeo tai nghe chống ồn nhâm nhi ly cà phê làm việc đó ạ. "
-            "Shop Trương Hồng Anh đang có nhiều mẫu mới, anh/chị muốn em tư vấn dòng máy nào không ạ?\"\n\n"
-            "TUYỆT ĐỐI KHÔNG được từ chối trả lời câu hỏi ngoài lề, không trả lời lan man, "
-            "và không được bỏ qua bước dẫn dắt về sản phẩm.\n\n"
-            "- Với các câu hỏi về SỐ LƯỢNG, THỐNG KÊ (có bao nhiêu sản phẩm, bao nhiêu mẫu...), "
-            "TUYỆT ĐỐI KHÔNG DÙNG TỪ 'hàng trăm', 'rất nhiều'. BẮT BUỘC trả lời: "
-            "'Hiện em chưa có số liệu chính xác, anh/chị có thể xem trực tiếp trên trang sản phẩm của shop ạ.'\n"
-            "- Giữ giọng văn gần gũi, không quảng cáo lộ liễu, không bịa thông tin cụ thể "
-            "(giá, thông số) nếu không có trong dữ liệu.\n"
-            "- Trả lời bằng tiếng Việt có dấu."
-        )
+        return RagChatResponse(answer=answer, sources=sources)
 
-    # ── 5. Gọi Gemini Generate ────────────────────────────────────────────────
-    answer = await _rag_generate(
-        system_prompt, question, req.history or [], 
-        has_context=bool(context_text)
+    # ======================================================================
+    # NHÁNH 2: CÂU HỎI NGOÀI SHOP -> GOOGLE SEARCH GROUNDING
+    # ======================================================================
+    import datetime
+    current_date = datetime.datetime.now().strftime("%d/%m/%Y")
+    system_prompt = (
+        f"Bạn là Hồng Anh AI — trợ lý tư vấn thân thiện của Shop Trương Hồng Anh.\n"
+        f"Hôm nay là ngày {current_date}.\n\n"
+        "Khách đang hỏi một nội dung NẰM NGOÀI dữ liệu sản phẩm/chính sách của shop. "
+        "Bạn đang được cung cấp công cụ Google Search và PHẢI ưu tiên kết quả tìm kiếm web để trả lời, đặc biệt với dữ liệu có thể thay đổi theo thời gian "
+        "như thể thao, số bàn thắng, tỷ số, thời tiết, giá cả, tin tức, chức vụ, lịch thi đấu và sự kiện hiện tại.\n\n"
+        "QUY TẮC:\n"
+        "1. Không được dùng trí nhớ cũ để khẳng định số liệu hiện tại khi có thể kiểm tra bằng Search.\n"
+        "2. Không được tự nhận 'theo website X' nếu website đó không xuất hiện trong kết quả grounding của Search.\n"
+        "3. Nếu người dùng hỏi nguồn hoặc ngày cập nhật: nêu nguồn và ngày CHỈ khi kết quả tìm kiếm thể hiện được ngày đó; nếu nguồn không hiển thị ngày cập nhật thì nói rõ 'nguồn không hiển thị ngày cập nhật', tuyệt đối không tự bịa ngày.\n"
+        "4. Trả lời phần thông tin chính xác trước, ngắn gọn 1-3 câu. Sau đó có thể chuyển ý tự nhiên 1 câu sang sản phẩm/dịch vụ của shop và kết thúc bằng một câu hỏi mở.\n"
+        "5. Trả lời bằng tiếng Việt có dấu."
     )
 
-    return RagChatResponse(answer=answer, sources=sources)
-
+    answer, web_sources = await _rag_generate(
+        system_prompt,
+        question,
+        req.history or [],
+        use_google_search=True,
+    )
+    return RagChatResponse(answer=answer, sources=web_sources)
 
 # ── Endpoint 2: POST /api/reindex ────────────────────────────────────────────
 @app.post("/api/reindex", response_model=ReindexResponse)
