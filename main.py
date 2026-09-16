@@ -3100,7 +3100,7 @@ RAG_VECTOR_STORE_PATH = Path(__file__).parent / "vector_store.json"
 RAG_KB_DIR             = Path(__file__).parent / "knowledge-base"
 RAG_EMBEDDING_MODEL    = "gemini-embedding-001"
 RAG_GEN_MODELS         = ["gemini-3.8-flash", "gemini-3.5-flash", "gemini-2.5-flash"]
-RAG_SEARCH_MODELS      = ["gemini-3.8-flash", "gemini-3.5-flash", "gemini-2.5-flash"]  # models dùng khi bật googleSearch (câu hỏi ngoài lề)
+RAG_SEARCH_MODELS      = ["gemini-2.5-flash", "gemini-2.5-flash-lite"]  # Google Search Grounding: free tier hỗ trợ trực tiếp trên GenerateContent
 RAG_WEB_SEARCH_MODELS  = ["gemini-2.5-flash", "gemini-2.5-flash-lite"]  # Google Search Grounding: free tier hỗ trợ 500 RPD dùng chung
 
 
@@ -3713,10 +3713,15 @@ async def rag_chat(req: RagChatRequest, db: Session = Depends(get_db)):
         "5. Trả lời bằng tiếng Việt có dấu."
     )
 
-    answer, web_sources = await _web_search_generate_interactions(
+    # Dùng GenerateContent + google_search trực tiếp. Cách này ổn định với
+    # Gemini 2.5 Flash / Flash-Lite và trả groundingMetadata chứa nguồn web thật.
+    # Không dùng Interactions API ở đây vì backend Render trước đó đã rơi vào
+    # fallback dù router WEB_SEARCH hoạt động đúng.
+    answer, web_sources = await _rag_generate(
         system_prompt,
         question,
         req.history or [],
+        use_google_search=True,
     )
     return RagChatResponse(answer=answer, sources=web_sources)
 
