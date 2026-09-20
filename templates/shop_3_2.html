@@ -30301,6 +30301,21 @@ i[class^="hai-"], i[class*=" hai-"] {
 
 <script>
     // ============ TÌM KIẾM BẰNG GIỌNG NÓI ============
+    // ============ ĐỌC KẾT QUẢ BẰNG GIỌNG NÓI (Text-to-Speech) ============
+    // Chỉ dùng cho tìm bằng giọng nói & tìm bằng hình ảnh — dùng SpeechSynthesis có sẵn trình duyệt, không cần train/gọi API.
+    window.haSpeakResult = function (text) {
+        if (!('speechSynthesis' in window) || !text) return;
+        try {
+            window.speechSynthesis.cancel(); // huỷ câu đang đọc dở (nếu có) trước khi đọc câu mới
+            var utter = new SpeechSynthesisUtterance(text);
+            utter.lang = 'vi-VN';
+            utter.rate = 1;
+            window.speechSynthesis.speak(utter);
+        } catch (e) {
+            console.warn('[tts] Lỗi đọc kết quả:', e);
+        }
+    };
+
     window.startVoiceSearch = function () {
         var SpeechRecognitionCtor = window.SpeechRecognition || window.webkitSpeechRecognition;
         var voiceBtn = document.getElementById('haVoiceSearchBtn');
@@ -30349,6 +30364,21 @@ i[class^="hai-"], i[class*=" hai-"] {
                     if (typeof window.tgddFilterTab === 'function') {
                         window.tgddFilterTab(transcript.trim(), null);
                     }
+                    // Đọc kết quả tìm được sau khi đã lọc xong (tgddFilterTab chạy đồng bộ nên đọc ngay được)
+                    var container = document.getElementById('product-list-container');
+                    if (container) {
+                        var visibleItems = Array.from(container.querySelectorAll('.item')).filter(function (it) {
+                            return it.style.display !== 'none';
+                        });
+                        if (visibleItems.length > 0) {
+                            var names = visibleItems.slice(0, 3).map(function (it) {
+                                return it.getAttribute('data-pname') || '';
+                            }).filter(Boolean);
+                            window.haSpeakResult('Tìm thấy ' + visibleItems.length + ' sản phẩm phù hợp. ' + names.join(', '));
+                        } else {
+                            window.haSpeakResult('Không tìm thấy sản phẩm nào phù hợp.');
+                        }
+                    }
                 }
             };
 
@@ -30395,6 +30425,7 @@ i[class^="hai-"], i[class*=" hai-"] {
                 var results = data.results || [];
                 if (results.length === 0) {
                     if (imgBody) imgBody.innerHTML = '<div style="text-align:center;padding:40px 0;color:#888;"><i class=hai-search></i> Không tìm thấy sản phẩm tương tự trong ảnh này.</div>';
+                    window.haSpeakResult('Không tìm thấy sản phẩm nào giống trong ảnh này.');
                     return;
                 }
 
@@ -30413,6 +30444,9 @@ i[class^="hai-"], i[class*=" hai-"] {
                 });
                 html += '</div>';
                 if (imgBody) imgBody.innerHTML = html;
+
+                var speakNames = results.slice(0, 3).map(function (p) { return p.name || ''; }).filter(Boolean);
+                window.haSpeakResult('Tìm thấy ' + results.length + ' sản phẩm giống trong ảnh. ' + speakNames.join(', '));
             } catch (e) {
                 if (imgBody) imgBody.innerHTML = '<div style="text-align:center;padding:40px 0;color:#d0021c;"><i class=hai-x-circle></i> Lỗi kết nối khi tìm kiếm ảnh, vui lòng thử lại.</div>';
             }
