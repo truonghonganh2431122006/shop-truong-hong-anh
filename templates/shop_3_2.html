@@ -30302,8 +30302,32 @@ i[class^="hai-"], i[class*=" hai-"] {
 <script>
     // ============ TÌM KIẾM BẰNG GIỌNG NÓI ============
     // ============ ĐỌC KẾT QUẢ BẰNG GIỌNG NÓI (Text-to-Speech) ============
-    // Chỉ dùng cho tìm bằng giọng nói & tìm bằng hình ảnh — dùng SpeechSynthesis có sẵn trình duyệt, không cần train/gọi API.
+    // Chỉ dùng cho tìm bằng giọng nói & tìm bằng hình ảnh.
+    // Dùng dịch vụ đọc giọng của Google Dịch (giọng tiếng Việt thật, không phụ thuộc máy có cài sẵn giọng Việt hay không).
+    // Nếu vì lý do gì đó không gọi được (mạng chặn, Google đổi API...) thì tự rơi về giọng máy (speechSynthesis) như cũ.
     window.haSpeakResult = function (text) {
+        if (!text) return;
+        try {
+            if (window._haTtsAudio) {
+                window._haTtsAudio.pause();
+                window._haTtsAudio.currentTime = 0;
+            }
+            var safeText = text.length > 200 ? text.slice(0, 200) : text; // Google TTS giới hạn độ dài mỗi lần gọi
+            var url = 'https://translate.google.com/translate_tts?ie=UTF-8&tl=vi&client=tw-ob&q=' + encodeURIComponent(safeText);
+            var audio = new Audio(url);
+            window._haTtsAudio = audio;
+            audio.play().catch(function (err) {
+                console.warn('[tts] Không phát được giọng Google, dùng giọng máy dự phòng:', err);
+                haSpeakResultFallback(text);
+            });
+        } catch (e) {
+            console.warn('[tts] Lỗi đọc kết quả (Google), dùng giọng máy dự phòng:', e);
+            haSpeakResultFallback(text);
+        }
+    };
+
+    // Dự phòng: giọng máy có sẵn trong trình duyệt (chỉ chạy khi Google TTS lỗi)
+    function haSpeakResultFallback(text) {
         if (!('speechSynthesis' in window) || !text) return;
         try {
             window.speechSynthesis.cancel(); // huỷ câu đang đọc dở (nếu có) trước khi đọc câu mới
