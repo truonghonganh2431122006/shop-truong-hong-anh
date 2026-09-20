@@ -30310,7 +30310,24 @@ i[class^="hai-"], i[class*=" hai-"] {
             var utter = new SpeechSynthesisUtterance(text);
             utter.lang = 'vi-VN';
             utter.rate = 1;
-            window.speechSynthesis.speak(utter);
+
+            var pickViVoiceAndSpeak = function () {
+                var voices = window.speechSynthesis.getVoices() || [];
+                var viVoice = voices.find(function (v) { return /^vi(-|_|$)/i.test(v.lang); });
+                if (viVoice) utter.voice = viVoice; // ép đúng giọng tiếng Việt thay vì để trình duyệt tự chọn (hay bị lệch sang tiếng Anh)
+                window.speechSynthesis.speak(utter);
+            };
+
+            var voicesNow = window.speechSynthesis.getVoices();
+            if (voicesNow && voicesNow.length > 0) {
+                pickViVoiceAndSpeak();
+            } else {
+                // Nhiều trình duyệt (đặc biệt Chrome) load danh sách giọng đọc bất đồng bộ ở lần gọi đầu tiên
+                window.speechSynthesis.onvoiceschanged = function () {
+                    pickViVoiceAndSpeak();
+                    window.speechSynthesis.onvoiceschanged = null;
+                };
+            }
         } catch (e) {
             console.warn('[tts] Lỗi đọc kết quả:', e);
         }
