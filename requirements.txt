@@ -16,3 +16,4 @@ psycopg2-binary
 requests
 pillow
 numpy
+psycopg2-binary
